@@ -172,13 +172,17 @@ export default function SkillBar() {
             fontFamily: 'var(--font-mono)', fontWeight: 700, opacity: 0.5,
           }}>4</span>
 
-          {/* 주문서 아이콘 */}
+          {/* 주문서 아이콘 — 이벤트 버프 활성 시 별, 그 외 원 */}
           <div style={{
-            width: 8, height: 8, borderRadius: '50%',
+            width: 10, height: 10,
+            ...(tsActive && tsIsEvent
+              ? { clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }
+              : { borderRadius: '50%' }),
             background: tsColor,
             boxShadow: tsActive ? `0 0 6px ${tsColor}` : 'none',
             opacity: transformScrollEnabled ? 1 : 0.4,
             zIndex: 1, marginBottom: 1,
+            transition: 'all 0.3s ease',
           }} />
 
           {/* 남은 시간 or ON/OFF */}
