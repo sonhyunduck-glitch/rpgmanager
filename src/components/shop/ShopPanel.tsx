@@ -24,7 +24,6 @@ const TABS: { key: FullShopTab; label: string }[] = [
 export default function ShopPanel() {
   const [tab, setTab] = useState<FullShopTab>('potion');
   const gold = useGameStore(s => s.gold);
-  const level = useGameStore(s => s.level);
   const potions = useGameStore(s => s.potions);
   const buyPotion = useGameStore(s => s.buyPotion);
   const inventory = useGameStore(s => s.inventory);
@@ -76,7 +75,6 @@ export default function ShopPanel() {
           {tab === 'potion' && (
             <PotionShop
               gold={gold}
-              level={level}
               potions={potions}
               buyPotion={buyPotion}
             />

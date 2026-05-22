@@ -18,10 +18,9 @@ type ZoneListEntry =
   | { type: 'dungeon-group'; groupId: string; groupName: string; size: string; floors: HuntZone[] };
 
 export default function ZoneList({
-  zones, level, playerHit, selectedZoneId, huntZoneId, onSelect, materials,
+  zones, playerHit, selectedZoneId, huntZoneId, onSelect, materials,
 }: {
   zones: HuntZone[];
-  level: number;
   playerHit: number;
   selectedZoneId: string | null;
   huntZoneId: string | null;
@@ -113,7 +112,6 @@ export default function ZoneList({
             <ZoneButton
               key={entry.zone.id}
               zone={entry.zone}
-              level={level}
               playerHit={playerHit}
               isSelected={entry.zone.id === selectedZoneId}
               isCurrent={entry.zone.id === huntZoneId}
@@ -202,7 +200,6 @@ export default function ZoneList({
                   <ZoneButton
                     key={floor.id}
                     zone={floor}
-                    level={level}
                     playerHit={playerHit}
                     isSelected={floor.id === selectedZoneId}
                     isCurrent={floor.id === huntZoneId}
@@ -223,10 +220,9 @@ export default function ZoneList({
 
 /* ── 개별 존 버튼 ── */
 function ZoneButton({
-  zone, level, playerHit, isSelected, isCurrent, onSelect, indent, isLast, materials,
+  zone, playerHit, isSelected, isCurrent, onSelect, indent, isLast, materials,
 }: {
   zone: HuntZone;
-  level: number;
   playerHit: number;
   isSelected: boolean;
   isCurrent: boolean;
@@ -329,16 +325,14 @@ function ZoneButton({
         </div>
       </div>
 
-      {unlocked && (
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          color: avgHit >= 0.7 ? 'var(--success)' : avgHit >= 0.4 ? 'var(--warning)' : 'var(--danger)',
-          fontWeight: 700,
-        }}>
-          {Math.round(avgHit * 100)}%
-        </span>
-      )}
+      <span style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        color: avgHit >= 0.7 ? 'var(--success)' : avgHit >= 0.4 ? 'var(--warning)' : 'var(--danger)',
+        fontWeight: 700,
+      }}>
+        {Math.round(avgHit * 100)}%
+      </span>
     </button>
   );
 }

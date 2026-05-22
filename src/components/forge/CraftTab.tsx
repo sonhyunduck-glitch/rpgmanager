@@ -6,7 +6,6 @@ import { BTN_SUCCESS, SCROLL_AREA } from '../../styles/shared';
 
 export default function CraftTab() {
   const gold = useGameStore(s => s.gold);
-  const level = useGameStore(s => s.level);
   const materials = useGameStore(s => s.materials);
   const inventory = useGameStore(s => s.inventory);
   const inventoryCapacity = useGameStore(s => s.inventoryCapacity);

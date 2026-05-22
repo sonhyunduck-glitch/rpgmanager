@@ -4,7 +4,6 @@
 import {
   RECIPES, MATERIALS,
   getScrollId, getEnhanceRate, isEnhanceSafe,
-  EQUIPMENT_TEMPLATES,
 } from '../data/gameData';
 import { createEquipment, equipStat } from './helpers';
 import { ALL_EQUIP_SLOT_KEYS, EQUIP_TYPE_TO_SLOT } from './storeTypes';

@@ -66,7 +66,6 @@ export default function ZoneSelectPanel() {
         </div>
         <ZoneList
           zones={HUNT_ZONES}
-          level={level}
           playerHit={playerHit}
           selectedZoneId={selectedZoneId}
           huntZoneId={huntZoneId}
@@ -82,7 +81,7 @@ export default function ZoneSelectPanel() {
         flexShrink: 0,
       }}>
         {selectedZone ? (
-          <ZonePreview zone={selectedZone} level={level} playerHit={playerHit} playerEvasion={playerEvasion} onMove={handleMove} materials={materials} />
+          <ZonePreview zone={selectedZone} playerHit={playerHit} playerEvasion={playerEvasion} onMove={handleMove} materials={materials} />
         ) : (
           <div style={{
             flex: 1,

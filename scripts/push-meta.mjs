@@ -41,7 +41,7 @@ function loadEnv() {
 const dotenv = loadEnv();
 const SUPABASE_URL = process.env.SUPABASE_URL || dotenv.VITE_SUPABASE_URL || dotenv.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || dotenv.VITE_SUPABASE_ANON_KEY || dotenv.SUPABASE_ANON_KEY;
-const DEPLOY_URL = dotenv.DEPLOY_URL || 'https://rpgmanager.vercel.app';
+const DEPLOY_URL = dotenv.DEPLOY_URL || 'https://rpgmanager-beryl.vercel.app';
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error('[push-meta] SUPABASE_URL 또는 SUPABASE_KEY 환경변수가 없습니다.');

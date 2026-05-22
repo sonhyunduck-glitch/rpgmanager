@@ -10,9 +10,9 @@ import { calcHitRate } from '../../data/statFormulas';
 import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
 
 export default function ZonePreview({
-  zone, level, playerHit, playerEvasion, onMove, materials,
+  zone, playerHit, playerEvasion, onMove, materials,
 }: {
-  zone: HuntZone; level: number; playerHit: number; playerEvasion: number; onMove: () => void; materials: Record<string, number>;
+  zone: HuntZone; playerHit: number; playerEvasion: number; onMove: () => void; materials: Record<string, number>;
 }) {
   // 던전 2층 이상: 이동주문서 필요
   const needsScroll = zone.zoneType === 'dungeon' && zone.floor != null && zone.floor > 1;

@@ -11,9 +11,9 @@ const POTION_COLOR: Record<string, string> = {
 };
 
 export default function PotionShop({
-  gold, level, potions, buyPotion,
+  gold, potions, buyPotion,
 }: {
-  gold: number; level: number;
+  gold: number;
   potions: Record<string, number>;
   buyPotion: (id: string, qty: number) => void;
 }) {
@@ -90,7 +90,7 @@ export default function PotionShop({
             <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
               {[1, 10, 50].map(qty => {
                 const cost = p.buyPrice * qty;
-                const canBuy = !locked && gold >= cost;
+                const canBuy = gold >= cost;
                 return (
                   <button
                     key={qty}
