@@ -5,12 +5,12 @@ import { LABEL, STAT_VALUE, CHIP } from '../../styles/shared';
 import type { ViewMode } from '../../types';
 
 const NAV_ITEMS: { mode: ViewMode; label: string }[] = [
-  { mode: 'main', label: 'Main' },
-  { mode: 'inventory', label: 'Inventory' },
-  { mode: 'zones', label: 'Zones' },
-  { mode: 'shop', label: 'Shop' },
-  { mode: 'trade', label: 'Trade' },
-  { mode: 'craft', label: 'Craft' },
+  { mode: 'main', label: '사냥' },
+  { mode: 'inventory', label: '가방' },
+  { mode: 'zones', label: '사냥터' },
+  { mode: 'shop', label: '상점' },
+  { mode: 'trade', label: '거래소' },
+  { mode: 'craft', label: '제작' },
 ];
 
 export default function StatusBar() {
@@ -144,9 +144,8 @@ export default function StatusBar() {
                 color: isActive ? 'var(--accent)' : 'var(--text-mute)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
-                fontFamily: 'var(--font-mono)',
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.1em',
+                fontFamily: 'var(--font-ui)',
+                fontWeight: 600,
               }}
             >
               {label}
