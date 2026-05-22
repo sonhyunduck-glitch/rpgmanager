@@ -214,9 +214,15 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
       // ── 변신주문서 자동 사용 ──
       if (state.transformScrollEnabled) {
-        const hasTransformBuff = newActiveBuffs.some(b => b.potionId === 'transform_scroll');
-        if (!hasTransformBuff) {
-          const scrollType = state.transformScrollType ?? 'normal';
+        const existingTsBuff = newActiveBuffs.find(b => b.potionId === 'transform_scroll');
+        const scrollType = state.transformScrollType ?? 'normal';
+        // 타입 변경 감지: 기존 버프 이름과 현재 설정이 다르면 교체
+        const wantEventName = scrollType === 'event' ? '이벤트 변신주문서' : '변신주문서';
+        const needReplace = existingTsBuff && existingTsBuff.name !== wantEventName;
+        if (needReplace) {
+          newActiveBuffs = newActiveBuffs.filter(b => b.potionId !== 'transform_scroll');
+        }
+        if (!existingTsBuff || needReplace) {
           const scrollId = scrollType === 'event' ? 'event_transform_scroll' : 'transform_scroll';
           const scrollCount = newMaterials[scrollId] ?? 0;
           if (scrollCount > 0) {
