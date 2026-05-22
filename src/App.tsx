@@ -17,6 +17,7 @@ import ChatPanel from './components/chat/ChatPanel';
 import RightPanel from './components/layout/RightPanel';
 import ProfileModal from './components/profile/ProfileModal';
 import OfflineRewardModal from './components/offline/OfflineRewardModal';
+import UpdateModal from './components/update/UpdateModal';
 
 const BASE_TICK_MS = 3000;
 
@@ -172,6 +173,7 @@ export default function App({ userId }: AppProps) {
       {/* 전역 모달 오버레이 */}
       <ProfileModal />
       <OfflineRewardModal />
+      <UpdateModal />
     </div>
   );
 }

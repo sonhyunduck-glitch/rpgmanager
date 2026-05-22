@@ -4,6 +4,7 @@
    ========================================================= */
 import type { Equipment, HuntSession, QueueItem, StatAllocation, ActiveBuff } from '../types';
 import { EQUIPMENT_TEMPLATES } from '../data/gameData';
+import { APP_EPOCH } from '../lib/version';
 
 // ── UID Generators ──
 
@@ -60,8 +61,32 @@ export function equipDisplayName(eq: Equipment): string {
 export const STORAGE_KEY = 'rpg-manager-save';
 
 /**
+ * Epoch Gate — 로컬 데이터의 epoch ≠ APP_EPOCH 이면 전체 삭제.
+ * 데이터 초기화가 필요한 대규모 업데이트 시 APP_EPOCH를 올리면
+ * 모든 유저의 로컬 캐시가 자동 폐기됨.
+ */
+export function enforceEpochGate(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    const localEpoch = saved?.epoch ?? 0;
+    if (localEpoch !== APP_EPOCH) {
+      console.warn(`[EpochGate] 로컬 epoch(${localEpoch}) ≠ APP_EPOCH(${APP_EPOCH}) → localStorage 삭제`);
+      localStorage.removeItem(STORAGE_KEY);
+      return true; // wiped
+    }
+    return false;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    return true;
+  }
+}
+
+/**
  * Load saved state from localStorage.
  * Returns `null` when no save exists or on parse failure.
+ * Epoch gate가 먼저 실행되어야 함.
  */
 export function loadState(): Record<string, unknown> | null {
   try {
@@ -127,6 +152,7 @@ export function saveState(state: {
       activeBuffs,
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      epoch: APP_EPOCH,
       playerName, level, exp, gold, title, currentHp,
       equippedWeapon, equippedTshirt, equippedArmor, equippedHelmet, equippedCloak,
       equippedGloves, equippedBoots, equippedShield,

@@ -27,7 +27,7 @@ import type {
 } from '../types';
 import {
   genLogId, createEquipment, equipStat,
-  loadState, saveState as _saveState,
+  loadState, saveState as _saveState, enforceEpochGate,
 } from './helpers';
 import {
   setSyncUserId, setStateGetter, markDirty,
@@ -207,6 +207,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   authUserId: null,
 
   initFromDB: async (userId: string) => {
+    // Epoch Gate: 로컬 데이터 epoch ≠ APP_EPOCH → localStorage 삭제
+    enforceEpochGate();
+
     setSyncUserId(userId);
     setStateGetter(() => get() as unknown as Record<string, unknown>);
 
