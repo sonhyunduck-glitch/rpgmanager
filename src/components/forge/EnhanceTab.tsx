@@ -1,17 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useGameStore, equipStat, equipDisplayName, type Equipment } from '../../store/gameStore';
+import { useGameStore, equipDisplayName, type Equipment } from '../../store/gameStore';
 import {
   getEnhanceRate, isEnhanceSafe,
-  getScrollId, MATERIALS,
+  getScrollId,
 } from '../../data/gameData';
 import type { ScrollType } from '../../types';
 import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
 
-function rateColor(rate: number) {
-  if (rate > 0.7) return 'var(--success)';
-  if (rate > 0.4) return 'var(--warning)';
-  return 'var(--danger)';
-}
 
 const SCROLL_LABELS: Record<ScrollType, string> = {
   normal: '일반',
@@ -156,11 +151,8 @@ export default function EnhanceTab() {
   const displayLevel = animLevel ?? (target ? target.enhanceLevel : 0);
   const level = target ? target.enhanceLevel : 0;
   const maxed = target ? target.enhanceLevel >= target.maxEnhance : true;
-  const isWeapon = target?.type === 'weapon';
-
   // 주문서 정보
   const scrollId = target ? getScrollId(target.type, scrollType) : '';
-  const scrollName = MATERIALS[scrollId]?.name ?? '';
   const ownedScroll = materials[scrollId] ?? 0;
   const successRate = getEnhanceRate(target?.type ?? 'weapon', level);
   const safe = isEnhanceSafe(target?.type ?? 'weapon', level);

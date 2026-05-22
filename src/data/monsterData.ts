@@ -838,14 +838,6 @@ export function getMonsterDrops(monsterId: string): DropEntry[] {
   return MONSTER_DROPS[npcId] ?? [];
 }
 
-function _unused_getDropTier(avgLevel: number): number {
-  if (avgLevel <= 5) return 0;
-  if (avgLevel <= 10) return 1;
-  if (avgLevel <= 17) return 2;
-  if (avgLevel <= 25) return 3;
-  if (avgLevel <= 35) return 4;
-  return 5;
-}
 
 // ── 존 정의 (spawn_mobs.csv 기반) ──
 

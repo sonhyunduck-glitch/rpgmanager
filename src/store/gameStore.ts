@@ -17,8 +17,6 @@ import {
   rollHpGain, startingHp,
   totalStatPoints,
   finalAC, acToEvasion, finalMR,
-  meleeAdditionalDamage, minDamage, maxDamage,
-  strBonus, dexAcBonus, wisMrBonus,
   calcHitRate, rollMonsterDamage, applyMagicReduction, magicReduction,
   deathExpLossRate,
 } from '../data/statFormulas';
@@ -34,7 +32,6 @@ import {
 import {
   setSyncUserId, setStateGetter, markDirty,
   syncProfile, syncAllItems, syncMaterials, syncPotions,
-  syncAddItem, syncDeleteItem, syncUpdateItem,
   loadFromDB, flushNow,
 } from '../lib/dbSync';
 import { calcOfflineReward } from '../lib/db';
@@ -1366,8 +1363,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       let slotKey = slotKeys[eq.type];
       if (eq.type === 'ring' && state.equippedRing) slotKey = 'equippedRing2';
       if (slotKey) {
-        const old = (state as Record<string, unknown>)[slotKey] as Equipment | null;
-        (updates as Record<string, unknown>)[slotKey] = eq;
+        const old = (state as unknown as Record<string, unknown>)[slotKey] as Equipment | null;
+        (updates as unknown as Record<string, unknown>)[slotKey] = eq;
         if (old && state.inventory.length < state.inventoryCapacity) {
           updates.inventory = [...state.inventory, old];
         } else if (old) {
@@ -1514,7 +1511,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       let slotFound = false;
       for (const key of allSlotKeys) {
         if (state[key]?.uid === uid) {
-          (updates as Record<string, unknown>)[key] = updated;
+          (updates as unknown as Record<string, unknown>)[key] = updated;
           slotFound = true;
           break;
         }
@@ -1557,7 +1554,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       let slotFound = false;
       for (const key of slotKeys) {
         if (state[key]?.uid === uid) {
-          (updates as Record<string, unknown>)[key] = null;
+          (updates as unknown as Record<string, unknown>)[key] = null;
           slotFound = true;
           break;
         }
@@ -1569,7 +1566,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       for (const key of slotKeys) {
         const eq = state[key];
         if (eq?.uid === uid) {
-          (updates as Record<string, unknown>)[key] = { ...eq, enhanceLevel: anim.toLevel };
+          (updates as unknown as Record<string, unknown>)[key] = { ...eq, enhanceLevel: anim.toLevel };
           slotFound = true;
           break;
         }
@@ -1642,9 +1639,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     let slotKey = slotKeys[eq.type];
     if (eq.type === 'ring' && state.equippedRing) slotKey = 'equippedRing2';
     if (slotKey) {
-      const old = (state as Record<string, unknown>)[slotKey] as Equipment | null;
+      const old = (state as unknown as Record<string, unknown>)[slotKey] as Equipment | null;
       if (old) newInventory.push(old);
-      (updates as Record<string, unknown>)[slotKey] = eq;
+      (updates as unknown as Record<string, unknown>)[slotKey] = eq;
     }
 
     updates.inventory = newInventory;
@@ -1664,9 +1661,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const updates: Partial<GameState> = {};
     for (const slotKey of allSlots) {
-      const eq = (state as Record<string, unknown>)[slotKey] as Equipment | null;
+      const eq = (state as unknown as Record<string, unknown>)[slotKey] as Equipment | null;
       if (eq?.uid === uid) {
-        (updates as Record<string, unknown>)[slotKey] = null;
+        (updates as unknown as Record<string, unknown>)[slotKey] = null;
         updates.inventory = [...state.inventory, eq];
         break;
       }

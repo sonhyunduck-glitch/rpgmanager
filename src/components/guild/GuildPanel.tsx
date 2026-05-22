@@ -415,7 +415,7 @@ function MyGuildView({
               {/* 이름 */}
               <ClickableName
                 userId={m.user_id}
-                name={m.name}
+                name={m.name ?? '알 수 없음'}
                 isMe={isMe}
                 style={{
                   fontSize: 10,

@@ -209,14 +209,6 @@ export default function Minimap() {
     return { distM, timeMs };
   }, [getMoveSpeedMult]);
 
-  /** 몬스터 이동 시간 계산 (moveSpeed: 1m당 초) */
-  const calcMonsterMoveTime = useCallback((from: { x: number; y: number }, to: { x: number; y: number }, moveSpeed: number) => {
-    const dxM = (to.x - from.x) / 100 * MAP_SIZE_M;
-    const dyM = (to.y - from.y) / 100 * MAP_SIZE_M;
-    const distM = Math.max(1, Math.round(Math.sqrt(dxM * dxM + dyM * dyM)));
-    const timeMs = Math.max(300, Math.round(distM * moveSpeed * 1000));
-    return { distM, timeMs };
-  }, []);
 
   /* ── 몬스터별 색상 맵 (티어 필터링된 몬스터 기준) ── */
   const monsterColorMap = useMemo(() => {

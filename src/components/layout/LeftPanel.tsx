@@ -2,7 +2,7 @@ import { useGameStore } from '../../store/gameStore';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
 import SlotCard from '../ui/SlotCard';
 import {
-  finalAC, acToEvasion, finalMR,
+  finalAC, finalMR,
   meleeHit,
   minDamage, maxDamage,
   hpGainRange,
@@ -35,7 +35,6 @@ export default function LeftPanel() {
   const currentHp = useGameStore((s) => s.currentHp);
   const getTotalHpBonus = useGameStore((s) => s.getTotalHpBonus);
   const maxHp = baseMaxHp + getTotalHpBonus();
-  const statAllocation = useGameStore((s) => s.statAllocation);
   const allocateStat = useGameStore((s) => s.allocateStat);
   const getStr = useGameStore((s) => s.getStr);
   const getDex = useGameStore((s) => s.getDex);
@@ -61,7 +60,6 @@ export default function LeftPanel() {
   const bonusHit = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hit ?? 0), 0);
   const bonusExtraDmg = allSlots.reduce((s, eq) => s + (eq?.bonuses?.extraDmg ?? 0), 0);
   const bonusMr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.mr ?? 0), 0);
-  const bonusHp = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hp ?? 0), 0);
 
   // Derived stats
   const hit = meleeHit(level, weaponEnchant, str) + bonusHit;

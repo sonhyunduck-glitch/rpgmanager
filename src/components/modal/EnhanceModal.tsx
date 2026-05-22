@@ -4,7 +4,7 @@
 import { useEffect, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import {
-  getEnhanceRate, getScrollId, MATERIALS,
+  getEnhanceRate, getScrollId,
 } from '../../data/gameData';
 
 /* ── keyframe injection (once) ── */
@@ -54,7 +54,7 @@ export default function EnhanceModal() {
 
   const {
     success, destroyed, itemName, equipType, fromLevel, toLevel,
-    statBefore, statAfter, scrollUsed, scrollType, successRate,
+    statAfter, scrollUsed, scrollType, successRate,
   } = enhanceResult;
 
   // Visual theme: success green, destroyed dark-red, fail orange-red

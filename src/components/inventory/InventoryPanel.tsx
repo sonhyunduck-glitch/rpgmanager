@@ -12,13 +12,6 @@ import { LABEL, PANEL_FULL, chipStyle } from '../../styles/shared';
 
 type FilterMode = 'all' | 'weapon' | 'defense' | 'material';
 
-/* ── rate colour helper ── */
-function rateColor(rate: number) {
-  if (rate > 0.7) return 'var(--success)';
-  if (rate > 0.4) return 'var(--warning)';
-  return 'var(--danger)';
-}
-
 /* ============================== COMPONENT ============================== */
 export default function InventoryPanel() {
   const inventory = useGameStore(s => s.inventory);
@@ -276,8 +269,6 @@ function EnhanceSidebar({
   const safe = target ? isEnhanceSafe(target.type, level) : true;
 
   const isWeapon = target?.type === 'weapon';
-  const enchant = target ? target.enhanceLevel : 0;
-  const nextEnchant = enchant + 1;
 
   // 주문서 정보
   const scrollId = target ? getScrollId(target.type, scrollType) : '';

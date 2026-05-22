@@ -12,7 +12,6 @@ export default function CombatStatus() {
   const baseMaxHp = useGameStore((s) => s.maxHp);
   const getTotalHpBonus = useGameStore((s) => s.getTotalHpBonus);
   const maxHp = baseMaxHp + getTotalHpBonus();
-  const level = useGameStore((s) => s.level);
 
   const zone = HUNT_ZONES.find((z) => z.id === hunt.zoneId);
   const isActive = hunt.status !== 'idle' && !!zone;

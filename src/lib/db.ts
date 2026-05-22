@@ -3,7 +3,7 @@
    게임 상태를 DB에서 로드하고 DB에 저장
    ========================================================= */
 import { supabase } from './supabase';
-import type { Equipment, StatAllocation } from '../types';
+import type { Equipment } from '../types';
 
 // ── 타입 ──
 

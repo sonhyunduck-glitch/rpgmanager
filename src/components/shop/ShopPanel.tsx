@@ -117,7 +117,6 @@ export default function ShopPanel() {
             <EquipShop
               tab={tab}
               gold={gold}
-              level={level}
               inventory={inventory}
               inventoryCapacity={inventoryCapacity}
             />
@@ -490,10 +489,9 @@ function ScrollShop({
 }
 
 /* ── 장비 아이템 행 ── */
-function EquipRow({ tmpl, canBuy, isFull, buyEquip }: {
+function EquipRow({ tmpl, canBuy, buyEquip }: {
   tmpl: EquipmentTemplate;
   canBuy: boolean;
-  isFull: boolean;
   buyEquip: (id: string) => void;
 }) {
   const shopPrice = tmpl.sellPrice * 2;
@@ -572,10 +570,10 @@ function EquipRow({ tmpl, canBuy, isFull, buyEquip }: {
 
 /* ── 장비 상점 ── */
 function EquipShop({
-  tab, gold, level, inventory, inventoryCapacity,
+  tab, gold, inventory, inventoryCapacity,
 }: {
   tab: ShopTab;
-  gold: number; level: number;
+  gold: number;
   inventory: { uid: string }[];
   inventoryCapacity: number;
 }) {
@@ -621,7 +619,6 @@ function EquipShop({
                     key={tmpl.id}
                     tmpl={tmpl}
                     canBuy={canBuy}
-                    isFull={isFull}
                     buyEquip={buyEquip}
                   />
                 );

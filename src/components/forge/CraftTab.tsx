@@ -2,7 +2,7 @@ import { useGameStore } from '../../store/gameStore';
 import {
   MATERIALS, EQUIPMENT_TEMPLATES, RECIPES,
 } from '../../data/gameData';
-import { BTN_SUCCESS, BTN_DISABLED, SCROLL_AREA } from '../../styles/shared';
+import { BTN_SUCCESS, SCROLL_AREA } from '../../styles/shared';
 
 export default function CraftTab() {
   const gold = useGameStore(s => s.gold);
