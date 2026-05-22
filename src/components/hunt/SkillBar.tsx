@@ -3,13 +3,16 @@
    1: HP 물약 설정 (모달)
    2: 초록 물약 토글 + 타이머
    3: 용기 물약 토글 + 타이머
-   4~8: 빈 슬롯
+   4: 변신주문서 설정 (모달) + 타이머
+   5~8: 빈 슬롯
    ========================================================= */
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { POTIONS } from '../../data/gameData';
+import { POTIONS, TRANSFORM_SCROLL_DURATION } from '../../data/gameData';
 import HpPotionModal from './HpPotionModal';
-import BuffPotionButton from './BuffPotionButton';
+import TransformScrollModal from './TransformScrollModal';
+import BuffPotionButton, { useTimer } from './BuffPotionButton';
+import type { ActiveBuff } from '../../types';
 
 /* ── 색상 ── */
 const POTION_COLORS: Record<string, string> = {
@@ -18,16 +21,39 @@ const POTION_COLORS: Record<string, string> = {
   clear_potion: '#42a5f5',
 };
 
+const TS_COLOR = '#00e5ff';
+const TS_EVENT_COLOR = '#F5C518';
+
 /* ── 메인 스킬바 ── */
 export default function SkillBar() {
   const [showHpModal, setShowHpModal] = useState(false);
+  const [showTsModal, setShowTsModal] = useState(false);
   const potions = useGameStore((s) => s.potions);
+  const materials = useGameStore((s) => s.materials);
   const selectedPotionId = useGameStore((s) => s.selectedPotionId);
   const potionAutoUse = useGameStore((s) => s.potionAutoUse);
+  const activeBuffs = useGameStore((s) => s.activeBuffs);
+  const transformScrollEnabled = useGameStore((s) => s.transformScrollEnabled);
+  const transformScrollType = useGameStore((s) => s.transformScrollType);
 
   const hpPotion = POTIONS[selectedPotionId];
   const hpCount = potions[selectedPotionId] ?? 0;
   const hpColor = POTION_COLORS[selectedPotionId] ?? '#ef5350';
+
+  // 변신주문서 상태
+  const now = Date.now();
+  const tsBuff = activeBuffs.find(
+    (b: ActiveBuff) => b.potionId === 'transform_scroll' && b.expiresAt > now,
+  );
+  const tsRemaining = tsBuff ? Math.max(0, Math.ceil((tsBuff.expiresAt - now) / 1000)) : 0;
+  const tsProgress = tsBuff ? tsRemaining / TRANSFORM_SCROLL_DURATION : 0;
+  const tsIsEvent = transformScrollType === 'event';
+  const tsColor = tsIsEvent ? TS_EVENT_COLOR : TS_COLOR;
+  const tsCount = tsIsEvent
+    ? (materials['event_transform_scroll'] ?? 0)
+    : (materials['transform_scroll'] ?? 0);
+  const tsActive = transformScrollEnabled && !!tsBuff;
+  useTimer(!!tsBuff);
 
   return (
     <>
@@ -99,8 +125,96 @@ export default function SkillBar() {
         {/* 3번: 용기 물약 토글 */}
         <BuffPotionButton potionId="courage_potion" label="용기의 물약" slotNum={3} />
 
-        {/* 4~8: 빈 슬롯 */}
-        {[4, 5, 6, 7, 8].map((n) => (
+        {/* 4번: 변신주문서 설정 (모달) */}
+        <button
+          onClick={() => setShowTsModal(true)}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            border: transformScrollEnabled
+              ? `1.5px solid ${tsColor}`
+              : '1px solid var(--border-soft)',
+            borderRadius: 'var(--r-sm)',
+            background: tsActive
+              ? `color-mix(in oklch, ${tsColor} 12%, var(--bg-panel))`
+              : transformScrollEnabled
+                ? `color-mix(in oklch, ${tsColor} 6%, var(--bg-panel))`
+                : 'var(--bg-panel)',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.15s ease',
+            padding: 0,
+            position: 'relative',
+            overflow: 'hidden',
+            opacity: !transformScrollEnabled && tsCount === 0 && !tsBuff ? 0.35 : 1,
+          }}
+          title={`변신주문서 설정 — ${transformScrollEnabled ? 'ON' : 'OFF'} (${tsIsEvent ? '이벤트' : '일반'}: ${tsCount})`}
+        >
+          {/* 타이머 프로그레스 배경 */}
+          {tsActive && (
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0,
+              width: '100%',
+              height: `${tsProgress * 100}%`,
+              background: `color-mix(in oklch, ${tsColor} 20%, transparent)`,
+              transition: 'height 1s linear',
+              borderRadius: 'var(--r-sm)',
+            }} />
+          )}
+
+          {/* 슬롯 번호 */}
+          <span style={{
+            position: 'absolute', top: 1, left: 3,
+            fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
+            fontFamily: 'var(--font-mono)', fontWeight: 700, opacity: 0.5,
+          }}>4</span>
+
+          {/* 주문서 아이콘 */}
+          <div style={{
+            width: 8, height: 8, borderRadius: '50%',
+            background: tsColor,
+            boxShadow: tsActive ? `0 0 6px ${tsColor}` : 'none',
+            opacity: transformScrollEnabled ? 1 : 0.4,
+            zIndex: 1, marginBottom: 1,
+          }} />
+
+          {/* 남은 시간 or ON/OFF */}
+          {tsActive ? (
+            <span style={{
+              fontSize: 'var(--fs-2xs)', fontWeight: 800,
+              fontFamily: 'var(--font-mono)',
+              color: tsColor, zIndex: 1, lineHeight: 1,
+            }}>
+              {Math.floor(tsRemaining / 60)}:{String(tsRemaining % 60).padStart(2, '0')}
+            </span>
+          ) : (
+            <span style={{
+              fontSize: 'var(--fs-2xs)', fontWeight: 700,
+              fontFamily: 'var(--font-mono)',
+              color: transformScrollEnabled ? tsColor : 'var(--text-mute)',
+              zIndex: 1, lineHeight: 1,
+            }}>
+              {transformScrollEnabled ? 'ON' : 'SET'}
+            </span>
+          )}
+
+          {/* 보유 수 */}
+          <span style={{
+            position: 'absolute', bottom: 1, right: 2,
+            fontSize: 'var(--fs-2xs)', fontWeight: 800,
+            fontFamily: 'var(--font-mono)',
+            color: tsCount > 0 ? 'var(--text-dim)' : 'var(--danger)',
+            zIndex: 1,
+          }}>
+            {tsCount}
+          </span>
+        </button>
+
+        {/* 5~8: 빈 슬롯 */}
+        {[5, 6, 7, 8].map((n) => (
           <button
             key={n}
             style={{
@@ -129,6 +243,9 @@ export default function SkillBar() {
 
       {/* HP 물약 모달 */}
       {showHpModal && <HpPotionModal onClose={() => setShowHpModal(false)} />}
+
+      {/* 변신주문서 모달 */}
+      {showTsModal && <TransformScrollModal onClose={() => setShowTsModal(false)} />}
     </>
   );
 }

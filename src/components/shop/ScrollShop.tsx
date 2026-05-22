@@ -1,8 +1,9 @@
 /* ── 주문서 상점 ── */
-import { MATERIALS } from '../../data/gameData';
+import { MATERIALS, TRANSFORM_SCROLL_PRICE } from '../../data/gameData';
 import { LABEL } from '../../styles/shared';
 
 const SCROLL_SHOP_ITEMS: { id: string; price: number }[] = [
+  { id: 'transform_scroll', price: TRANSFORM_SCROLL_PRICE },
   { id: 'weapon_scroll', price: 75000 },
   { id: 'blessed_weapon_scroll', price: 150000 },
   { id: 'cursed_weapon_scroll', price: 15000 },
@@ -12,6 +13,7 @@ const SCROLL_SHOP_ITEMS: { id: string; price: number }[] = [
 ];
 
 const SCROLL_COLORS: Record<string, string> = {
+  transform_scroll: '#00e5ff',
   weapon_scroll: 'var(--text)',
   blessed_weapon_scroll: '#F5C518',
   cursed_weapon_scroll: 'var(--danger)',
@@ -21,11 +23,13 @@ const SCROLL_COLORS: Record<string, string> = {
 };
 
 const SCROLL_GLOW: Record<string, string | undefined> = {
+  transform_scroll: '0 0 6px rgba(0,229,255,0.5), 0 0 14px rgba(0,229,255,0.25)',
   blessed_weapon_scroll: '0 0 6px rgba(245,197,24,0.6), 0 0 14px rgba(245,197,24,0.3)',
   blessed_armor_scroll: '0 0 6px rgba(245,197,24,0.6), 0 0 14px rgba(245,197,24,0.3)',
 };
 
 const GROUPS = [
+  { label: '변신', ids: ['transform_scroll'] },
   { label: '무기 주문서', ids: ['weapon_scroll', 'blessed_weapon_scroll', 'cursed_weapon_scroll'] },
   { label: '방어구 주문서', ids: ['armor_scroll', 'blessed_armor_scroll', 'cursed_armor_scroll'] },
 ];

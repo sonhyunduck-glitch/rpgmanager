@@ -138,6 +138,10 @@ export function saveState(state: {
   potionAutoThreshold: number;
   potionAutoBuy: boolean;
   activeBuffs: ActiveBuff[];
+  greenPotionEnabled?: boolean;
+  couragePotionEnabled?: boolean;
+  transformScrollEnabled?: boolean;
+  transformScrollType?: 'normal' | 'event';
 }): void {
   try {
     const {
@@ -150,6 +154,7 @@ export function saveState(state: {
       statAllocation, maxHp,
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
       activeBuffs,
+      greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       epoch: APP_EPOCH,
@@ -163,6 +168,7 @@ export function saveState(state: {
       statAllocation, maxHp,
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
       activeBuffs,
+      greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
     }));
   } catch {
     /* localStorage may be full or unavailable — silently ignore */

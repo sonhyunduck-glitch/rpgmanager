@@ -2,7 +2,7 @@
    DERIVED STATS — 장비 보너스 포함 스탯 계산
    ========================================================= */
 import { BASE_STATS, totalStatPoints } from '../data/statFormulas';
-import { getActiveSets, getLevelSpeedMult } from '../data/gameData';
+import { getActiveSets } from '../data/gameData';
 import { equipStat } from './helpers';
 import { getAllEquipped } from './storeTypes';
 import type { Equipment } from '../types';
@@ -67,20 +67,19 @@ export function createDerivedStats(get: GetState) {
     },
 
     getAtkSpeedMult: () => {
-      const { level, activeBuffs } = get();
       const now = Date.now();
-      const levelMult = getLevelSpeedMult(level);
-      const buffMult = activeBuffs
+      // 레벨 패시브 제거 → 변신주문서 버프가 공속 제공
+      return get().activeBuffs
         .filter(b => b.expiresAt > now)
         .reduce((mult, b) => mult * b.atkSpeedMult, 1);
-      return levelMult * buffMult;
     },
 
     getMoveSpeedMult: () => {
       const now = Date.now();
+      // MAX → 곱연산 변경: 변신주문서 이속 × 초록물약 이속 동시 적용
       return get().activeBuffs
         .filter(b => b.expiresAt > now)
-        .reduce((max, b) => Math.max(max, b.moveSpeedMult), 1);
+        .reduce((mult, b) => mult * b.moveSpeedMult, 1);
     },
   };
 }

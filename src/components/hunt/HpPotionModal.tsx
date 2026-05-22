@@ -19,11 +19,9 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
   const selectedPotionId = useGameStore((s) => s.selectedPotionId);
   const potionAutoUse = useGameStore((s) => s.potionAutoUse);
   const potionAutoThreshold = useGameStore((s) => s.potionAutoThreshold);
-  const potionAutoBuy = useGameStore((s) => s.potionAutoBuy);
   const setSelectedPotion = useGameStore((s) => s.setSelectedPotion);
   const togglePotionAutoUse = useGameStore((s) => s.togglePotionAutoUse);
   const setPotionAutoThreshold = useGameStore((s) => s.setPotionAutoThreshold);
-  const togglePotionAutoBuy = useGameStore((s) => s.togglePotionAutoBuy);
 
   return (
     <>
@@ -215,40 +213,6 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        {/* 자동구매 */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--s-2)',
-          padding: '8px 12px',
-          background: 'var(--bg-panel)',
-          borderRadius: 'var(--r-sm)',
-          border: '1px solid var(--border-soft)',
-        }}>
-          <span style={{
-            fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-dim)',
-            flex: 1,
-          }}>
-            자동 구매
-          </span>
-          <button
-            onClick={togglePotionAutoBuy}
-            style={{
-              padding: '3px 10px',
-              borderRadius: 'var(--r-xs)',
-              border: potionAutoBuy
-                ? '1px solid var(--accent)'
-                : '1px solid var(--border-soft)',
-              background: potionAutoBuy
-                ? 'color-mix(in oklch, var(--accent) 15%, transparent)'
-                : 'var(--bg-sunken)',
-              color: potionAutoBuy ? 'var(--accent)' : 'var(--text-mute)',
-              fontSize: 'var(--fs-xs)', fontWeight: 700,
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-            }}
-          >
-            {potionAutoBuy ? 'ON' : 'OFF'}
-          </button>
-        </div>
       </div>
     </>
   );

@@ -4,6 +4,8 @@
 import {
   HUNT_ZONES, MATERIALS, EQUIPMENT_TEMPLATES, POTIONS, POTION_ORDER,
   xpForLevel, getMonstersForRoom,
+  getTransformScrollSpeed, TRANSFORM_SCROLL_DURATION,
+  TRANSFORM_SCROLL_DROP_RATE, TRANSFORM_SCROLL_MAX,
 } from '../data/gameData';
 import { getMonsterDrops } from '../data/monsterData';
 import {
@@ -208,6 +210,35 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           text: `${p.name} 사용! (${p.buffDuration}초)`,
           timestamp: now,
         });
+      }
+
+      // ── 변신주문서 자동 사용 ──
+      if (state.transformScrollEnabled) {
+        const hasTransformBuff = newActiveBuffs.some(b => b.potionId === 'transform_scroll');
+        if (!hasTransformBuff) {
+          const scrollType = state.transformScrollType ?? 'normal';
+          const scrollId = scrollType === 'event' ? 'event_transform_scroll' : 'transform_scroll';
+          const scrollCount = newMaterials[scrollId] ?? 0;
+          if (scrollCount > 0) {
+            newMaterials[scrollId] = scrollCount - 1;
+            const speeds = scrollType === 'event'
+              ? getTransformScrollSpeed(80)   // 이벤트: Lv.80 고정
+              : getTransformScrollSpeed(newLevel);
+            const scrollName = scrollType === 'event' ? '이벤트 변신주문서' : '변신주문서';
+            newActiveBuffs.push({
+              potionId: 'transform_scroll',
+              name: scrollName,
+              expiresAt: now + TRANSFORM_SCROLL_DURATION * 1000,
+              atkSpeedMult: speeds.atk,
+              moveSpeedMult: speeds.move,
+            });
+            newLogs.push({
+              id: genLogId(), type: 'potion',
+              text: `${scrollName} 사용! (${Math.floor(TRANSFORM_SCROLL_DURATION / 60)}분)`,
+              timestamp: now,
+            });
+          }
+        }
       }
 
       // ── 접근 중인 몬스터 처리 ──
@@ -426,6 +457,16 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               }
             }
           }
+
+          // 변신주문서 드롭 (Lv.12+, 3%, 최대 10장)
+          if (newLevel >= 12) {
+            const tsCount = newMaterials['transform_scroll'] ?? 0;
+            if (tsCount < TRANSFORM_SCROLL_MAX && Math.random() < TRANSFORM_SCROLL_DROP_RATE) {
+              newMaterials['transform_scroll'] = tsCount + 1;
+              gainedMats['transform_scroll'] = (gainedMats['transform_scroll'] ?? 0) + 1;
+              newLogs.push({ id: genLogId(), type: 'loot', text: '변신주문서', timestamp: Date.now() });
+            }
+          }
         } else {
           newLogs.push({
             id: genLogId(), type: isCrit ? 'crit' : 'battle',
@@ -544,20 +585,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= state.potionAutoThreshold) {
           const pid = state.selectedPotionId;
-          let pCount = newPotions[pid] ?? 0;
-
-          if (pCount <= 0 && state.potionAutoBuy) {
-            const potion = POTIONS[pid];
-            if (potion) {
-              const buyQty = 10;
-              const cost = potion.buyPrice * buyQty;
-              if (newGold >= cost) {
-                newGold -= cost;
-                pCount += buyQty;
-                newPotions[pid] = pCount;
-              }
-            }
-          }
+          const pCount = newPotions[pid] ?? 0;
 
           if (pCount > 0) {
             const potion = POTIONS[pid];

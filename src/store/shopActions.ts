@@ -82,5 +82,15 @@ export function createShopActions(set: SetState, get: GetState, save: SaveFn) {
       set(s => ({ couragePotionEnabled: !s.couragePotionEnabled }));
       save(get());
     },
+
+    toggleTransformScroll: () => {
+      set(s => ({ transformScrollEnabled: !s.transformScrollEnabled }));
+      save(get());
+    },
+
+    setTransformScrollType: (type: 'normal' | 'event') => {
+      set({ transformScrollType: type });
+      save(get());
+    },
   };
 }

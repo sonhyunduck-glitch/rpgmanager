@@ -1,15 +1,16 @@
 /* =========================================================
-   버프 물약 버튼 (토글 + 타이머)
+   버프 물약/변신주문서 버튼 (토글 + 타이머)
    ========================================================= */
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { POTIONS } from '../../data/gameData';
+import { POTIONS, TRANSFORM_SCROLL_DURATION } from '../../data/gameData';
 import type { ActiveBuff } from '../../types';
 
 /* ── 색상 ── */
 const POTION_COLORS: Record<string, string> = {
   green_potion: '#66bb6a',
   courage_potion: '#ab47bc',
+  transform_scroll: '#00e5ff',
 };
 
 /* ── 타이머 훅: 매초 리렌더 ── */
@@ -33,22 +34,28 @@ export default function BuffPotionButton({
   slotNum: number;
 }) {
   const potions = useGameStore((s) => s.potions);
+  const materials = useGameStore((s) => s.materials);
   const activeBuffs = useGameStore((s) => s.activeBuffs);
   const buffEnabled = useGameStore((s) =>
-    potionId === 'green_potion' ? s.greenPotionEnabled : s.couragePotionEnabled,
+    potionId === 'transform_scroll' ? s.transformScrollEnabled
+    : potionId === 'green_potion' ? s.greenPotionEnabled
+    : s.couragePotionEnabled,
   );
   const toggleBuff = useGameStore((s) =>
-    potionId === 'green_potion' ? s.toggleGreenPotion : s.toggleCouragePotion,
+    potionId === 'transform_scroll' ? s.toggleTransformScroll
+    : potionId === 'green_potion' ? s.toggleGreenPotion
+    : s.toggleCouragePotion,
   );
 
-  const count = potions[potionId] ?? 0;
+  const isScroll = potionId === 'transform_scroll';
+  const count = isScroll ? (materials[potionId] ?? 0) : (potions[potionId] ?? 0);
   const color = POTION_COLORS[potionId] ?? 'var(--text-mute)';
   const now = Date.now();
   const buff = activeBuffs.find(
     (b: ActiveBuff) => b.potionId === potionId && b.expiresAt > now,
   );
   const remaining = buff ? Math.max(0, Math.ceil((buff.expiresAt - now) / 1000)) : 0;
-  const totalDuration = POTIONS[potionId]?.buffDuration ?? 300;
+  const totalDuration = isScroll ? TRANSFORM_SCROLL_DURATION : (POTIONS[potionId]?.buffDuration ?? 300);
   const progress = buff ? remaining / totalDuration : 0;
 
   useTimer(!!buff);

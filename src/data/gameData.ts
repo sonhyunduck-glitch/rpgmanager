@@ -10,19 +10,64 @@ export { getMonstersForTier, getMonstersForRoom, roomToTier };
 export type { EquipmentTemplate, Material, Monster, HuntZone, Recipe, EquipType, ZoneTier, Potion } from '../types';
 
 // ── Level Speed & Color ──
-/** 레벨별 공격속도 배율 (내림차순 — 첫 매칭 반환) */
+/** (레거시) 레벨별 공격속도 패시브 — 변신주문서 시스템으로 이전됨
+ *  getAtkSpeedMult()에서 더 이상 사용하지 않음.
+ *  TRANSFORM_SCROLL_TABLE이 이 값들을 흡수. */
 const LEVEL_SPEED_TABLE: [number, number][] = [
   [95, 3.10], [90, 2.75], [85, 2.45], [80, 2.20],
   [75, 2.00], [70, 1.75], [65, 1.65], [60, 1.56],
   [55, 1.48], [52, 1.40], [50, 1.25],
 ];
 
+/** @deprecated 변신주문서 시스템으로 대체. 하위 호환용 유지. */
 export function getLevelSpeedMult(level: number): number {
   for (const [lvl, mult] of LEVEL_SPEED_TABLE) {
     if (level >= lvl) return mult;
   }
   return 1;
 }
+
+// ── Transform Scroll (변신주문서) ──
+/**
+ * 변신주문서 속도 테이블 — [최소레벨, 공속배율, 이속배율]
+ * 기존 LEVEL_SPEED_TABLE 공속 값을 흡수 + 이속 신규 추가.
+ * 내림차순 매칭: 레벨 ≥ minLv → 해당 행 반환.
+ */
+const TRANSFORM_SCROLL_TABLE: [number, number, number][] = [
+  // [minLv, atkMult, moveMult]
+  [95, 3.10, 1.85],
+  [90, 2.75, 1.80],
+  [85, 2.45, 1.75],
+  [80, 2.20, 1.70],
+  [75, 2.00, 1.65],
+  [70, 1.75, 1.58],
+  [65, 1.65, 1.52],
+  [60, 1.56, 1.48],
+  [55, 1.48, 1.42],
+  [52, 1.40, 1.38],
+  [50, 1.25, 1.35],
+  [49, 1.23, 1.33],
+  [45, 1.21, 1.30],
+  [40, 1.18, 1.26],
+  [35, 1.15, 1.22],
+  [30, 1.12, 1.18],
+  [25, 1.09, 1.14],
+  [20, 1.06, 1.10],
+  [12, 1.04, 1.06],
+];
+
+/** 변신주문서 사용 시 레벨에 맞는 공속/이속 배율 반환 */
+export function getTransformScrollSpeed(level: number): { atk: number; move: number } {
+  for (const [lvl, atk, move] of TRANSFORM_SCROLL_TABLE) {
+    if (level >= lvl) return { atk, move };
+  }
+  return { atk: 1, move: 1 };
+}
+
+export const TRANSFORM_SCROLL_DURATION = 1800;    // 30분 (초)
+export const TRANSFORM_SCROLL_PRICE = 500;         // 상점 구매가
+export const TRANSFORM_SCROLL_DROP_RATE = 0.03;    // 3% 킬당 드롭률
+export const TRANSFORM_SCROLL_MAX = 10;            // 최대 보유 수
 
 /** 레벨별 플레이어 닷 색상 */
 const LEVEL_DOT_COLOR: [number, string][] = [
@@ -70,6 +115,10 @@ export const MATERIALS: Record<string, Material> = {
   cursed_iron:    { id: 'cursed_iron',    name: '저주받은 철', sellPrice: 8 },
   slime_gel:      { id: 'slime_gel',      name: '점액질',       sellPrice: 1 },
   wood_piece:     { id: 'wood_piece',     name: '나무 조각',   sellPrice: 1 },
+
+  // ── 변신주문서 ──
+  transform_scroll:       { id: 'transform_scroll',       name: '변신주문서',                 sellPrice: 250 },
+  event_transform_scroll: { id: 'event_transform_scroll', name: '이벤트 변신주문서',           sellPrice: 500 },
 
   // ── 강화 주문서 ──
   weapon_scroll:          { id: 'weapon_scroll',          name: '무기강화주문서',             sellPrice: 37500 },

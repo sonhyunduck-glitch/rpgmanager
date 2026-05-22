@@ -239,6 +239,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   activeBuffs: (saved?.activeBuffs as ActiveBuff[]) ?? [],
   greenPotionEnabled: (saved?.greenPotionEnabled as boolean) ?? true,
   couragePotionEnabled: (saved?.couragePotionEnabled as boolean) ?? true,
+  transformScrollEnabled: (saved?.transformScrollEnabled as boolean) ?? true,
+  transformScrollType: (saved?.transformScrollType as 'normal' | 'event') ?? 'normal',
 
   // ── Movement ──
   isPlayerMoving: false,

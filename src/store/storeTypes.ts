@@ -105,6 +105,8 @@ export interface GameState {
   activeBuffs: ActiveBuff[];
   greenPotionEnabled: boolean;
   couragePotionEnabled: boolean;
+  transformScrollEnabled: boolean;
+  transformScrollType: 'normal' | 'event';
 
   // Queue
   queue: QueueItem[];
@@ -170,6 +172,8 @@ export interface GameState {
   togglePotionAutoBuy: () => void;
   toggleGreenPotion: () => void;
   toggleCouragePotion: () => void;
+  toggleTransformScroll: () => void;
+  setTransformScrollType: (type: 'normal' | 'event') => void;
 
   // Profile
   openProfile: (userId: string) => void;
