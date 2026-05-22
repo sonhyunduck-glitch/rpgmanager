@@ -17,12 +17,16 @@ export async function signUp(email: string, password: string, playerName: string
     return { error: { message: '이미 사용 중인 닉네임입니다.' } };
   }
 
-  // 2) 회원가입
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  // 2) 회원가입 (닉네임을 auth 메타데이터에 저장)
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { player_name: playerName } },
+  });
   if (error) return { error };
   if (!data.user) return { error: { message: '회원가입 실패' } };
 
-  // 3) 프로필 생성
+  // 3) 프로필 생성 시도 (이메일 인증 전이면 세션 없어 RLS로 실패 가능)
   const { error: profileError } = await supabase
     .from('profiles')
     .insert({
@@ -30,7 +34,10 @@ export async function signUp(email: string, password: string, playerName: string
       name: playerName,
     });
 
-  if (profileError) return { error: profileError };
+  // 실패해도 OK — initFromDB에서 재시도
+  if (profileError) {
+    console.warn('[auth] profile insert deferred (email confirmation pending):', profileError.message);
+  }
 
   return { data: data.user, error: null };
 }

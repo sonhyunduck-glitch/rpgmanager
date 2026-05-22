@@ -297,10 +297,19 @@ export const useGameStore = create<GameState>((set, get) => ({
         syncProfile(s as any);
       }
     } else {
-      // DB에 프로필 없음 → localStorage 데이터로 프로필+아이템 생성
-      set({ authUserId: userId });
+      // DB에 프로필 없음 → auth 메타데이터에서 닉네임 가져와 프로필 생성
+      const { supabase } = await import('../lib/supabase');
+      const { data: { user } } = await supabase.auth.getUser();
+      const metaName = (user?.user_metadata?.player_name as string) || '모험가';
+
+      // 프로필 INSERT (signUp 때 실패했을 수 있으므로 여기서 재시도)
+      await supabase.from('profiles').upsert({
+        id: userId,
+        name: metaName,
+      }, { onConflict: 'id' });
+
+      set({ authUserId: userId, playerName: metaName });
       const s = get();
-      syncProfile(s as any);
       syncAllItems(s.inventory, {
         equippedWeapon: s.equippedWeapon, equippedTshirt: s.equippedTshirt,
         equippedArmor: s.equippedArmor, equippedHelmet: s.equippedHelmet,
