@@ -18,6 +18,7 @@ import RightPanel from './components/layout/RightPanel';
 import ProfileModal from './components/profile/ProfileModal';
 import OfflineRewardModal from './components/offline/OfflineRewardModal';
 import UpdateModal from './components/update/UpdateModal';
+import RotateOverlay from './components/ui/RotateOverlay';
 
 const BASE_TICK_MS = 3000;
 
@@ -174,6 +175,7 @@ export default function App({ userId }: AppProps) {
       <ProfileModal />
       <OfflineRewardModal />
       <UpdateModal />
+      <RotateOverlay />
     </div>
   );
 }
