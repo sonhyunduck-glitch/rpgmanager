@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES, getMonstersForRoom, getPlayerDotColor } from '../../data/gameData';
 import { LABEL } from '../../styles/shared';
+import type { ActiveBuff } from '../../types';
 
 /* ── 상수 ── */
 const VISIBLE_MONSTERS = 8;
@@ -146,9 +147,20 @@ export default function Minimap() {
   const getMoveSpeedMult = useGameStore(s => s.getMoveSpeedMult);
   const startApproach = useGameStore(s => s.startApproach);
 
+  const activeBuffs = useGameStore(s => s.activeBuffs);
+  const transformScrollType = useGameStore(s => s.transformScrollType);
+
   const playerDotColorRaw = getPlayerDotColor(level);
   const isPlatinum = playerDotColorRaw === 'platinum';
   const playerDotColor = isPlatinum ? '#e0e0e0' : playerDotColorRaw;
+
+  // 변신주문서 버프 활성 여부
+  const now0 = Date.now();
+  const tsBuff = activeBuffs.find(
+    (b: ActiveBuff) => b.potionId === 'transform_scroll' && b.expiresAt > now0,
+  );
+  const tsActive = !!tsBuff;
+  const tsIsEvent = tsActive && transformScrollType === 'event';
 
   const zone = HUNT_ZONES.find(z => z.id === hunt.zoneId);
   const currentRoom = hunt.currentRoom ?? 1;
@@ -896,16 +908,25 @@ export default function Minimap() {
           }}
         >
           <div
-            className={isPlatinum ? 'mm-platinum-dot' : undefined}
+            className={isPlatinum && !tsActive ? 'mm-platinum-dot' : tsActive ? 'mm-transform-dot' : undefined}
             style={{
               width: isPlatinum ? 'var(--mm-player-lg)' : 'var(--mm-player)',
               height: isPlatinum ? 'var(--mm-player-lg)' : 'var(--mm-player)',
-              borderRadius: '50%',
-              ...(isPlatinum ? {} : {
-                background: playerDotColor,
-                boxShadow: `0 0 ${level >= 75 ? 12 : 8}px ${playerDotColor}`,
-                animation: isHunting ? 'mmPulse 1.5s infinite' : 'none',
+              ...(tsIsEvent
+                ? { clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }
+                : { borderRadius: '50%' }),
+              ...((isPlatinum && !tsActive) ? {} : {
+                background: tsActive
+                  ? (tsIsEvent ? '#F5C518' : '#00e5ff')
+                  : playerDotColor,
+                boxShadow: `0 0 ${tsActive ? 14 : (level >= 75 ? 12 : 8)}px ${
+                  tsActive ? (tsIsEvent ? '#F5C518' : '#00e5ff') : playerDotColor
+                }`,
+                animation: isHunting
+                  ? (tsActive ? 'mmTransformPulse 1.2s infinite' : 'mmPulse 1.5s infinite')
+                  : 'none',
               }),
+              transition: 'clip-path 0.3s ease, border-radius 0.3s ease, background 0.3s ease, box-shadow 0.3s ease',
             }}
           />
         </div>
@@ -957,6 +978,13 @@ export default function Minimap() {
         @keyframes mmPlatinumPulse {
           0%, 100% { transform: translate(-50%, -50%) scale(1); }
           50%      { transform: translate(-50%, -50%) scale(1.5); }
+        }
+        @keyframes mmTransformPulse {
+          0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.5); }
+        }
+        .mm-transform-dot {
+          animation: mmTransformPulse 1.2s ease-in-out infinite;
         }
         .mm-platinum-dot {
           animation:
