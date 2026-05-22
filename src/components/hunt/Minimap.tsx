@@ -10,7 +10,7 @@
    ========================================================= */
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { HUNT_ZONES, getMonstersForRoom, getPlayerDotColor } from '../../data/gameData';
+import { HUNT_ZONES, getMonstersForRoom, getPlayerDotColor, getTransformScrollLevel } from '../../data/gameData';
 import { LABEL } from '../../styles/shared';
 import type { ActiveBuff } from '../../types';
 
@@ -161,6 +161,12 @@ export default function Minimap() {
   );
   const tsActive = !!tsBuff;
   const tsIsEvent = tsActive && transformScrollType === 'event';
+
+  // 변신 닷 색상: 이벤트=금색, 일반=변신레벨의 닷 색상 (54렙→52렙 색)
+  const tsLevelForDot = tsIsEvent ? 80 : getTransformScrollLevel(level);
+  const tsDotColorRaw = getPlayerDotColor(tsLevelForDot);
+  const tsDotIsPlatinum = tsDotColorRaw === 'platinum';
+  const tsDotColor = tsIsEvent ? '#F5C518' : (tsDotIsPlatinum ? '#e0e0e0' : tsDotColorRaw);
 
   const zone = HUNT_ZONES.find(z => z.id === hunt.zoneId);
   const currentRoom = hunt.currentRoom ?? 1;
@@ -908,19 +914,27 @@ export default function Minimap() {
           }}
         >
           <div
-            className={isPlatinum && !tsActive ? 'mm-platinum-dot' : tsActive ? 'mm-transform-dot' : undefined}
+            className={
+              tsActive && tsDotIsPlatinum && !tsIsEvent
+                ? 'mm-platinum-dot'       // 일반 변신 → 플래티넘 레벨 도달 시
+                : isPlatinum && !tsActive
+                  ? 'mm-platinum-dot'     // 원래 플래티넘
+                  : tsActive
+                    ? 'mm-transform-dot'  // 변신 활성
+                    : undefined
+            }
             style={{
-              width: isPlatinum ? 'var(--mm-player-lg)' : 'var(--mm-player)',
-              height: isPlatinum ? 'var(--mm-player-lg)' : 'var(--mm-player)',
+              width: (tsActive && tsDotIsPlatinum && !tsIsEvent) || (isPlatinum && !tsActive)
+                ? 'var(--mm-player-lg)' : 'var(--mm-player)',
+              height: (tsActive && tsDotIsPlatinum && !tsIsEvent) || (isPlatinum && !tsActive)
+                ? 'var(--mm-player-lg)' : 'var(--mm-player)',
               ...(tsIsEvent
                 ? { clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }
                 : { borderRadius: '50%' }),
-              ...((isPlatinum && !tsActive) ? {} : {
-                background: tsActive
-                  ? (tsIsEvent ? '#F5C518' : '#00e5ff')
-                  : playerDotColor,
+              ...((tsActive && tsDotIsPlatinum && !tsIsEvent) || (isPlatinum && !tsActive) ? {} : {
+                background: tsActive ? tsDotColor : playerDotColor,
                 boxShadow: `0 0 ${tsActive ? 14 : (level >= 75 ? 12 : 8)}px ${
-                  tsActive ? (tsIsEvent ? '#F5C518' : '#00e5ff') : playerDotColor
+                  tsActive ? tsDotColor : playerDotColor
                 }`,
                 animation: isHunting
                   ? (tsActive ? 'mmTransformPulse 1.2s infinite' : 'mmPulse 1.5s infinite')

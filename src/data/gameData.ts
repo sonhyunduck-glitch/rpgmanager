@@ -64,6 +64,14 @@ export function getTransformScrollSpeed(level: number): { atk: number; move: num
   return { atk: 1, move: 1 };
 }
 
+/** 변신주문서 테이블에서 매칭되는 변신 레벨 반환 (닷 색상용) */
+export function getTransformScrollLevel(level: number): number {
+  for (const [lvl] of TRANSFORM_SCROLL_TABLE) {
+    if (level >= lvl) return lvl;
+  }
+  return level;
+}
+
 export const TRANSFORM_SCROLL_DURATION = 1800;    // 30분 (초)
 export const TRANSFORM_SCROLL_PRICE = 500;         // 상점 구매가
 export const TRANSFORM_SCROLL_DROP_RATE = 0.03;    // 3% 킬당 드롭률
