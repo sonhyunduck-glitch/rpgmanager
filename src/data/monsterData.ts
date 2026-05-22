@@ -501,10 +501,21 @@ const CSV_MONSTERS: CsvRow[] = [
   [91165,'스컬 드래곤',70,850,450,-75,22,22,100,4901,'L',0,1,860,1],
 ];
 
+// ── 훈련소 전용 몬스터 (높은 경험치, 낮은 스탯 — 빠른 성장 유도) ──
+// [npc_id, name, level, hp, mp, ac, str, int, mr, exp, size, undead, agro, move_speed, ranged]
+const TRAINING_MONSTERS: CsvRow[] = [
+  [99901, '나무 허수아비', 1, 3, 0, 10, 3, 0, 0, 80, 'S', 0, 0, 0, 1],
+  [99902, '짚 인형',       3, 8, 0, 10, 5, 0, 0, 150, 'S', 0, 0, 0, 1],
+  [99903, '연습용 골렘',   5, 18, 0, 9, 8, 0, 0, 250, 'S', 0, 0, 0, 1],
+  [99904, '마법 표적',     7, 30, 0, 9, 10, 0, 0, 380, 'S', 0, 0, 0, 1],
+  [99905, '강화 골렘',     9, 50, 0, 8, 12, 0, 0, 550, 'S', 0, 0, 0, 1],
+  [99906, '전투 인형',    11, 75, 0, 8, 14, 0, 0, 750, 'S', 0, 0, 0, 1],
+];
+
 // ── 몬스터 빌드 ──
 
 function buildAllMonsters(): Monster[] {
-  return CSV_MONSTERS.map(row => {
+  return [...CSV_MONSTERS, ...TRAINING_MONSTERS].map(row => {
     const [npcId, name, level, hp, mp, ac, str, intVal, mr, exp, sz, undead, agro, moveSpd, ranged] = row;
     const size: MonsterSize = sz === 'L' ? 'large' : 'small';
     const isMagic = ranged >= 6;
@@ -850,6 +861,11 @@ interface ZoneSource {
   npcIds: number[];
 }
 
+// 훈련소 (튜토리얼 존 — Lv12까지 빠른 성장)
+const TRAINING_SOURCES: ZoneSource[] = [
+  { id: 'map_training', name: '훈련소', levelRange: [1, 12], requiredLevel: 1, zoneType: 'field', npcIds: [99901, 99902, 99903, 99904, 99905, 99906] },
+];
+
 // 필드 10곳
 const FIELD_SOURCES: ZoneSource[] = [
   { id: 'map_68',  name: '말하는 섬',           levelRange: [1, 9],   requiredLevel: 1,  zoneType: 'field', npcIds: [45005,45008,45009,45010,45012,45016,45019,45021,45023,45024,45034,45041,45042,45065,45082] },
@@ -939,6 +955,7 @@ function buildDungeonFloors(src: ZoneSource): ZoneDef[] {
 
 // 모든 존 정의 합산
 const ALL_ZONE_DEFS: ZoneDef[] = [
+  ...TRAINING_SOURCES.map(src => ({ ...src, npcIds: src.npcIds } as ZoneDef)),
   ...FIELD_SOURCES.map(src => ({ ...src, npcIds: src.npcIds } as ZoneDef)),
   ...DUNGEON_SOURCES.flatMap(src => buildDungeonFloors(src)),
 ];
