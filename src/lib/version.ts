@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v1.2.1 — tsc 빌드 에러 수정, 에바 왕국 위치 조정
-export const APP_VERSION = '1.2.1';
+// v1.3.0 — AC 리니지 원본 방식 전환, 오프라인 보상 5분 유예, 빌드 수정
+export const APP_VERSION = '1.3.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
