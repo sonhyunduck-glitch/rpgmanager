@@ -3,12 +3,18 @@
    localStorage = 빠른 캐시 / Supabase DB = 원본
    ========================================================= */
 import { supabase } from './supabase';
-import { touchZonePresence, removeZonePresence } from './db';
+import { touchZonePresence, removeZonePresence, getZonePlayerCount } from './db';
 import type { Equipment } from '../types';
 
 let _userId: string | null = null;
 let _syncTimer: ReturnType<typeof setInterval> | null = null;
 let _dirty = false;
+let _setStore: ((partial: Record<string, unknown>) => void) | null = null;
+
+/** store의 set 함수 등록 (zonePlayerCount 갱신용) */
+export function setStoreSetter(fn: (partial: Record<string, unknown>) => void) {
+  _setStore = fn;
+}
 
 /** 현재 인증된 유저 ID 설정 */
 export function setSyncUserId(userId: string | null) {
@@ -21,6 +27,7 @@ export function setSyncUserId(userId: string | null) {
       } else {
         // dirty 아니어도 last_active_at만 갱신 (오프라인 보상 오작동 방지)
         heartbeatOnly();
+        refreshZonePlayerCount().catch(() => {});
       }
     }, 30_000);
   }
@@ -274,9 +281,10 @@ async function flushSync() {
 
   const state = _getState() as any;
   try {
-    // zone_presence heartbeat (사냥 중일 때만)
+    // zone_presence heartbeat + 접속자 수 갱신 (사냥 중일 때만)
     if (_userId && state.hunt?.status === 'hunting' && state.hunt?.zoneId) {
       touchZonePresence(_userId).catch(() => {});
+      refreshZonePlayerCount().catch(() => {});
     }
 
     await Promise.all([
@@ -311,6 +319,18 @@ async function heartbeatOnly() {
     await supabase.from('profiles').update({
       last_active_at: new Date().toISOString(),
     }).eq('id', _userId);
+  } catch { /* ignore */ }
+}
+
+/** 존 접속자 수 갱신 (30초마다 호출) */
+async function refreshZonePlayerCount() {
+  if (!_userId || !_getState || !_setStore) return;
+  const state = _getState() as any;
+  const zoneId = state.hunt?.zoneId;
+  if (!zoneId || state.hunt?.status !== 'hunting' || zoneId === 'map_training') return;
+  try {
+    const count = await getZonePlayerCount(zoneId);
+    _setStore({ zonePlayerCount: Math.max(1, count) });
   } catch { /* ignore */ }
 }
 

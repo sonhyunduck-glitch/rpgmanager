@@ -10,7 +10,7 @@ import {
   createEquipment,
 } from './helpers';
 import {
-  setSyncUserId, setStateGetter, markDirty,
+  setSyncUserId, setStateGetter, setStoreSetter, markDirty,
   syncProfile, syncAllItems, syncMaterials, syncPotions,
   loadFromDB, flushNow,
 } from '../lib/dbSync';
@@ -56,6 +56,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     enforceEpochGate();
     setSyncUserId(userId);
     setStateGetter(() => get() as unknown as Record<string, unknown>);
+    setStoreSetter((partial) => set(partial as Partial<GameState>));
 
     const dbData = await loadFromDB();
     if (dbData && dbData.profile) {
