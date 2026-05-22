@@ -125,7 +125,7 @@ export default function LeftPanel() {
               }}
             >
               <span style={{ ...LABEL, fontSize: 'var(--fs-xs)', color, minWidth: 28 }}>{label}</span>
-              <span style={{ ...STAT_VALUE, fontSize: 18, color }}>
+              <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-md)', color }}>
                 {statValues[key]}
               </span>
               {remaining > 0 && (
@@ -133,13 +133,13 @@ export default function LeftPanel() {
                   onClick={() => allocateStat(key)}
                   style={{
                     marginLeft: 'auto',
-                    width: 22,
-                    height: 22,
+                    width: 'var(--s-5)',
+                    height: 'var(--s-5)',
                     borderRadius: '50%',
                     border: `1px solid ${color}`,
                     background: 'transparent',
                     color,
-                    fontSize: 'var(--fs-base)',
+                    fontSize: 'var(--fs-xs)',
                     fontWeight: 700,
                     cursor: 'pointer',
                     display: 'flex',

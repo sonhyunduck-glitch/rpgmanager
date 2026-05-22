@@ -683,8 +683,8 @@ export default function Minimap() {
               {/* 닷 */}
               <div
                 style={{
-                  width: (isCurrentTarget || isJoined) ? 9 : 7,
-                  height: (isCurrentTarget || isJoined) ? 9 : 7,
+                  width: (isCurrentTarget || isJoined) ? 'var(--mm-dot-active)' : 'var(--mm-dot)',
+                  height: (isCurrentTarget || isJoined) ? 'var(--mm-dot-active)' : 'var(--mm-dot)',
                   borderRadius: '50%',
                   background: dotColor,
                   opacity: isDead ? 0 : ((isCurrentTarget || isJoined) ? 1 : 0.5),
@@ -710,8 +710,8 @@ export default function Minimap() {
               position: 'absolute',
               left: `${event.pos.x}%`,
               top: `${event.pos.y}%`,
-              width: event.type === 'crit' ? 28 : 20,
-              height: event.type === 'crit' ? 28 : 20,
+              width: event.type === 'crit' ? 'calc(var(--mm-dot-active) * 3)' : 'calc(var(--mm-dot-active) * 2.2)',
+              height: event.type === 'crit' ? 'calc(var(--mm-dot-active) * 3)' : 'calc(var(--mm-dot-active) * 2.2)',
               borderRadius: '50%',
               transform: 'translate(-50%, -50%)',
               background: `radial-gradient(circle, ${event.color ?? 'var(--accent)'} 0%, transparent 70%)`,
@@ -898,8 +898,8 @@ export default function Minimap() {
           <div
             className={isPlatinum ? 'mm-platinum-dot' : undefined}
             style={{
-              width: isPlatinum ? 11 : 9,
-              height: isPlatinum ? 11 : 9,
+              width: isPlatinum ? 'var(--mm-player-lg)' : 'var(--mm-player)',
+              height: isPlatinum ? 'var(--mm-player-lg)' : 'var(--mm-player)',
               borderRadius: '50%',
               ...(isPlatinum ? {} : {
                 background: playerDotColor,

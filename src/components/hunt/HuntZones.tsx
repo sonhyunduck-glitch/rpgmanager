@@ -224,7 +224,7 @@ export default function HuntZones() {
                           if (!isLocked && !isCurrent) moveToRoom(room);
                         }}
                         style={{
-                          width: 22, height: 22,
+                          width: 'var(--s-5)', height: 'var(--s-5)',
                           borderRadius: 4,
                           display: 'flex',
                           alignItems: 'center',
