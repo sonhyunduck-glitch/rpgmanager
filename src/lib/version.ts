@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v1.8.0 — 다음 사냥터 바로 이동, 메뉴 한글화
-export const APP_VERSION = '1.8.0';
+// v1.9.0 — Lv1 자동시작, 장비 DB 동기화, 상점 카테고리 서브탭
+export const APP_VERSION = '1.9.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

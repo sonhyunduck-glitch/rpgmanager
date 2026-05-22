@@ -270,6 +270,20 @@ async function flushSync() {
   try {
     await Promise.all([
       syncProfile(state),
+      syncAllItems(state.inventory, {
+        equippedWeapon: state.equippedWeapon,
+        equippedTshirt: state.equippedTshirt,
+        equippedArmor: state.equippedArmor,
+        equippedHelmet: state.equippedHelmet,
+        equippedCloak: state.equippedCloak,
+        equippedGloves: state.equippedGloves,
+        equippedBoots: state.equippedBoots,
+        equippedShield: state.equippedShield,
+        equippedNecklace: state.equippedNecklace,
+        equippedRing: state.equippedRing,
+        equippedRing2: state.equippedRing2,
+        equippedBelt: state.equippedBelt,
+      }),
       syncMaterials(state.materials),
       syncPotions(state.potions),
     ]);

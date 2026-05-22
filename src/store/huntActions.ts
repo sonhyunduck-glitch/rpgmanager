@@ -50,6 +50,12 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
 
       set({ statAllocation: newAllocation, maxHp: newMaxHp });
       save(get());
+
+      // 레벨 1 + 모든 초기 스탯 배분 완료 → 훈련소 자동 입장
+      const afterState = get();
+      if (afterState.level === 1 && afterState.getRemainingPoints() <= 0 && afterState.hunt.status === 'idle') {
+        afterState.startHunt('map_training');
+      }
     },
 
     startHunt: (zoneId: string) => {

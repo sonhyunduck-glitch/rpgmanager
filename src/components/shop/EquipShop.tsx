@@ -1,13 +1,14 @@
 /* ── 장비 상점 ── */
+import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { EQUIPMENT_TEMPLATES } from '../../data/gameData';
 import type { ShopTab, EquipmentTemplate } from '../../types';
-import { LABEL } from '../../styles/shared';
+// shared styles not needed — sub-tabs use inline styles
 
 const ARMOR_GROUPS: { type: string; label: string }[] = [
   { type: 'tshirt', label: '티셔츠' },
-  { type: 'armor',  label: '갑옷' },
   { type: 'helmet', label: '투구' },
+  { type: 'armor',  label: '갑옷' },
   { type: 'cloak',  label: '망토' },
   { type: 'gloves', label: '장갑' },
   { type: 'boots',  label: '부츠' },
@@ -119,45 +120,89 @@ export default function EquipShop({
       ? ARMOR_GROUPS
       : ACCESSORY_GROUPS;
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-3)' }}>
-      {groups.map(group => {
-        const items = all
-          .filter(t => t.type === group.type)
-          .sort((a, b) => a.sellPrice - b.sellPrice);
-        if (items.length === 0) return null;
+  // 서브탭 (방어구/악세사리는 카테고리 선택)
+  const [subType, setSubType] = useState<string>(groups[0].type);
 
-        return (
-          <div key={group.type}>
-            {/* 카테고리 헤더 — 무기 탭은 단일이므로 숨김 */}
-            {groups.length > 1 && (
-              <div style={{
-                ...LABEL,
-                fontSize: 'var(--fs-xs)',
-                marginBottom: 'var(--s-2)',
-                paddingBottom: 'var(--s-1)',
-                borderBottom: '1px solid var(--border-soft)',
-              }}>
-                {group.label}
-              </div>
-            )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
-              {items.map(tmpl => {
-                const shopPrice = tmpl.sellPrice * 2;
-                const canBuy = gold >= shopPrice && !isFull;
-                return (
-                  <EquipRow
-                    key={tmpl.id}
-                    tmpl={tmpl}
-                    canBuy={canBuy}
-                    buyEquip={buyEquip}
-                  />
-                );
-              })}
-            </div>
+  // 탭 변경 시 서브탭 리셋
+  const activeGroup = groups.find(g => g.type === subType) ?? groups[0];
+
+  const items = all
+    .filter(t => groups.length === 1 ? t.type === groups[0].type : t.type === activeGroup.type)
+    .sort((a, b) => a.sellPrice - b.sellPrice);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
+      {/* 서브탭 (카테고리가 2개 이상일 때) */}
+      {groups.length > 1 && (
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 'var(--s-1)',
+        }}>
+          {groups.map(g => {
+            const isActive = activeGroup.type === g.type;
+            const count = all.filter(t => t.type === g.type).length;
+            return (
+              <button
+                key={g.type}
+                onClick={() => setSubType(g.type)}
+                style={{
+                  padding: 'var(--s-1) var(--s-2)',
+                  borderRadius: 'var(--r-xs)',
+                  border: isActive
+                    ? '1px solid var(--accent)'
+                    : '1px solid var(--border-soft)',
+                  background: isActive
+                    ? 'color-mix(in oklch, var(--accent) 15%, transparent)'
+                    : 'transparent',
+                  color: isActive ? 'var(--accent)' : 'var(--text-mute)',
+                  fontSize: 'var(--fs-xs)',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-ui)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {g.label}
+                <span style={{
+                  marginLeft: 3,
+                  fontSize: 'var(--fs-2xs)',
+                  opacity: 0.7,
+                }}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 아이템 목록 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
+        {items.map(tmpl => {
+          const shopPrice = tmpl.sellPrice * 2;
+          const canBuy = gold >= shopPrice && !isFull;
+          return (
+            <EquipRow
+              key={tmpl.id}
+              tmpl={tmpl}
+              canBuy={canBuy}
+              buyEquip={buyEquip}
+            />
+          );
+        })}
+        {items.length === 0 && (
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--s-4)',
+            fontSize: 'var(--fs-sm)',
+            color: 'var(--text-mute)',
+          }}>
+            판매 중인 장비가 없습니다
           </div>
-        );
-      })}
+        )}
+      </div>
 
       {isFull && (
         <div style={{
