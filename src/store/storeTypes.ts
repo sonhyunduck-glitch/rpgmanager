@@ -93,6 +93,7 @@ export interface GameState {
   // Hunt
   hunt: HuntSession;
   combatLog: LogEntry[];
+  zonePlayerCount: number;   // 현재 존 접속자 수 (리젠 수 조절용)
 
   // Potions
   potions: Record<string, number>;

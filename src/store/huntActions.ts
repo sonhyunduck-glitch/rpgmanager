@@ -5,6 +5,7 @@ import { HUNT_ZONES, getMonstersForRoom } from '../data/gameData';
 import { BASE_STATS } from '../data/statFormulas';
 import { genLogId } from './helpers';
 import { ROOMS_PER_ZONE } from './storeTypes';
+import { upsertZonePresence, getZonePlayerCount, removeZonePresence } from '../lib/db';
 import type { LogEntry } from '../types';
 import type { GameState, SetState, GetState } from './storeTypes';
 
@@ -92,6 +93,17 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
         },
         combatLog: [entry],
       });
+
+      // 존 접속자 추적 (훈련소 제외, 비동기)
+      const userId = get().authUserId;
+      if (userId && zoneId !== 'map_training') {
+        upsertZonePresence(userId, zoneId)
+          .then(() => getZonePlayerCount(zoneId))
+          .then(count => set({ zonePlayerCount: Math.max(1, count) }))
+          .catch(() => set({ zonePlayerCount: 1 }));
+      } else {
+        set({ zonePlayerCount: 1 });
+      }
     },
 
     moveToNextFloor: (useScroll: boolean) => {
@@ -111,9 +123,14 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       get().startHunt(nextFloorId);
     },
 
-    pauseHunt: () => set(s => ({
-      hunt: { ...s.hunt, status: 'paused' as const },
-    })),
+    pauseHunt: () => {
+      const userId = get().authUserId;
+      if (userId) removeZonePresence(userId).catch(() => {});
+      set(s => ({
+        hunt: { ...s.hunt, status: 'paused' as const },
+        zonePlayerCount: 1,
+      }));
+    },
 
     resumeHunt: () => {
       const state = get();

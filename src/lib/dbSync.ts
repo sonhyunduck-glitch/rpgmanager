@@ -3,6 +3,7 @@
    localStorage = 빠른 캐시 / Supabase DB = 원본
    ========================================================= */
 import { supabase } from './supabase';
+import { touchZonePresence, removeZonePresence } from './db';
 import type { Equipment } from '../types';
 
 let _userId: string | null = null;
@@ -268,6 +269,11 @@ async function flushSync() {
 
   const state = _getState() as any;
   try {
+    // zone_presence heartbeat (사냥 중일 때만)
+    if (_userId && state.hunt?.status === 'hunting' && state.hunt?.zoneId) {
+      touchZonePresence(_userId).catch(() => {});
+    }
+
     await Promise.all([
       syncProfile(state),
       syncAllItems(state.inventory, {
@@ -295,6 +301,9 @@ async function flushSync() {
 
 /** 즉시 동기화 (로그아웃, 탭 닫기 전) */
 export async function flushNow() {
+  // 존 접속 정보 삭제
+  if (_userId) removeZonePresence(_userId).catch(() => {});
+
   _dirty = true;
   await flushSync();
   // 아이템도 동기화

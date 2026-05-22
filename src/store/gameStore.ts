@@ -223,6 +223,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } as HuntSession;
   })(),
   combatLog: [],
+  zonePlayerCount: 1,
 
   // ── Queue ──
   queue: (saved?.queue as any[]) ?? [],

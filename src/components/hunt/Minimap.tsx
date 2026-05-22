@@ -15,7 +15,8 @@ import { LABEL } from '../../styles/shared';
 import type { ActiveBuff } from '../../types';
 
 /* ── 상수 ── */
-const VISIBLE_MONSTERS = 8;
+const BASE_VISIBLE_MONSTERS = 8;
+const MIN_VISIBLE_MONSTERS = 1;
 const RESPAWN_DELAY = 3000;
 const MAP_SIZE_M = 50;          // 맵 한 변 = 50m (화면 크기 무관)
 const MOVE_SPEED = 0.5;         // 1m당 0.5초
@@ -146,6 +147,13 @@ export default function Minimap() {
   const setPlayerMoving = useGameStore(s => s.setPlayerMoving);
   const getMoveSpeedMult = useGameStore(s => s.getMoveSpeedMult);
   const startApproach = useGameStore(s => s.startApproach);
+  const zonePlayerCount = useGameStore(s => s.zonePlayerCount);
+
+  // 존 접속자 수에 따른 몬스터 리젠 수: 8 - (접속자-1), 최소 1
+  const VISIBLE_MONSTERS = Math.max(
+    MIN_VISIBLE_MONSTERS,
+    BASE_VISIBLE_MONSTERS - (zonePlayerCount - 1),
+  );
 
   const activeBuffs = useGameStore(s => s.activeBuffs);
   const transformScrollType = useGameStore(s => s.transformScrollType);
@@ -964,8 +972,13 @@ export default function Minimap() {
           {zone.name}
         </span>
 
-        {/* 몬스터 수 */}
+        {/* 몬스터 수 + 접속자 */}
         <span style={{ position: 'absolute', top: 8, right: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
+          {zonePlayerCount > 1 && (
+            <span style={{ marginRight: 4, color: 'var(--warning)' }}>
+              👤{zonePlayerCount}
+            </span>
+          )}
           {VISIBLE_MONSTERS}m
         </span>
       </div>

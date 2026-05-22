@@ -206,6 +206,46 @@ export async function savePotions(userId: string, potions: Record<string, number
 }
 
 
+// ── 존 접속자 (zone_presence) ──
+
+/** 존 입장/이동 — user_id PK이므로 UPSERT 하나로 이전 존에서 자동 이탈 */
+export async function upsertZonePresence(userId: string, zoneId: string) {
+  await supabase
+    .from('zone_presence')
+    .upsert(
+      { user_id: userId, zone_id: zoneId, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    );
+}
+
+/** heartbeat — updated_at만 갱신 (30초마다 호출) */
+export async function touchZonePresence(userId: string) {
+  await supabase
+    .from('zone_presence')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('user_id', userId);
+}
+
+/** 존 퇴장 (일시정지, 로그아웃 시) */
+export async function removeZonePresence(userId: string) {
+  await supabase
+    .from('zone_presence')
+    .delete()
+    .eq('user_id', userId);
+}
+
+/** 특정 존의 활성 접속자 수 (5분 이내 갱신된 유저만) */
+export async function getZonePlayerCount(zoneId: string): Promise<number> {
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const { count, error } = await supabase
+    .from('zone_presence')
+    .select('*', { count: 'exact', head: true })
+    .eq('zone_id', zoneId)
+    .gte('updated_at', fiveMinAgo);
+  if (error) return 1; // 에러 시 본인만 있다고 간주
+  return count ?? 1;
+}
+
 // ── 오프라인 보상 계산 ──
 
 export interface OfflineReward {
