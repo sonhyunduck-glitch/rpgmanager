@@ -16,7 +16,12 @@ export function setSyncUserId(userId: string | null) {
   if (userId && !_syncTimer) {
     // 30초마다 자동 동기화
     _syncTimer = setInterval(() => {
-      if (_dirty) flushSync();
+      if (_dirty) {
+        flushSync();
+      } else {
+        // dirty 아니어도 last_active_at만 갱신 (오프라인 보상 오작동 방지)
+        heartbeatOnly();
+      }
     }, 30_000);
   }
   if (!userId && _syncTimer) {
@@ -297,6 +302,16 @@ async function flushSync() {
     console.error('[dbSync] flush error:', e);
     _dirty = true; // 다음에 재시도
   }
+}
+
+/** last_active_at만 갱신 (dirty 아닐 때 heartbeat) */
+async function heartbeatOnly() {
+  if (!_userId) return;
+  try {
+    await supabase.from('profiles').update({
+      last_active_at: new Date().toISOString(),
+    }).eq('id', _userId);
+  } catch { /* ignore */ }
 }
 
 /** 즉시 동기화 (로그아웃, 탭 닫기 전) */
