@@ -663,6 +663,8 @@ export default function Minimap() {
           const isJoined = joinedDotIdxs.has(i) && !isDead;
           const isApproaching = dotApproachDuration.has(i) && !isDead;
           const dotColor = monsterColorMap.get(dot.monsterIdx) ?? '#ef5350';
+          const dotMonster = tierMonsters[dot.monsterIdx];
+          const isLarge = dotMonster?.size === 'large';
           const approachMs = dotApproachDuration.get(i);
           const moveTrans = approachMs
             ? `left ${approachMs}ms ease-in-out, top ${approachMs}ms ease-in-out`
@@ -698,11 +700,15 @@ export default function Minimap() {
                   {'⚔️'}
                 </span>
               )}
-              {/* 닷 */}
+              {/* 닷 — large 몬스터는 큰 닷 */}
               <div
                 style={{
-                  width: (isCurrentTarget || isJoined) ? 'var(--mm-dot-active)' : 'var(--mm-dot)',
-                  height: (isCurrentTarget || isJoined) ? 'var(--mm-dot-active)' : 'var(--mm-dot)',
+                  width: (isCurrentTarget || isJoined)
+                    ? (isLarge ? 'var(--mm-dot-active-lg)' : 'var(--mm-dot-active)')
+                    : (isLarge ? 'var(--mm-dot-lg)' : 'var(--mm-dot)'),
+                  height: (isCurrentTarget || isJoined)
+                    ? (isLarge ? 'var(--mm-dot-active-lg)' : 'var(--mm-dot-active)')
+                    : (isLarge ? 'var(--mm-dot-lg)' : 'var(--mm-dot)'),
                   borderRadius: '50%',
                   background: dotColor,
                   opacity: isDead ? 0 : ((isCurrentTarget || isJoined) ? 1 : 0.5),
@@ -924,18 +930,26 @@ export default function Minimap() {
                     : undefined
             }
             style={{
-              width: (tsActive && tsDotIsPlatinum && !tsIsEvent) || (isPlatinum && !tsActive)
-                ? 'var(--mm-player-lg)' : 'var(--mm-player)',
-              height: (tsActive && tsDotIsPlatinum && !tsIsEvent) || (isPlatinum && !tsActive)
-                ? 'var(--mm-player-lg)' : 'var(--mm-player)',
+              width: tsIsEvent
+                ? 'var(--mm-player-star)'   // 이벤트 별: 1.5배
+                : (tsActive && tsDotIsPlatinum) || (isPlatinum && !tsActive)
+                  ? 'var(--mm-player-lg)'
+                  : 'var(--mm-player)',
+              height: tsIsEvent
+                ? 'var(--mm-player-star)'
+                : (tsActive && tsDotIsPlatinum) || (isPlatinum && !tsActive)
+                  ? 'var(--mm-player-lg)'
+                  : 'var(--mm-player)',
               ...(tsIsEvent
                 ? { clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }
                 : { borderRadius: '50%' }),
               ...((tsActive && tsDotIsPlatinum && !tsIsEvent) || (isPlatinum && !tsActive) ? {} : {
                 background: tsActive ? tsDotColor : playerDotColor,
-                boxShadow: `0 0 ${tsActive ? 14 : (level >= 75 ? 12 : 8)}px ${
-                  tsActive ? tsDotColor : playerDotColor
-                }`,
+                boxShadow: tsIsEvent
+                  ? `0 0 16px ${tsDotColor}, 0 0 32px ${tsDotColor}60`  // 이벤트: 강한 이중 글로우
+                  : `0 0 ${tsActive ? 14 : (level >= 75 ? 12 : 8)}px ${
+                      tsActive ? tsDotColor : playerDotColor
+                    }`,
                 animation: isHunting
                   ? (tsActive ? 'mmTransformPulse 1.2s infinite' : 'mmPulse 1.5s infinite')
                   : 'none',

@@ -52,10 +52,13 @@
   --fs-2xl: 40px; --fs-3xl: 56px;
 
   /* ---- Minimap dots ---- */
-  --mm-dot: 7px;
+  --mm-dot: 6px;
+  --mm-dot-lg: 9px;
   --mm-dot-active: 9px;
+  --mm-dot-active-lg: 12px;
   --mm-player: 9px;
   --mm-player-lg: 11px;
+  --mm-player-star: 16px;
 
   /* ---- Space ---- */
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
@@ -97,9 +100,12 @@
 
     /* ---- Minimap dots (축소) ---- */
     --mm-dot: 4px;
+    --mm-dot-lg: 6px;
     --mm-dot-active: 6px;
+    --mm-dot-active-lg: 8px;
     --mm-player: 6px;
     --mm-player-lg: 7px;
+    --mm-player-star: 11px;
 
     /* ---- Space (축소) ---- */
     --s-1: 2px; --s-2: 4px; --s-3: 6px; --s-4: 10px;
