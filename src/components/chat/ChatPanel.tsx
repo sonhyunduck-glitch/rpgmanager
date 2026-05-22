@@ -26,16 +26,6 @@ function formatTime(iso: string): string {
   return `${h}:${m}`;
 }
 
-/* ── 레벨 색상 ── */
-function levelColor(lv: number): string {
-  if (lv >= 50) return 'var(--danger)';
-  if (lv >= 40) return 'oklch(0.65 0.18 45)';
-  if (lv >= 30) return 'var(--accent)';
-  if (lv >= 20) return 'var(--info)';
-  if (lv >= 10) return 'var(--success)';
-  return 'var(--text-mute)';
-}
-
 /* ── 메시지 라인 (컴팩트) ── */
 function MessageLine({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
   return (
