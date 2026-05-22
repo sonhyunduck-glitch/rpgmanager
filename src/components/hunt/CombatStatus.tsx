@@ -50,11 +50,11 @@ export default function CombatStatus() {
       {/* Player HP + Potion */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ ...LABEL, fontSize: 9 }}>PLAYER HP</span>
+          <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>PLAYER HP</span>
           <span
             style={{
               ...STAT_VALUE,
-              fontSize: 11,
+              fontSize: 'var(--fs-sm)',
               color: hpColor(playerHpPct),
             }}
           >
@@ -75,7 +75,7 @@ export default function CombatStatus() {
       >
         <span
           style={{
-            fontSize: 10,
+            fontSize: 'var(--fs-xs)',
             fontWeight: 800,
             color: 'var(--text-mute)',
             fontFamily: 'var(--font-mono)',
@@ -92,7 +92,7 @@ export default function CombatStatus() {
           <span
             style={{
               ...LABEL,
-              fontSize: 9,
+              fontSize: 'var(--fs-xs)',
               maxWidth: '60%',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -106,14 +106,14 @@ export default function CombatStatus() {
             <span
               style={{
                 ...STAT_VALUE,
-                fontSize: 11,
+                fontSize: 'var(--fs-sm)',
                 color: monsterHpPct > 50 ? 'var(--danger)' : monsterHpPct > 25 ? 'var(--warning)' : 'var(--text-mute)',
               }}
             >
               {monsterHp}/{monsterMaxHp}
             </span>
           ) : (
-            <span style={{ ...STAT_VALUE, fontSize: 11, color: 'var(--text-mute)' }}>--</span>
+            <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-sm)', color: 'var(--text-mute)' }}>--</span>
           )}
         </div>
         <HpBar
@@ -122,10 +122,10 @@ export default function CombatStatus() {
         />
         {monster && monsterDmg && (
           <div style={{ display: 'flex', gap: 'var(--s-2)', marginTop: 3 }}>
-            <span style={{ fontSize: 8, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
               Lv.{monster.level}
             </span>
-            <span style={{ fontSize: 8, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
               DMG {monsterDmg.min}~{monsterDmg.max}
             </span>
           </div>

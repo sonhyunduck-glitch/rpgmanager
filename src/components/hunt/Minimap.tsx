@@ -670,7 +670,7 @@ export default function Minimap() {
               {isApproaching && (
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 'var(--fs-sm)',
                     lineHeight: 1,
                     marginBottom: -2,
                     animation: 'mmAggroBounce 0.6s ease-in-out infinite',
@@ -730,7 +730,7 @@ export default function Minimap() {
               left: `${event.pos.x}%`,
               top: `${event.pos.y - 6}%`,
               transform: 'translate(-50%, -50%)',
-              fontSize: 13, fontWeight: 800,
+              fontSize: 'var(--fs-base)', fontWeight: 800,
               color: event.color ?? '#ffa726',
               fontFamily: 'var(--font-mono)',
               animation: 'mmFloatUp 0.8s ease-out forwards',
@@ -751,7 +751,7 @@ export default function Minimap() {
               left: `${event.pos.x}%`,
               top: `${event.pos.y - 6}%`,
               transform: 'translate(-50%, -50%)',
-              fontSize: 12, fontWeight: 800,
+              fontSize: 'var(--fs-sm)', fontWeight: 800,
               color: 'var(--text)',
               fontFamily: 'var(--font-mono)',
               animation: 'mmFloatUp 0.8s ease-out forwards',
@@ -772,7 +772,7 @@ export default function Minimap() {
               left: `${event.pos.x}%`,
               top: `${event.pos.y - 6}%`,
               transform: 'translate(-50%, -50%)',
-              fontSize: 13, fontWeight: 800,
+              fontSize: 'var(--fs-base)', fontWeight: 800,
               color: 'var(--danger)',
               fontFamily: 'var(--font-mono)',
               animation: 'mmFloatUp 0.8s ease-out forwards',
@@ -782,7 +782,7 @@ export default function Minimap() {
             }}
           >
             <span>CRIT!</span>
-            {event.dmgText && <span style={{ fontSize: 11 }}>{event.dmgText}</span>}
+            {event.dmgText && <span style={{ fontSize: 'var(--fs-sm)' }}>{event.dmgText}</span>}
           </div>
         )}
 
@@ -795,7 +795,7 @@ export default function Minimap() {
               left: `${event.pos.x}%`,
               top: `${event.pos.y - 6}%`,
               transform: 'translate(-50%, -50%)',
-              fontSize: 11, fontWeight: 800,
+              fontSize: 'var(--fs-sm)', fontWeight: 800,
               color: 'var(--text-mute)',
               fontFamily: 'var(--font-mono)',
               animation: 'mmFloatUp 0.8s ease-out forwards',
@@ -815,7 +815,7 @@ export default function Minimap() {
               left: `${event.pos.x}%`,
               top: `${event.pos.y - 7}%`,
               transform: 'translate(-50%, -50%)',
-              fontSize: 11, fontWeight: 800,
+              fontSize: 'var(--fs-sm)', fontWeight: 800,
               color: '#ff6b6b',
               fontFamily: 'var(--font-mono)',
               animation: 'mmFloatUp 0.8s ease-out forwards',
@@ -911,12 +911,12 @@ export default function Minimap() {
         </div>
 
         {/* 존 라벨 */}
-        <span style={{ position: 'absolute', top: 8, left: 12, ...LABEL, fontSize: 9, opacity: 0.5 }}>
+        <span style={{ position: 'absolute', top: 8, left: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
           {zone.name}
         </span>
 
         {/* 몬스터 수 */}
-        <span style={{ position: 'absolute', top: 8, right: 12, ...LABEL, fontSize: 9, opacity: 0.5 }}>
+        <span style={{ position: 'absolute', top: 8, right: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
           {VISIBLE_MONSTERS}m
         </span>
       </div>

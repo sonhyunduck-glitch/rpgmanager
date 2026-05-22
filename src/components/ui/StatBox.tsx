@@ -20,7 +20,7 @@ export default function StatBox({ label, value, color = 'var(--text)' }: StatBox
         gap: 'var(--s-1)',
       }}
     >
-      <div style={{ ...LABEL, fontSize: 9 }}>{label}</div>
+      <div style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>{label}</div>
       <div style={{ ...STAT_VALUE, fontSize: 22, color }}>{value}</div>
     </div>
   );

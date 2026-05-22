@@ -57,7 +57,7 @@ export default function RotateOverlay() {
 
       <div style={{
         color: 'var(--text)',
-        fontSize: 16,
+        fontSize: 'var(--fs-md)',
         fontWeight: 700,
         fontFamily: 'var(--font-display)',
       }}>
@@ -66,7 +66,7 @@ export default function RotateOverlay() {
 
       <div style={{
         color: 'var(--text-mute)',
-        fontSize: 12,
+        fontSize: 'var(--fs-sm)',
         textAlign: 'center',
         lineHeight: 1.6,
       }}>

@@ -114,7 +114,7 @@ export default function InventoryPanel() {
           {/* ── Equipped Section ── */}
           {filter !== 'material' && filteredEquipped.length > 0 && (
             <div>
-              <div style={{ ...LABEL, marginBottom: 'var(--s-2)', fontSize: 10 }}>착용 중</div>
+              <div style={{ ...LABEL, marginBottom: 'var(--s-2)', fontSize: 'var(--fs-xs)' }}>착용 중</div>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
@@ -140,7 +140,7 @@ export default function InventoryPanel() {
           {filter !== 'material' && (
             <div>
               {filteredEquipped.length > 0 && filteredInv.length > 0 && (
-                <div style={{ ...LABEL, marginBottom: 'var(--s-2)', fontSize: 10 }}>가방</div>
+                <div style={{ ...LABEL, marginBottom: 'var(--s-2)', fontSize: 'var(--fs-xs)' }}>가방</div>
               )}
               <div style={{
                 display: 'grid',

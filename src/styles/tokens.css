@@ -47,8 +47,8 @@
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
   --font-display: 'Space Grotesk', 'Pretendard', sans-serif;
 
-  --fs-xs: 11px; --fs-sm: 12px; --fs-base: 14px;
-  --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px;
+  --fs-2xs: 8px; --fs-xs: 10px; --fs-sm: 11px; --fs-base: 13px;
+  --fs-md: 15px; --fs-lg: 20px; --fs-xl: 28px;
   --fs-2xl: 40px; --fs-3xl: 56px;
 
   /* ---- Space ---- */
@@ -85,9 +85,9 @@
 @media (max-height: 500px) and (orientation: landscape) {
   :root {
     /* ---- Type (축소) ---- */
-    --fs-xs: 8px; --fs-sm: 9px; --fs-base: 11px;
-    --fs-md: 12px; --fs-lg: 15px; --fs-xl: 20px;
-    --fs-2xl: 28px; --fs-3xl: 36px;
+    --fs-2xs: 5px; --fs-xs: 7px; --fs-sm: 8px; --fs-base: 9px;
+    --fs-md: 10px; --fs-lg: 13px; --fs-xl: 18px;
+    --fs-2xl: 24px; --fs-3xl: 30px;
 
     /* ---- Space (축소) ---- */
     --s-1: 2px; --s-2: 4px; --s-3: 6px; --s-4: 10px;

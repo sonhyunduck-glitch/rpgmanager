@@ -189,7 +189,7 @@ export default function EnhanceSidebar({
             borderLeft: '3px solid var(--accent)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text)', fontWeight: 700, fontSize: 13 }}>
+              <span style={{ color: 'var(--text)', fontWeight: 700, fontSize: 'var(--fs-base)' }}>
                 {displayLevel > 0 ? `+${displayLevel} ${target.name}` : target.name}
               </span>
             </div>
@@ -210,7 +210,7 @@ export default function EnhanceSidebar({
 
             {/* Stat preview — Lineage style */}
             {!maxed ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, fontFamily: 'var(--font-mono)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 'var(--fs-sm)', fontFamily: 'var(--font-mono)' }}>
                 {isWeapon ? (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -245,7 +245,7 @@ export default function EnhanceSidebar({
                 )}
               </div>
             ) : (
-              <div style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 12 }}>
+              <div style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 'var(--fs-sm)' }}>
                 최대 강화 달성
               </div>
             )}
@@ -271,7 +271,7 @@ export default function EnhanceSidebar({
           {/* Scroll type selector */}
           {target.maxEnhance > 0 && (
             <div>
-              <div style={{ ...LABEL, fontSize: 9 }}>주문서 선택</div>
+              <div style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>주문서 선택</div>
               <div style={{
                 marginTop: 'var(--s-2)',
                 display: 'flex',
@@ -341,12 +341,12 @@ export default function EnhanceSidebar({
               flexDirection: 'column',
               gap: 'var(--s-2)',
             }}>
-              <div style={{ ...LABEL, fontSize: 9 }}>강화 비용</div>
+              <div style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>강화 비용</div>
 
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                fontSize: 12,
+                fontSize: 'var(--fs-sm)',
               }}>
                 <span style={{ color: 'var(--text-dim)' }}>{scrollName}</span>
                 <span style={{
@@ -360,7 +360,7 @@ export default function EnhanceSidebar({
               {/* Risk warnings — only for normal scroll in unsafe zone */}
               {scrollType === 'normal' && !safe && (
                 <div style={{
-                  fontSize: 10,
+                  fontSize: 'var(--fs-xs)',
                   color: 'var(--danger)',
                   background: 'var(--danger-soft)',
                   padding: '4px 8px',

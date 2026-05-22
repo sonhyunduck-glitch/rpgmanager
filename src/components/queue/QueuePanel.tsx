@@ -30,7 +30,7 @@ function QueueItemCard({ item }: { item: QueueItem }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span
           style={{
-            fontSize: 13,
+            fontSize: 'var(--fs-base)',
             fontWeight: 600,
             color: color,
             overflow: 'hidden',
@@ -46,15 +46,15 @@ function QueueItemCard({ item }: { item: QueueItem }) {
       {/* Stats row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)' }}>
         <div>
-          <span style={{ ...LABEL, fontSize: 9 }}>{statLabel} </span>
-          <span style={{ ...STAT_VALUE, fontSize: 13, color: 'var(--text)' }}>
+          <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>{statLabel} </span>
+          <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color: 'var(--text)' }}>
             {stat}
           </span>
         </div>
         <div
           style={{
             ...STAT_VALUE,
-            fontSize: 13,
+            fontSize: 'var(--fs-base)',
             color: diffColor,
           }}
         >
@@ -62,8 +62,8 @@ function QueueItemCard({ item }: { item: QueueItem }) {
         </div>
         {item.priceIfSold > 0 && (
           <div style={{ marginLeft: 'auto' }}>
-            <span style={{ ...LABEL, fontSize: 9 }}>Sell </span>
-            <span style={{ ...STAT_VALUE, fontSize: 11, color: 'var(--accent)' }}>
+            <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>Sell </span>
+            <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-sm)', color: 'var(--accent)' }}>
               {item.priceIfSold}G
             </span>
           </div>
@@ -74,7 +74,7 @@ function QueueItemCard({ item }: { item: QueueItem }) {
       {item.recommendation && (
         <div
           style={{
-            fontSize: 10,
+            fontSize: 'var(--fs-xs)',
             color: 'var(--text-mute)',
             fontStyle: 'italic',
           }}
@@ -159,7 +159,7 @@ export default function QueuePanel() {
                 ? 'var(--danger)'
                 : 'color-mix(in oklch, var(--accent) 20%, transparent)',
               color: isFull ? 'white' : 'var(--accent)',
-              fontSize: 10,
+              fontSize: 'var(--fs-xs)',
               fontWeight: 700,
               padding: '1px 7px',
               borderRadius: 999,
@@ -175,7 +175,7 @@ export default function QueuePanel() {
             style={{
               ...BTN_SM,
               height: 26,
-              fontSize: 10,
+              fontSize: 'var(--fs-xs)',
               background: 'transparent',
               border: '1px solid var(--border-soft)',
               color: 'var(--text-mute)',
@@ -194,7 +194,7 @@ export default function QueuePanel() {
             border: '1px solid color-mix(in oklch, var(--danger) 40%, transparent)',
             borderRadius: 'var(--r-sm)',
             padding: 'var(--s-2) var(--s-3)',
-            fontSize: 11,
+            fontSize: 'var(--fs-sm)',
             color: 'var(--danger)',
             textAlign: 'center',
             fontWeight: 600,
@@ -219,7 +219,7 @@ export default function QueuePanel() {
             style={{
               textAlign: 'center',
               color: 'var(--text-mute)',
-              fontSize: 12,
+              fontSize: 'var(--fs-sm)',
               fontStyle: 'italic',
               padding: 'var(--s-6)',
             }}

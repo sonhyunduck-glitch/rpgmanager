@@ -67,7 +67,7 @@ export function MyGuildView({
     return (
       <div style={{
         height: '100%', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', color: 'var(--text-mute)', fontSize: 10,
+        justifyContent: 'center', color: 'var(--text-mute)', fontSize: 'var(--fs-xs)',
       }}>
         Loading...
       </div>
@@ -87,20 +87,20 @@ export function MyGuildView({
           display: 'flex', alignItems: 'center', gap: 'var(--s-1)',
         }}>
           <span style={{
-            fontSize: 13, fontWeight: 700, color: 'var(--accent)',
+            fontSize: 'var(--fs-base)', fontWeight: 700, color: 'var(--accent)',
             fontFamily: 'var(--font-display)',
           }}>
             {guild.name}
           </span>
           <span style={{
-            fontSize: 8, fontFamily: 'var(--font-mono)', fontWeight: 700,
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
             color: 'var(--text-mute)',
           }}>
             Lv.{guild.level}
           </span>
         </div>
         <div style={{
-          fontSize: 8, fontFamily: 'var(--font-mono)', color: 'var(--text-mute)',
+          fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', color: 'var(--text-mute)',
           marginTop: 2,
         }}>
           {members.length}/{guild.max_members}명
@@ -119,12 +119,12 @@ export function MyGuildView({
           display: 'flex', alignItems: 'center', gap: 4,
           marginBottom: 3,
         }}>
-          <span style={{ ...LABEL, fontSize: 8, marginBottom: 0 }}>Notice</span>
+          <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 0 }}>Notice</span>
           {isLeader && !editingNotice && (
             <button
               onClick={() => setEditingNotice(true)}
               style={{
-                fontSize: 7, fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
                 background: 'none', border: 'none',
                 color: 'var(--accent)', cursor: 'pointer',
               }}
@@ -146,7 +146,7 @@ export function MyGuildView({
                 borderRadius: 'var(--r-xs)',
                 background: 'var(--bg-panel)',
                 color: 'var(--text)', fontFamily: 'var(--font-mono)',
-                fontSize: 9, outline: 'none',
+                fontSize: 'var(--fs-xs)', outline: 'none',
               }}
             />
             <button
@@ -155,7 +155,7 @@ export function MyGuildView({
                 padding: '0 6px', border: 'none',
                 borderRadius: 'var(--r-xs)',
                 background: 'var(--accent)', color: '#fff',
-                fontSize: 8, fontWeight: 700, cursor: 'pointer',
+                fontSize: 'var(--fs-2xs)', fontWeight: 700, cursor: 'pointer',
               }}
             >
               OK
@@ -163,7 +163,7 @@ export function MyGuildView({
           </div>
         ) : (
           <div style={{
-            fontSize: 9, color: guild.notice ? 'var(--text-dim)' : 'var(--text-mute)',
+            fontSize: 'var(--fs-xs)', color: guild.notice ? 'var(--text-dim)' : 'var(--text-mute)',
             fontFamily: 'var(--font-mono)',
             fontStyle: guild.notice ? 'normal' : 'italic',
             wordBreak: 'break-word',
@@ -174,7 +174,7 @@ export function MyGuildView({
       </div>
 
       {/* 멤버 리스트 */}
-      <div style={{ ...LABEL, fontSize: 8, marginBottom: 0, flexShrink: 0 }}>
+      <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 0, flexShrink: 0 }}>
         Members
       </div>
       <div style={{
@@ -198,7 +198,7 @@ export function MyGuildView({
             >
               {/* 역할 표시 */}
               <span style={{
-                fontSize: 7, fontWeight: 700, fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--fs-2xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
                 color: rs.color, minWidth: 32,
                 textTransform: 'uppercase', letterSpacing: '0.05em',
               }}>
@@ -206,7 +206,7 @@ export function MyGuildView({
               </span>
               {/* 레벨 */}
               <span style={{
-                fontSize: 8, fontWeight: 700, fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--fs-2xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
                 color: 'var(--text-mute)', minWidth: 20, textAlign: 'right',
               }}>
                 {m.level}
@@ -217,7 +217,7 @@ export function MyGuildView({
                 name={m.name ?? '알 수 없음'}
                 isMe={isMe}
                 style={{
-                  fontSize: 10,
+                  fontSize: 'var(--fs-xs)',
                   fontWeight: isMe ? 700 : 500,
                   fontFamily: 'var(--font-display)',
                   flex: 1, minWidth: 0,
@@ -226,7 +226,7 @@ export function MyGuildView({
               />
               {/* 최근 접속 */}
               <span style={{
-                fontSize: 7, fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
                 color: 'var(--text-mute)', flexShrink: 0,
               }}>
                 {timeAgo(m.last_active_at)}
@@ -247,7 +247,7 @@ export function MyGuildView({
             borderRadius: 'var(--r-xs)',
             background: 'transparent',
             color: 'var(--text-mute)',
-            fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600,
+            fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', fontWeight: 600,
             cursor: 'pointer',
             transition: 'all 0.15s',
           }}

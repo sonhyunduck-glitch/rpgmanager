@@ -103,7 +103,7 @@ export default function BuffPotionButton({
         position: 'absolute',
         top: 1,
         left: 3,
-        fontSize: 7,
+        fontSize: 'var(--fs-2xs)',
         color: 'var(--text-mute)',
         fontFamily: 'var(--font-mono)',
         fontWeight: 700,
@@ -125,7 +125,7 @@ export default function BuffPotionButton({
       {/* 남은 시간 or ON/OFF */}
       {isActive ? (
         <span style={{
-          fontSize: 8, fontWeight: 800,
+          fontSize: 'var(--fs-2xs)', fontWeight: 800,
           fontFamily: 'var(--font-mono)',
           color,
           zIndex: 1,
@@ -135,7 +135,7 @@ export default function BuffPotionButton({
         </span>
       ) : (
         <span style={{
-          fontSize: 7, fontWeight: 700,
+          fontSize: 'var(--fs-2xs)', fontWeight: 700,
           fontFamily: 'var(--font-mono)',
           color: buffEnabled ? color : 'var(--text-mute)',
           zIndex: 1,
@@ -150,7 +150,7 @@ export default function BuffPotionButton({
         position: 'absolute',
         bottom: 1,
         right: 2,
-        fontSize: 7,
+        fontSize: 'var(--fs-2xs)',
         fontWeight: 800,
         fontFamily: 'var(--font-mono)',
         color: count > 0 ? 'var(--text-dim)' : 'var(--danger)',

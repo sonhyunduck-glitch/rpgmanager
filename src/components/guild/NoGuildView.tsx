@@ -79,7 +79,7 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
       overflow: 'hidden',
     }}>
       <div style={{
-        ...LABEL, fontSize: 9, marginBottom: 'var(--s-2)',
+        ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 'var(--s-2)',
         display: 'flex', alignItems: 'center', gap: 'var(--s-1)',
       }}>
         <span>Guild</span>
@@ -87,7 +87,7 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
         <button
           onClick={() => setCreating(!creating)}
           style={{
-            fontSize: 8, fontWeight: 700, fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--fs-2xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
             padding: '1px 6px', borderRadius: 'var(--r-xs)',
             border: '1px solid var(--accent)',
             background: creating
@@ -114,7 +114,7 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
           {/* 생성 조건 */}
           <div style={{
             display: 'flex', gap: 'var(--s-2)', marginBottom: 4,
-            fontSize: 8, fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
           }}>
             <span style={{ color: level >= GUILD_CREATE_LEVEL ? 'var(--text-dim)' : 'var(--danger)' }}>
               Lv.{GUILD_CREATE_LEVEL}
@@ -136,7 +136,7 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
                 borderRadius: 'var(--r-xs)',
                 background: 'var(--bg-panel)',
                 color: 'var(--text)', fontFamily: 'var(--font-mono)',
-                fontSize: 10, outline: 'none',
+                fontSize: 'var(--fs-xs)', outline: 'none',
               }}
             />
             <button
@@ -147,7 +147,7 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
                 borderRadius: 'var(--r-xs)',
                 background: newName.trim() && canCreate ? 'var(--accent)' : 'var(--bg-sunken)',
                 color: newName.trim() && canCreate ? '#fff' : 'var(--text-mute)',
-                fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+                fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', fontWeight: 700,
                 cursor: newName.trim() && canCreate ? 'pointer' : 'default',
               }}
             >
@@ -159,7 +159,7 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
 
       {error && (
         <div style={{
-          fontSize: 9, color: 'var(--danger)', fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--fs-xs)', color: 'var(--danger)', fontFamily: 'var(--font-mono)',
           padding: '2px 0', marginBottom: 'var(--s-1)', flexShrink: 0,
         }}>
           {error}
@@ -174,14 +174,14 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
         {loading ? (
           <div style={{
             textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 10, fontStyle: 'italic', padding: 'var(--s-4)',
+            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-4)',
           }}>
             Loading...
           </div>
         ) : guilds.length === 0 ? (
           <div style={{
             textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 10, fontStyle: 'italic', padding: 'var(--s-4)',
+            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-4)',
           }}>
             길드가 없습니다.
             <br />첫 길드를 만들어보세요!
@@ -200,14 +200,14 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
             >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 11, fontWeight: 700, color: 'var(--text)',
+                  fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text)',
                   fontFamily: 'var(--font-display)',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {g.name}
                 </div>
                 <div style={{
-                  fontSize: 8, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
+                  fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
                   marginTop: 1,
                 }}>
                   Lv.{g.level} | {g.memberCount ?? '?'}/{g.max_members}명
@@ -219,7 +219,7 @@ export function NoGuildView({ userId, onJoined }: { userId: string; onJoined: ()
                   padding: '3px 8px', border: 'none',
                   borderRadius: 'var(--r-xs)',
                   background: 'var(--accent)', color: '#fff',
-                  fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700,
+                  fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-2xs)', fontWeight: 700,
                   cursor: 'pointer', flexShrink: 0,
                 }}
               >

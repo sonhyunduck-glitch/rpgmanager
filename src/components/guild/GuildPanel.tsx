@@ -42,7 +42,7 @@ export default function GuildPanel() {
         alignItems: 'center',
         justifyContent: 'center',
         color: 'var(--text-mute)',
-        fontSize: 10,
+        fontSize: 'var(--fs-xs)',
       }}>
         Loading...
       </div>

@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v1.4.0 — 모바일 가로모드 반응형, 세로모드 안내, 테스트 배율
-export const APP_VERSION = '1.4.0';
+// v1.5.0 — 전체 폰트 사이즈 CSS 변수화 + 모바일 반응형 강화
+export const APP_VERSION = '1.5.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

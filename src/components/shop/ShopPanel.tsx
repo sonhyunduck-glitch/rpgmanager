@@ -49,7 +49,7 @@ export default function ShopPanel() {
           <span style={{ fontWeight: 700, fontSize: 'var(--fs-md)' }}>상점</span>
           <span style={{
             fontFamily: 'var(--font-mono)',
-            fontSize: 12,
+            fontSize: 'var(--fs-sm)',
             color: 'var(--accent)',
             fontWeight: 700,
           }}>

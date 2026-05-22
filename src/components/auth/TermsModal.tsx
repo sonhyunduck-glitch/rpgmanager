@@ -96,7 +96,7 @@ export default function TermsModal({
         }}>
           <span style={{
             fontWeight: 700,
-            fontSize: 14,
+            fontSize: 'var(--fs-base)',
             color: 'var(--text)',
             fontFamily: 'var(--font-ui)',
           }}>
@@ -125,7 +125,7 @@ export default function TermsModal({
           flex: 1,
         }}>
           <div style={{
-            fontSize: 11,
+            fontSize: 'var(--fs-sm)',
             color: 'var(--text-mute)',
             marginBottom: 16,
             lineHeight: 1.5,
@@ -137,7 +137,7 @@ export default function TermsModal({
             <div key={sec.title} style={{ marginBottom: 16 }}>
               <div style={{
                 fontWeight: 700,
-                fontSize: 12,
+                fontSize: 'var(--fs-sm)',
                 color: 'var(--text)',
                 marginBottom: 6,
                 fontFamily: 'var(--font-ui)',
@@ -145,7 +145,7 @@ export default function TermsModal({
                 {sec.title}
               </div>
               <div style={{
-                fontSize: 11,
+                fontSize: 'var(--fs-sm)',
                 color: 'var(--text-dim)',
                 lineHeight: 1.7,
               }}>
@@ -172,7 +172,7 @@ export default function TermsModal({
               border: 'none',
               borderRadius: 'var(--r-sm)',
               color: 'var(--bg-canvas)',
-              fontSize: 12,
+              fontSize: 'var(--fs-sm)',
               fontWeight: 700,
               fontFamily: 'var(--font-ui)',
               cursor: 'pointer',
@@ -188,7 +188,7 @@ export default function TermsModal({
               border: '1px solid var(--border-soft)',
               borderRadius: 'var(--r-sm)',
               color: 'var(--text-dim)',
-              fontSize: 12,
+              fontSize: 'var(--fs-sm)',
               fontWeight: 600,
               fontFamily: 'var(--font-ui)',
               cursor: 'pointer',

@@ -51,8 +51,8 @@ function StatCard({ label, value, color }: { label: string; value: number | stri
         gap: 1,
       }}
     >
-      <span style={{ ...LABEL, fontSize: 7 }}>{label}</span>
-      <span style={{ ...STAT_VALUE, fontSize: 13, color }}>{value}</span>
+      <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)' }}>{label}</span>
+      <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color }}>{value}</span>
     </div>
   );
 }

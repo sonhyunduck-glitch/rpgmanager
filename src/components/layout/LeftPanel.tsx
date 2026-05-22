@@ -98,7 +98,7 @@ export default function LeftPanel() {
             borderRadius: 'var(--r-sm)',
             padding: 'var(--s-2) var(--s-3)',
             textAlign: 'center',
-            fontSize: 11,
+            fontSize: 'var(--fs-sm)',
             color: 'var(--accent)',
             fontWeight: 600,
           }}
@@ -124,7 +124,7 @@ export default function LeftPanel() {
                 gap: 'var(--s-2)',
               }}
             >
-              <span style={{ ...LABEL, fontSize: 9, color, minWidth: 28 }}>{label}</span>
+              <span style={{ ...LABEL, fontSize: 'var(--fs-xs)', color, minWidth: 28 }}>{label}</span>
               <span style={{ ...STAT_VALUE, fontSize: 18, color }}>
                 {statValues[key]}
               </span>
@@ -139,7 +139,7 @@ export default function LeftPanel() {
                     border: `1px solid ${color}`,
                     background: 'transparent',
                     color,
-                    fontSize: 14,
+                    fontSize: 'var(--fs-base)',
                     fontWeight: 700,
                     cursor: 'pointer',
                     display: 'flex',
@@ -171,7 +171,7 @@ export default function LeftPanel() {
           gap: 'var(--s-2)',
         }}
       >
-        <div style={{ ...LABEL, fontSize: 9 }}>Combat Stats</div>
+        <div style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>Combat Stats</div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s-2)' }}>
           <MiniStat label="HP" value={`${currentHp}/${maxHp}`} color={currentHp > maxHp * 0.6 ? 'var(--success)' : currentHp > maxHp * 0.3 ? 'var(--warning)' : 'var(--danger)'} />
@@ -206,8 +206,8 @@ export default function LeftPanel() {
 function MiniStat({ label, value, color }: { label: string; value: number | string; color: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ ...LABEL, fontSize: 8 }}>{label}</span>
-      <span style={{ ...STAT_VALUE, fontSize: 12, color }}>{value}</span>
+      <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)' }}>{label}</span>
+      <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-sm)', color }}>{value}</span>
     </div>
   );
 }

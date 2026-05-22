@@ -96,10 +96,10 @@ export default function HuntZones() {
           }}
           onClick={() => setViewMode('zones')}
         >
-          <span style={{ fontSize: 11, color: 'var(--text-mute)' }}>
+          <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-mute)' }}>
             사냥터를 선택하세요
           </span>
-          <span style={{ fontSize: 9, color: 'var(--accent)' }}>→ Zones</span>
+          <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent)' }}>→ Zones</span>
         </div>
       </div>
     );
@@ -150,7 +150,7 @@ export default function HuntZones() {
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: 'var(--fs-base)',
                   fontWeight: 700,
                   color: isActive ? accentColor : 'var(--text)',
                   fontFamily: 'var(--font-display)',
@@ -161,7 +161,7 @@ export default function HuntZones() {
               >
                 {currentZone.name}
               </div>
-              <div style={{ ...LABEL, fontSize: 9, marginTop: 2 }}>
+              <div style={{ ...LABEL, fontSize: 'var(--fs-xs)', marginTop: 2 }}>
                 Lv.{currentZone.levelRange[0]}~{currentZone.levelRange[1]}
               </div>
               {isActive && (
@@ -175,7 +175,7 @@ export default function HuntZones() {
                     }}
                   />
                   <span style={{
-                    fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 9,
+                    fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 'var(--fs-xs)',
                     color: isDead ? 'var(--danger)' : isHunting ? 'var(--success)' : 'var(--warning)',
                   }}>
                     {isDead ? '클릭하여 부활' : isHunting ? 'Hunting' : 'Paused'}
@@ -223,7 +223,7 @@ export default function HuntZones() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: 9,
+                          fontSize: 'var(--fs-xs)',
                           fontWeight: 800,
                           fontFamily: 'var(--font-mono)',
                           cursor: isLocked ? 'default' : 'pointer',
@@ -269,7 +269,7 @@ export default function HuntZones() {
                   }} />
                 </div>
                 <span style={{
-                  fontSize: 8, fontFamily: 'var(--font-mono)', fontWeight: 700,
+                  fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
                   color: currentRoom <= roomCleared ? 'var(--success)' : (roomKills >= ROOM_KILL_REQ ? 'var(--success)' : accentColor),
                   flexShrink: 0,
                 }}>
@@ -334,14 +334,14 @@ export default function HuntZones() {
             if (displayNextZone) setViewMode('zones');
           }}
         >
-          <div style={{ ...LABEL, fontSize: 8, marginBottom: 3 }}>
+          <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 3 }}>
             {nextFloorZone ? 'NEXT FLOOR' : 'NEXT MAP'}
           </div>
           {displayNextZone ? (
             <>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: 'var(--fs-sm)',
                   fontWeight: 700,
                   color: allRoomsCleared && nextFloorZone ? 'var(--success)' : 'var(--text-dim)',
                   fontFamily: 'var(--font-display)',
@@ -352,10 +352,10 @@ export default function HuntZones() {
               >
                 {displayNextZone.name}
               </div>
-              <div style={{ fontSize: 9, color: 'var(--text-mute)', marginTop: 2 }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 2 }}>
                 Lv.{displayNextZone.levelRange[0]}~{displayNextZone.levelRange[1]}
               </div>
-              <div style={{ fontSize: 9, marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 'var(--fs-xs)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
                 {/* 주문서 표시 (던전일 때) */}
                 {nextFloorZone && nextFloorScrollCount > 0 && (
                   <>
@@ -383,7 +383,7 @@ export default function HuntZones() {
                   onClick={(e) => { e.stopPropagation(); moveToNextFloor(true); }}
                   style={{
                     marginTop: 4,
-                    fontSize: 9, fontWeight: 700, fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--fs-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
                     padding: '2px 8px',
                     border: '1px solid var(--accent)',
                     borderRadius: 'var(--r-xs)',
@@ -398,7 +398,7 @@ export default function HuntZones() {
               )}
             </>
           ) : (
-            <div style={{ fontSize: 10, color: 'var(--text-mute)', marginTop: 4 }}>
+            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 4 }}>
               {allRoomsCleared ? '최종 층 클리어!' : '최종 스테이지'}
             </div>
           )}
@@ -419,14 +419,14 @@ export default function HuntZones() {
 function SummaryItem({ label, value, color }: { label: string; value: number | string; color: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-      <span style={{ ...LABEL, fontSize: 7, marginBottom: 0 }}>{label}</span>
+      <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 0 }}>{label}</span>
       <span style={{
-        fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 10, color,
+        fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 'var(--fs-xs)', color,
       }}>{value}</span>
     </div>
   );
 }
 
 function Dot() {
-  return <span style={{ color: 'var(--border-soft)', fontSize: 8 }}>·</span>;
+  return <span style={{ color: 'var(--border-soft)', fontSize: 'var(--fs-2xs)' }}>·</span>;
 }

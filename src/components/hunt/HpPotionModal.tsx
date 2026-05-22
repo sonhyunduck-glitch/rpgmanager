@@ -59,7 +59,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
           marginBottom: 'var(--s-3)',
         }}>
           <span style={{
-            fontSize: 14, fontWeight: 700,
+            fontSize: 'var(--fs-base)', fontWeight: 700,
             fontFamily: 'var(--font-display)', color: 'var(--text)',
           }}>
             체력회복제 설정
@@ -68,7 +68,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
             onClick={onClose}
             style={{
               background: 'none', border: 'none',
-              color: 'var(--text-mute)', fontSize: 16,
+              color: 'var(--text-mute)', fontSize: 'var(--fs-md)',
               cursor: 'pointer', padding: '2px 6px',
             }}
           >
@@ -113,20 +113,20 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
                   boxShadow: selected ? `0 0 8px ${color}` : 'none',
                 }} />
                 <span style={{
-                  fontSize: 10, fontWeight: 700, color,
+                  fontSize: 'var(--fs-xs)', fontWeight: 700, color,
                   fontFamily: 'var(--font-mono)',
                 }}>
                   {p.name}
                 </span>
                 <span style={{
-                  fontSize: 9, fontFamily: 'var(--font-mono)',
+                  fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
                   color: count > 0 ? 'var(--text-dim)' : 'var(--danger)',
                   fontWeight: 700,
                 }}>
                   x{count}
                 </span>
                 <span style={{
-                  fontSize: 8, color: 'var(--text-mute)',
+                  fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
                   fontFamily: 'var(--font-mono)',
                 }}>
                   HP {p.healMin}~{p.healMax}
@@ -146,7 +146,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
           border: '1px solid var(--border-soft)',
         }}>
           <span style={{
-            fontSize: 11, fontWeight: 600, color: 'var(--text-dim)',
+            fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-dim)',
             flex: 1,
           }}>
             자동 사용
@@ -163,7 +163,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
                 ? 'color-mix(in oklch, var(--success) 15%, transparent)'
                 : 'var(--bg-sunken)',
               color: potionAutoUse ? 'var(--success)' : 'var(--text-mute)',
-              fontSize: 10, fontWeight: 700,
+              fontSize: 'var(--fs-xs)', fontWeight: 700,
               fontFamily: 'var(--font-mono)',
               cursor: 'pointer',
             }}
@@ -183,7 +183,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
             border: '1px solid var(--border-soft)',
           }}>
             <span style={{
-              fontSize: 11, fontWeight: 600, color: 'var(--text-dim)',
+              fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-dim)',
               flex: 1,
             }}>
               HP 임계값
@@ -203,7 +203,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
                       ? 'color-mix(in oklch, var(--warning) 15%, transparent)'
                       : 'var(--bg-sunken)',
                     color: potionAutoThreshold === t ? 'var(--warning)' : 'var(--text-mute)',
-                    fontSize: 10, fontWeight: 700,
+                    fontSize: 'var(--fs-xs)', fontWeight: 700,
                     fontFamily: 'var(--font-mono)',
                     cursor: 'pointer',
                   }}
@@ -224,7 +224,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
           border: '1px solid var(--border-soft)',
         }}>
           <span style={{
-            fontSize: 11, fontWeight: 600, color: 'var(--text-dim)',
+            fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-dim)',
             flex: 1,
           }}>
             자동 구매
@@ -241,7 +241,7 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
                 ? 'color-mix(in oklch, var(--accent) 15%, transparent)'
                 : 'var(--bg-sunken)',
               color: potionAutoBuy ? 'var(--accent)' : 'var(--text-mute)',
-              fontSize: 10, fontWeight: 700,
+              fontSize: 'var(--fs-xs)', fontWeight: 700,
               fontFamily: 'var(--font-mono)',
               cursor: 'pointer',
             }}

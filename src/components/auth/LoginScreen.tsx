@@ -69,7 +69,7 @@ export default function LoginScreen() {
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--success)', textAlign: 'center' }}>
             가입 완료!
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-dim)', textAlign: 'center', marginTop: 8 }}>
+          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-dim)', textAlign: 'center', marginTop: 8 }}>
             이메일 인증 후 로그인해주세요.
           </div>
           <button
@@ -97,7 +97,7 @@ export default function LoginScreen() {
           }}>
             LogDot
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 4 }}>
+          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-mute)', marginTop: 4 }}>
             {mode === 'login' ? '로그인' : '회원가입'}
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function LoginScreen() {
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              fontSize: 12,
+              fontSize: 'var(--fs-sm)',
               color: 'var(--text-dim)',
               cursor: 'pointer',
               userSelect: 'none',
@@ -158,7 +158,7 @@ export default function LoginScreen() {
                     background: 'none',
                     border: 'none',
                     color: 'var(--info)',
-                    fontSize: 12,
+                    fontSize: 'var(--fs-sm)',
                     cursor: 'pointer',
                     textDecoration: 'underline',
                     fontFamily: 'var(--font-ui)',
@@ -174,7 +174,7 @@ export default function LoginScreen() {
 
           {error && (
             <div style={{
-              fontSize: 11,
+              fontSize: 'var(--fs-sm)',
               color: 'var(--danger)',
               textAlign: 'center',
               padding: '6px 8px',
@@ -206,7 +206,7 @@ export default function LoginScreen() {
               background: 'none',
               border: 'none',
               color: 'var(--info)',
-              fontSize: 11,
+              fontSize: 'var(--fs-sm)',
               cursor: 'pointer',
               textDecoration: 'underline',
               fontFamily: 'var(--font-ui)',
@@ -254,7 +254,7 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--border-soft)',
   borderRadius: 'var(--r-sm)',
   color: 'var(--text)',
-  fontSize: 13,
+  fontSize: 'var(--fs-base)',
   fontFamily: 'var(--font-ui)',
   outline: 'none',
   boxSizing: 'border-box',
@@ -267,7 +267,7 @@ const btnStyle: React.CSSProperties = {
   border: 'none',
   borderRadius: 'var(--r-sm)',
   color: 'var(--bg-canvas)',
-  fontSize: 13,
+  fontSize: 'var(--fs-base)',
   fontWeight: 700,
   fontFamily: 'var(--font-ui)',
   cursor: 'pointer',

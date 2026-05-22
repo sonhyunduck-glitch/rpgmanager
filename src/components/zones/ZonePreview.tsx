@@ -37,10 +37,10 @@ export default function ZonePreview({
     <>
       {/* Zone name */}
       <div>
-        <div style={{ color: 'var(--info)', fontWeight: 800, fontSize: 14 }}>
+        <div style={{ color: 'var(--info)', fontWeight: 800, fontSize: 'var(--fs-base)' }}>
           {zone.name}
         </div>
-        <div style={{ fontSize: 10, color: 'var(--text-mute)', marginTop: 2 }}>
+        <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 2 }}>
           Lv.{zone.levelRange[0]} ~ Lv.{zone.levelRange[1]}
         </div>
       </div>
@@ -57,10 +57,10 @@ export default function ZonePreview({
           borderRadius: 'var(--r-xs)',
           textAlign: 'center',
         }}>
-          <div style={{ ...LABEL, fontSize: 8 }}>명중률</div>
+          <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)' }}>명중률</div>
           <div style={{
             fontFamily: 'var(--font-mono)',
-            fontSize: 14,
+            fontSize: 'var(--fs-base)',
             fontWeight: 700,
             color: avgHitRate >= 0.7 ? 'var(--success)' : avgHitRate >= 0.4 ? 'var(--warning)' : 'var(--danger)',
           }}>
@@ -74,10 +74,10 @@ export default function ZonePreview({
           borderRadius: 'var(--r-xs)',
           textAlign: 'center',
         }}>
-          <div style={{ ...LABEL, fontSize: 8 }}>피격률</div>
+          <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)' }}>피격률</div>
           <div style={{
             fontFamily: 'var(--font-mono)',
-            fontSize: 14,
+            fontSize: 'var(--fs-base)',
             fontWeight: 700,
             color: avgMonsterHitRate <= 0.3 ? 'var(--success)' : avgMonsterHitRate <= 0.6 ? 'var(--warning)' : 'var(--danger)',
           }}>
@@ -98,7 +98,7 @@ export default function ZonePreview({
               padding: '2px var(--s-1)',
               background: 'transparent',
               borderRadius: 'var(--r-xs)',
-              fontSize: 10,
+              fontSize: 'var(--fs-xs)',
             }}>
               <span style={{
                 color: 'var(--text-dim)',
@@ -108,29 +108,29 @@ export default function ZonePreview({
               }}>
                 {m.name}
                 {m.aggressive && (
-                  <span style={{ fontSize: 8, color: 'var(--danger)', marginLeft: 3, fontWeight: 700 }}>
+                  <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--danger)', marginLeft: 3, fontWeight: 700 }}>
                     선공
                   </span>
                 )}
                 <span style={{
-                  fontSize: 8,
+                  fontSize: 'var(--fs-2xs)',
                   color: m.attackType === 'magic' ? 'var(--info)' : 'var(--text-mute)',
                   marginLeft: 3,
                 }}>
                   {m.attackType === 'magic' ? '마법' : '근접'}
                 </span>
                 <span style={{
-                  fontSize: 8,
+                  fontSize: 'var(--fs-2xs)',
                   color: m.size === 'large' ? 'var(--warning)' : 'var(--text-mute)',
                   marginLeft: 2,
                 }}>
                   {m.size === 'large' ? '대' : '소'}
                 </span>
-                <span style={{ fontSize: 8, color: 'var(--text-mute)', marginLeft: 2 }}>
+                <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', marginLeft: 2 }}>
                   Lv.{m.level}
                 </span>
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-mute)', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', flexShrink: 0 }}>
                 {m.expReward}xp
               </span>
             </div>
@@ -160,7 +160,7 @@ export default function ZonePreview({
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                   {[...matDrops.entries()].map(([id, rate]) => (
                     <span key={id} style={{
-                      fontSize: 9, padding: '1px 5px', borderRadius: 'var(--r-full)',
+                      fontSize: 'var(--fs-xs)', padding: '1px 5px', borderRadius: 'var(--r-full)',
                       background: 'var(--bg-panel)', color: 'var(--text-dim)',
                       border: '1px solid var(--border-soft)',
                     }}>
@@ -176,7 +176,7 @@ export default function ZonePreview({
                     if (!tmpl) return null;
                     return (
                       <span key={id} style={{
-                        fontSize: 9, padding: '1px 5px', borderRadius: 'var(--r-full)',
+                        fontSize: 'var(--fs-xs)', padding: '1px 5px', borderRadius: 'var(--r-full)',
                         background: 'color-mix(in oklch, var(--accent) 15%, transparent)',
                         color: 'var(--accent)',
                         border: '1px solid color-mix(in oklch, var(--accent) 30%, transparent)',
@@ -199,7 +199,7 @@ export default function ZonePreview({
         padding: 'var(--s-1) var(--s-2)',
         background: 'var(--bg-sunken)',
         borderRadius: 'var(--r-xs)',
-        fontSize: 10,
+        fontSize: 'var(--fs-xs)',
       }}>
         <span style={{ color: 'var(--text-mute)' }}>골드/분 ~{estimatedGPM}G</span>
         <span style={{ color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
@@ -220,9 +220,9 @@ export default function ZonePreview({
             : 'color-mix(in oklch, var(--danger) 6%, var(--bg-sunken))',
           border: `1px solid ${hasScroll ? 'color-mix(in oklch, var(--accent) 30%, var(--border-soft))' : 'color-mix(in oklch, var(--danger) 20%, var(--border-soft))'}`,
           borderRadius: 'var(--r-xs)',
-          fontSize: 10,
+          fontSize: 'var(--fs-xs)',
         }}>
-          <span style={{ fontSize: 12 }}>📜</span>
+          <span style={{ fontSize: 'var(--fs-sm)' }}>📜</span>
           <span style={{
             fontFamily: 'var(--font-mono)',
             fontWeight: 700,
@@ -230,7 +230,7 @@ export default function ZonePreview({
           }}>
             {scrollCount}장
           </span>
-          <span style={{ color: 'var(--text-mute)', fontSize: 9 }}>
+          <span style={{ color: 'var(--text-mute)', fontSize: 'var(--fs-xs)' }}>
             {hasScroll ? '이동주문서 사용' : '이동주문서 필요'}
           </span>
         </div>

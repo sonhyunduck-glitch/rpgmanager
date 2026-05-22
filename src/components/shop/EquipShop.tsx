@@ -42,7 +42,7 @@ function EquipRow({ tmpl, canBuy, buyEquip }: {
       {/* 정보 */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontWeight: 700, fontSize: 12,
+          fontWeight: 700, fontSize: 'var(--fs-sm)',
           color: 'var(--text)',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -52,7 +52,7 @@ function EquipRow({ tmpl, canBuy, buyEquip }: {
         </div>
         <div style={{
           display: 'flex', gap: 8, marginTop: 2,
-          fontSize: 10, color: 'var(--text-mute)',
+          fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
           fontFamily: 'var(--font-mono)',
         }}>
           <span>{tmpl.type === 'weapon' ? `타격 ${tmpl.baseAtk}/${tmpl.baseAtkLarge}` : `AC ${tmpl.baseDef}`}</span>
@@ -60,7 +60,7 @@ function EquipRow({ tmpl, canBuy, buyEquip }: {
         {tmpl.bonusEffects && tmpl.bonusEffects.length > 0 && (
           <div style={{
             display: 'flex', gap: 6, marginTop: 2,
-            fontSize: 9, color: 'var(--info)',
+            fontSize: 'var(--fs-xs)', color: 'var(--info)',
             fontFamily: 'var(--font-mono)',
           }}>
             {tmpl.bonusEffects.map((eff, i) => {
@@ -85,7 +85,7 @@ function EquipRow({ tmpl, canBuy, buyEquip }: {
             ? 'color-mix(in oklch, var(--accent) 10%, transparent)'
             : 'var(--bg-sunken)',
           color: canBuy ? 'var(--accent)' : 'var(--text-mute)',
-          fontSize: 11,
+          fontSize: 'var(--fs-sm)',
           fontWeight: 700,
           fontFamily: 'var(--font-mono)',
           cursor: canBuy ? 'pointer' : 'not-allowed',
@@ -133,7 +133,7 @@ export default function EquipShop({
             {groups.length > 1 && (
               <div style={{
                 ...LABEL,
-                fontSize: 10,
+                fontSize: 'var(--fs-xs)',
                 marginBottom: 'var(--s-2)',
                 paddingBottom: 'var(--s-1)',
                 borderBottom: '1px solid var(--border-soft)',
@@ -163,7 +163,7 @@ export default function EquipShop({
         <div style={{
           textAlign: 'center',
           padding: 'var(--s-2)',
-          fontSize: 11,
+          fontSize: 'var(--fs-sm)',
           color: 'var(--danger)',
         }}>
           인벤토리가 가득 찼습니다

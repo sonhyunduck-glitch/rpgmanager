@@ -23,7 +23,7 @@ export default function SlotCard({ label, equipment }: SlotCardProps) {
         <div
           style={{
             color: 'var(--text-mute)',
-            fontSize: 12,
+            fontSize: 'var(--fs-sm)',
             marginTop: 'var(--s-2)',
             fontStyle: 'italic',
           }}
@@ -53,10 +53,10 @@ export default function SlotCard({ label, equipment }: SlotCardProps) {
         gap: 'var(--s-1)',
       } as React.CSSProperties}
     >
-      <div style={{ ...LABEL, fontSize: 9, color: 'var(--text-mute)' }}>{label}</div>
+      <div style={{ ...LABEL, fontSize: 'var(--fs-xs)', color: 'var(--text-mute)' }}>{label}</div>
       <div
         style={{
-          fontSize: 13,
+          fontSize: 'var(--fs-base)',
           fontWeight: 600,
           color: color,
           whiteSpace: 'nowrap',
@@ -71,11 +71,11 @@ export default function SlotCard({ label, equipment }: SlotCardProps) {
       {isWeapon ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ ...LABEL, fontSize: 9 }}>타격치</span>
-            <span style={{ ...STAT_VALUE, fontSize: 12, color: 'var(--text)' }}>
+            <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>타격치</span>
+            <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-sm)', color: 'var(--text)' }}>
               {equipment.baseAtk}/{equipment.baseAtkLarge}
               {enchant > 0 && (
-                <span style={{ color: 'var(--success)', fontSize: 11, marginLeft: 4 }}>(+{enchant})</span>
+                <span style={{ color: 'var(--success)', fontSize: 'var(--fs-sm)', marginLeft: 4 }}>(+{enchant})</span>
               )}
             </span>
           </div>
@@ -83,8 +83,8 @@ export default function SlotCard({ label, equipment }: SlotCardProps) {
       ) : (
         /* Armor: AC 기본+강화 */
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ ...LABEL, fontSize: 9 }}>AC</span>
-          <span style={{ ...STAT_VALUE, fontSize: 13, color: 'var(--text)' }}>
+          <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>AC</span>
+          <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color: 'var(--text)' }}>
             {equipment.baseDef}
             <span style={{ color: enchant > 0 ? 'var(--success)' : 'var(--text-mute)' }}>+{enchant}</span>
           </span>
@@ -97,7 +97,7 @@ export default function SlotCard({ label, equipment }: SlotCardProps) {
             <span
               key={i}
               style={{
-                fontSize: 9,
+                fontSize: 'var(--fs-xs)',
                 color: 'var(--accent)',
                 background: 'color-mix(in oklch, var(--accent) 10%, transparent)',
                 padding: '1px 5px',

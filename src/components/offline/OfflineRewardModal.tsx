@@ -45,14 +45,14 @@ export default function OfflineRewardModal() {
         {/* 헤더 */}
         <div style={{ textAlign: 'center' }}>
           <div style={{
-            fontSize: 15, fontWeight: 700,
+            fontSize: 'var(--fs-md)', fontWeight: 700,
             color: 'var(--accent)',
             fontFamily: 'var(--font-display)',
           }}>
             오프라인 사냥 보상
           </div>
           <div style={{
-            fontSize: 10, color: 'var(--text-mute)',
+            fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
             fontFamily: 'var(--font-mono)', marginTop: 4,
           }}>
             {reward.zoneName}에서 {formatDuration(reward.minutes)} 동안 사냥했습니다
@@ -77,7 +77,7 @@ export default function OfflineRewardModal() {
             borderRadius: 'var(--r-sm)',
             padding: 'var(--s-2)',
           }}>
-            <div style={{ ...LABEL, fontSize: 7, marginBottom: 4 }}>Materials</div>
+            <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 4 }}>Materials</div>
             <div style={{
               display: 'flex', flexWrap: 'wrap', gap: 4,
             }}>
@@ -85,7 +85,7 @@ export default function OfflineRewardModal() {
                 const mat = MATERIALS[matId];
                 return (
                   <span key={matId} style={{
-                    fontSize: 9, fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
                     color: 'var(--text-dim)',
                     padding: '1px 5px',
                     background: 'color-mix(in oklch, var(--info) 8%, transparent)',
@@ -102,7 +102,7 @@ export default function OfflineRewardModal() {
 
         {/* 효율 안내 */}
         <div style={{
-          fontSize: 8, color: 'var(--text-mute)',
+          fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
           fontFamily: 'var(--font-mono)', textAlign: 'center',
           fontStyle: 'italic',
         }}>
@@ -119,7 +119,7 @@ export default function OfflineRewardModal() {
               borderRadius: 'var(--r-sm)',
               background: 'var(--bg-sunken)',
               color: 'var(--text-mute)',
-              fontSize: 11, fontWeight: 600,
+              fontSize: 'var(--fs-sm)', fontWeight: 600,
               fontFamily: 'var(--font-mono)',
               cursor: 'pointer',
             }}
@@ -134,7 +134,7 @@ export default function OfflineRewardModal() {
               borderRadius: 'var(--r-sm)',
               background: 'linear-gradient(135deg, var(--accent), oklch(0.68 0.18 45))',
               color: '#fff',
-              fontSize: 12, fontWeight: 700,
+              fontSize: 'var(--fs-sm)', fontWeight: 700,
               fontFamily: 'var(--font-mono)',
               cursor: 'pointer',
             }}
@@ -156,8 +156,8 @@ function RewardBox({ label, value, color }: { label: string; value: string; colo
       padding: 'var(--s-2)',
       textAlign: 'center',
     }}>
-      <div style={{ ...LABEL, fontSize: 7, marginBottom: 2 }}>{label}</div>
-      <div style={{ ...STAT_VALUE, fontSize: 16, color }}>{value}</div>
+      <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 2 }}>{label}</div>
+      <div style={{ ...STAT_VALUE, fontSize: 'var(--fs-md)', color }}>{value}</div>
     </div>
   );
 }

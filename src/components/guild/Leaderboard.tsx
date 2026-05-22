@@ -52,14 +52,14 @@ export default function Leaderboard() {
         display: 'flex', alignItems: 'center', gap: 'var(--s-1)',
         flexShrink: 0, marginBottom: 'var(--s-1)',
       }}>
-        <span style={{ ...LABEL, fontSize: 9, marginBottom: 0 }}>
+        <span style={{ ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0 }}>
           Ranking
         </span>
         <span style={{ flex: 1 }} />
         <button
           onClick={load}
           style={{
-            fontSize: 8, fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
             background: 'none', border: 'none',
             color: 'var(--text-mute)', cursor: 'pointer',
           }}
@@ -77,14 +77,14 @@ export default function Leaderboard() {
         {loading ? (
           <div style={{
             textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 10, fontStyle: 'italic', padding: 'var(--s-3)',
+            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
           }}>
             Loading...
           </div>
         ) : players.length === 0 ? (
           <div style={{
             textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 10, fontStyle: 'italic', padding: 'var(--s-3)',
+            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
           }}>
             No players yet.
           </div>
@@ -121,7 +121,7 @@ export default function Leaderboard() {
 
                 {/* 레벨 */}
                 <span style={{
-                  fontSize: 8, fontWeight: 700,
+                  fontSize: 'var(--fs-2xs)', fontWeight: 700,
                   fontFamily: 'var(--font-mono)',
                   color: 'var(--text-mute)',
                   minWidth: 22, textAlign: 'right',
@@ -135,7 +135,7 @@ export default function Leaderboard() {
                   name={p.name}
                   isMe={isMe}
                   style={{
-                    fontSize: 10,
+                    fontSize: 'var(--fs-xs)',
                     fontWeight: isMe ? 700 : 500,
                     fontFamily: 'var(--font-display)',
                     flex: 1, minWidth: 0,
@@ -146,7 +146,7 @@ export default function Leaderboard() {
                 {/* 길드 */}
                 {p.guild_name && (
                   <span style={{
-                    fontSize: 7, fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
                     color: 'var(--text-mute)', flexShrink: 0,
                     maxWidth: 40,
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',

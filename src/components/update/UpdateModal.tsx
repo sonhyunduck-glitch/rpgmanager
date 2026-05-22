@@ -118,7 +118,7 @@ export default function UpdateModal() {
           <>
             <div style={{ fontSize: 36, marginBottom: 12 }}>🛠</div>
             <div style={{
-              fontSize: 16,
+              fontSize: 'var(--fs-md)',
               fontWeight: 700,
               color: 'var(--text)',
               marginBottom: 12,
@@ -127,7 +127,7 @@ export default function UpdateModal() {
               서버 점검 중
             </div>
             <div style={{
-              fontSize: 12,
+              fontSize: 'var(--fs-sm)',
               color: 'var(--text-dim)',
               lineHeight: 1.6,
               marginBottom: 20,
@@ -135,7 +135,7 @@ export default function UpdateModal() {
               {meta.maintenanceMsg}
             </div>
             <div style={{
-              fontSize: 11,
+              fontSize: 'var(--fs-sm)',
               color: 'var(--text-mute)',
               marginBottom: 16,
             }}>
@@ -153,7 +153,7 @@ export default function UpdateModal() {
           <>
             <div style={{ fontSize: 36, marginBottom: 12 }}>🔄</div>
             <div style={{
-              fontSize: 16,
+              fontSize: 'var(--fs-md)',
               fontWeight: 700,
               color: 'var(--text)',
               marginBottom: 12,
@@ -162,7 +162,7 @@ export default function UpdateModal() {
               새 버전이 출시되었습니다
             </div>
             <div style={{
-              fontSize: 13,
+              fontSize: 'var(--fs-base)',
               color: 'var(--text-dim)',
               marginBottom: 8,
               lineHeight: 1.6,
@@ -172,7 +172,7 @@ export default function UpdateModal() {
               최신: <b style={{ color: 'var(--accent)' }}>v{meta.latestVersion}</b>
             </div>
             <div style={{
-              fontSize: 11,
+              fontSize: 'var(--fs-sm)',
               color: 'var(--text-mute)',
               marginBottom: 20,
             }}>
@@ -203,7 +203,7 @@ const btnStyle: React.CSSProperties = {
   border: 'none',
   borderRadius: 'var(--r-sm)',
   color: 'var(--bg-canvas)',
-  fontSize: 14,
+  fontSize: 'var(--fs-base)',
   fontWeight: 700,
   fontFamily: 'var(--font-ui)',
   cursor: 'pointer',

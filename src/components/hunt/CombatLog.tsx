@@ -42,14 +42,14 @@ function LogLine({ entry }: { entry: LogEntry }) {
         alignItems: 'flex-start',
         gap: 'var(--s-2)',
         padding: '1px 0',
-        fontSize: 11,
+        fontSize: 'var(--fs-sm)',
         fontFamily: 'var(--font-mono)',
         lineHeight: 1.4,
       }}
     >
       <span
         style={{
-          fontSize: 9,
+          fontSize: 'var(--fs-xs)',
           fontWeight: 700,
           color: 'var(--bg-canvas)',
           background: color,
@@ -65,7 +65,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
       <span style={{ color: 'var(--text-dim)', flex: 1 }}>{entry.text}</span>
       <span
         style={{
-          fontSize: 9,
+          fontSize: 'var(--fs-xs)',
           color: 'var(--text-mute)',
           flexShrink: 0,
           marginTop: 2,
@@ -133,7 +133,7 @@ export default function CombatLog() {
         <span style={{ flex: 1 }} />
         <span
           style={{
-            fontSize: 9,
+            fontSize: 'var(--fs-xs)',
             color: 'var(--text-mute)',
             fontFamily: 'var(--font-mono)',
           }}
@@ -157,7 +157,7 @@ export default function CombatLog() {
             style={{
               textAlign: 'center',
               color: 'var(--text-mute)',
-              fontSize: 12,
+              fontSize: 'var(--fs-sm)',
               fontStyle: 'italic',
               padding: 'var(--s-6)',
             }}
@@ -191,7 +191,7 @@ function TabBtn({
         borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
         padding: '5px 8px 4px',
         fontFamily: 'var(--font-mono)',
-        fontSize: 10,
+        fontSize: 'var(--fs-xs)',
         fontWeight: active ? 700 : 500,
         color: active ? 'var(--accent)' : 'var(--text-mute)',
         cursor: 'pointer',

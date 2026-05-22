@@ -48,7 +48,7 @@ export default function RegisterTab() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 'var(--s-3)' }}>
-      <div style={{ ...LABEL, fontSize: 9 }}>판매할 아이템 선택</div>
+      <div style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>판매할 아이템 선택</div>
 
       {/* 인벤토리 아이템 그리드 */}
       <div style={{
@@ -78,12 +78,12 @@ export default function RegisterTab() {
               <ItemBadge item={item} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 11, fontWeight: 600, color: 'var(--text)',
+                  fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text)',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {equipDisplayName(item)}
                 </div>
-                <div style={{ fontSize: 9, color: 'var(--text-mute)' }}>
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)' }}>
                   {equipTypeLabel(item.type)} · 상점가 {item.sellPrice.toLocaleString()}G
                 </div>
               </div>
@@ -101,13 +101,13 @@ export default function RegisterTab() {
           display: 'flex', flexDirection: 'column', gap: 'var(--s-2)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)' }}>
+            <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text)' }}>
               {equipDisplayName(selectedItem)}
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ ...LABEL, fontSize: 8, marginBottom: 0 }}>판매가</span>
+            <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 0 }}>판매가</span>
             <input
               type="number"
               min="1"
@@ -118,11 +118,11 @@ export default function RegisterTab() {
                 flex: 1, height: 28,
                 background: 'var(--bg-panel)', border: '1px solid var(--border-soft)',
                 borderRadius: 'var(--r-xs)', padding: '0 8px',
-                fontSize: 12, fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--fs-sm)', fontFamily: 'var(--font-mono)',
                 color: 'var(--text)', outline: 'none',
               }}
             />
-            <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700 }}>G</span>
+            <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--accent)', fontWeight: 700 }}>G</span>
           </div>
 
           <button
@@ -133,7 +133,7 @@ export default function RegisterTab() {
               border: 'none',
               background: submitting ? 'var(--bg-sunken)'
                 : 'linear-gradient(135deg, var(--accent), oklch(0.68 0.18 45))',
-              color: '#fff', fontWeight: 700, fontSize: 11,
+              color: '#fff', fontWeight: 700, fontSize: 'var(--fs-sm)',
               fontFamily: 'var(--font-mono)',
               cursor: submitting ? 'not-allowed' : 'pointer',
               opacity: (!price || parseInt(price, 10) < 1) ? 0.4 : 1,

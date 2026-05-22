@@ -41,13 +41,13 @@ function MessageLine({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
   return (
     <div style={{ display: 'flex', gap: 4, padding: '1px 0', alignItems: 'baseline' }}>
       <span style={{
-        fontSize: 8, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
         flexShrink: 0,
       }}>
         {formatTime(msg.createdAt)}
       </span>
       <span style={{
-        fontSize: 8, fontWeight: 700, fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--fs-2xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
         color: levelColor(msg.userLevel), flexShrink: 0,
       }}>
         {msg.userLevel}
@@ -57,7 +57,7 @@ function MessageLine({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
         name={msg.userName}
         isMe={isMe}
         style={{
-          fontSize: 10, fontWeight: 700,
+          fontSize: 'var(--fs-xs)', fontWeight: 700,
           color: isMe ? 'var(--accent)' : 'var(--info)',
           fontFamily: 'var(--font-display)',
           flexShrink: 0, whiteSpace: 'nowrap',
@@ -66,14 +66,14 @@ function MessageLine({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
       />
       {msg.guildName && (
         <span style={{
-          fontSize: 8, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
           flexShrink: 0,
         }}>
           [{msg.guildName}]
         </span>
       )}
       <span style={{
-        fontSize: 10, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--fs-xs)', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)',
         lineHeight: 1.4, wordBreak: 'break-word', flex: 1, minWidth: 0,
       }}>
         {msg.text}
@@ -187,12 +187,12 @@ export default function ChatPanel() {
         flexShrink: 0, marginBottom: 'var(--s-1)',
       }}>
         <span style={{
-          ...LABEL, fontSize: 9, marginBottom: 0,
+          ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0,
         }}>
           Chat
         </span>
         <span style={{
-          fontSize: 8, fontFamily: 'var(--font-mono)', fontWeight: 700,
+          fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
           color: 'var(--accent)', padding: '0 4px',
           borderRadius: 'var(--r-xs)',
           background: 'color-mix(in oklch, var(--accent) 10%, transparent)',
@@ -201,7 +201,7 @@ export default function ChatPanel() {
         </span>
         <span style={{ flex: 1 }} />
         <span style={{
-          fontSize: 8, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
         }}>
           {messages.length}
         </span>
@@ -216,14 +216,14 @@ export default function ChatPanel() {
         {!loaded ? (
           <div style={{
             textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 10, fontStyle: 'italic', padding: 'var(--s-3)',
+            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
           }}>
             Loading...
           </div>
         ) : messages.length === 0 ? (
           <div style={{
             textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 10, fontStyle: 'italic', padding: 'var(--s-3)',
+            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
           }}>
             첫 메시지를 보내보세요!
           </div>
@@ -256,7 +256,7 @@ export default function ChatPanel() {
             background: 'var(--bg-sunken)',
             color: 'var(--text)',
             fontFamily: 'var(--font-mono)',
-            fontSize: 10,
+            fontSize: 'var(--fs-xs)',
             outline: 'none',
             transition: 'border-color 0.15s ease',
           }}
@@ -275,7 +275,7 @@ export default function ChatPanel() {
               : 'var(--accent)',
             color: !input.trim() || sending ? 'var(--text-mute)' : '#fff',
             fontFamily: 'var(--font-mono)',
-            fontSize: 9, fontWeight: 700,
+            fontSize: 'var(--fs-xs)', fontWeight: 700,
             cursor: !input.trim() || sending ? 'not-allowed' : 'pointer',
             transition: 'all 0.15s ease',
             flexShrink: 0,

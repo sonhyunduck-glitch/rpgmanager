@@ -156,7 +156,7 @@ export default function ZoneList({
               }}
             >
               <span style={{
-                fontSize: 8,
+                fontSize: 'var(--fs-2xs)',
                 color: 'var(--text-mute)',
                 transform: isOpen ? 'rotate(90deg)' : 'none',
                 transition: 'transform 0.15s ease',
@@ -165,7 +165,7 @@ export default function ZoneList({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontWeight: 700,
-                  fontSize: 12,
+                  fontSize: 'var(--fs-sm)',
                   color: 'var(--text)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -174,14 +174,14 @@ export default function ZoneList({
                   {groupName}
                   <span style={{
                     marginLeft: 6,
-                    fontSize: 9,
+                    fontSize: 'var(--fs-xs)',
                     color: 'var(--text-mute)',
                     fontWeight: 600,
                   }}>
                     {size} {floors.length}층
                   </span>
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--text-mute)', marginTop: 1 }}>
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 1 }}>
                   {lvRange}
                 </div>
               </div>
@@ -267,7 +267,7 @@ function ZoneButton({
       }}
     >
       {indent && (
-        <span style={{ fontSize: 9, color: 'var(--text-mute)', flexShrink: 0 }}>└</span>
+        <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', flexShrink: 0 }}>└</span>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
@@ -282,13 +282,13 @@ function ZoneButton({
           gap: 4,
         }}>
           {needsScroll && !hasScroll && (
-            <span style={{ fontSize: 9, color: 'var(--text-mute)' }}>🔒</span>
+            <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)' }}>🔒</span>
           )}
           {indent ? `${zone.floor}F` : zone.name}
           {isCurrent && (
             <span style={{
               marginLeft: 6,
-              fontSize: 9,
+              fontSize: 'var(--fs-xs)',
               padding: '1px 6px',
               borderRadius: 'var(--r-full)',
               background: 'var(--success-soft)',
@@ -301,7 +301,7 @@ function ZoneButton({
           {needsScroll && (
             <span style={{
               marginLeft: 4,
-              fontSize: 9,
+              fontSize: 'var(--fs-xs)',
               padding: '1px 5px',
               borderRadius: 'var(--r-full)',
               background: hasScroll
@@ -315,10 +315,10 @@ function ZoneButton({
             </span>
           )}
         </div>
-        <div style={{ fontSize: 10, color: 'var(--text-mute)', marginTop: 1 }}>
+        <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 1 }}>
           Lv.{zone.levelRange[0]}~{zone.levelRange[1]}
           {needsScroll && !hasScroll && (
-            <span style={{ color: 'var(--danger)', marginLeft: 4, fontSize: 9 }}>
+            <span style={{ color: 'var(--danger)', marginLeft: 4, fontSize: 'var(--fs-xs)' }}>
               이동주문서 필요
             </span>
           )}
@@ -327,7 +327,7 @@ function ZoneButton({
 
       <span style={{
         fontFamily: 'var(--font-mono)',
-        fontSize: 10,
+        fontSize: 'var(--fs-xs)',
         color: avgHit >= 0.7 ? 'var(--success)' : avgHit >= 0.4 ? 'var(--warning)' : 'var(--danger)',
         fontWeight: 700,
       }}>

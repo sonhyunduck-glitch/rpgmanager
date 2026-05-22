@@ -56,10 +56,10 @@ export default function PotionShop({
 
             {/* 정보 */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color }}>
+              <div style={{ fontWeight: 700, fontSize: 'var(--fs-base)', color }}>
                 {p.name}
               </div>
-              <div style={{ fontSize: 10, color: 'var(--text-mute)', marginTop: 2 }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 2 }}>
                 {p.buffDuration ? (
                   <>
                     {p.atkSpeedMult && p.atkSpeedMult > 1 && `공속 ×${p.atkSpeedMult}`}
@@ -75,11 +75,11 @@ export default function PotionShop({
 
             {/* 보유 수량 */}
             <div style={{ textAlign: 'center', minWidth: 40 }}>
-              <div style={{ ...LABEL, fontSize: 7 }}>보유</div>
+              <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)' }}>보유</div>
               <div style={{
                 fontFamily: 'var(--font-mono)',
                 fontWeight: 800,
-                fontSize: 14,
+                fontSize: 'var(--fs-base)',
                 color: owned > 0 ? 'var(--text)' : 'var(--text-mute)',
               }}>
                 {owned}
@@ -102,7 +102,7 @@ export default function PotionShop({
                       border: '1px solid var(--border-soft)',
                       background: canBuy ? 'var(--bg-panel)' : 'var(--bg-sunken)',
                       color: canBuy ? 'var(--accent)' : 'var(--text-mute)',
-                      fontSize: 10,
+                      fontSize: 'var(--fs-xs)',
                       fontWeight: 700,
                       fontFamily: 'var(--font-mono)',
                       cursor: canBuy ? 'pointer' : 'not-allowed',
@@ -114,7 +114,7 @@ export default function PotionShop({
                     }}
                   >
                     <span>+{qty}</span>
-                    <span style={{ fontSize: 8, color: 'var(--text-mute)' }}>
+                    <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)' }}>
                       {cost}G
                     </span>
                   </button>

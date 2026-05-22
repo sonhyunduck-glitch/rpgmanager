@@ -64,7 +64,7 @@ export default function BrowseTab() {
             key={f.key}
             onClick={() => setTypeFilter(f.key)}
             style={{
-              fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 600,
+              fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)', fontWeight: 600,
               padding: '2px 6px', borderRadius: 'var(--r-xs)',
               border: typeFilter === f.key ? '1px solid var(--accent)' : '1px solid var(--border-soft)',
               background: typeFilter === f.key ? 'color-mix(in oklch, var(--accent) 15%, transparent)' : 'transparent',
@@ -78,7 +78,7 @@ export default function BrowseTab() {
         <button
           onClick={load}
           style={{
-            fontSize: 8, fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
             background: 'none', border: 'none', color: 'var(--text-mute)',
             cursor: 'pointer', marginLeft: 'auto',
           }}
@@ -139,12 +139,12 @@ function ListingCard({
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: 11, fontWeight: 600, color: 'var(--text)',
+          fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {equipDisplayName(item)}
         </div>
-        <div style={{ fontSize: 9, color: 'var(--text-mute)', display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', display: 'flex', gap: 6, alignItems: 'center' }}>
           <span>{equipTypeLabel(item.type)}</span>
           <span style={{ color: 'var(--border-soft)' }}>·</span>
           <span>Lv.{listing.seller_level} {listing.seller_name}</span>
@@ -152,7 +152,7 @@ function ListingCard({
           <span>{timeAgo(listing.created_at)}</span>
         </div>
         {/* 아이템 스탯 */}
-        <div style={{ fontSize: 8, color: 'var(--text-mute)', marginTop: 2, display: 'flex', gap: 4 }}>
+        <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', marginTop: 2, display: 'flex', gap: 4 }}>
           {item.baseAtk > 0 && <span>ATK {item.baseAtk}</span>}
           {item.baseDef > 0 && <span>DEF {item.baseDef}</span>}
           {item.enhanceLevel > 0 && <span style={{ color: 'var(--accent)' }}>+{item.enhanceLevel}</span>}
@@ -165,7 +165,7 @@ function ListingCard({
       {/* 가격 + 구매 */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
         <span style={{
-          ...STAT_VALUE, fontSize: 12, color: 'var(--accent)',
+          ...STAT_VALUE, fontSize: 'var(--fs-sm)', color: 'var(--accent)',
         }}>
           {listing.price.toLocaleString()}G
         </span>
@@ -174,7 +174,7 @@ function ListingCard({
             disabled={!canBuy || buying}
             onClick={onBuy}
             style={{
-              fontSize: 9, fontWeight: 700, fontFamily: 'var(--font-mono)',
+              fontSize: 'var(--fs-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
               padding: '3px 10px', borderRadius: 'var(--r-xs)',
               border: canBuy ? '1px solid var(--success)' : '1px solid var(--border-soft)',
               background: canBuy
@@ -189,7 +189,7 @@ function ListingCard({
           </button>
         )}
         {isMine && (
-          <span style={{ fontSize: 8, color: 'var(--info)', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--info)', fontFamily: 'var(--font-mono)' }}>
             내 거래
           </span>
         )}

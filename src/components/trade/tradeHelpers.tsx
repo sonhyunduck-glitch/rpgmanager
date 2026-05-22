@@ -13,11 +13,11 @@ export function ItemBadge({ item }: { item: Equipment }) {
       alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
     }}>
-      <span style={{ fontSize: 7, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+      <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
         {item.type.slice(0, 3)}
       </span>
       {item.enhanceLevel > 0 && (
-        <span style={{ fontSize: 9, fontWeight: 800, color: enhColor, fontFamily: 'var(--font-mono)' }}>
+        <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: enhColor, fontFamily: 'var(--font-mono)' }}>
           +{item.enhanceLevel}
         </span>
       )}
@@ -27,7 +27,7 @@ export function ItemBadge({ item }: { item: Equipment }) {
 
 export function LoadingMsg() {
   return (
-    <div style={{ textAlign: 'center', padding: 'var(--s-4)', color: 'var(--text-mute)', fontSize: 10, fontStyle: 'italic' }}>
+    <div style={{ textAlign: 'center', padding: 'var(--s-4)', color: 'var(--text-mute)', fontSize: 'var(--fs-xs)', fontStyle: 'italic' }}>
       Loading...
     </div>
   );
@@ -35,7 +35,7 @@ export function LoadingMsg() {
 
 export function EmptyMsg({ text }: { text: string }) {
   return (
-    <div style={{ textAlign: 'center', padding: 'var(--s-4)', color: 'var(--text-mute)', fontSize: 10, fontStyle: 'italic' }}>
+    <div style={{ textAlign: 'center', padding: 'var(--s-4)', color: 'var(--text-mute)', fontSize: 'var(--fs-xs)', fontStyle: 'italic' }}>
       {text}
     </div>
   );

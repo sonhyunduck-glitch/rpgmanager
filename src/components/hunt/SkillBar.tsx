@@ -64,7 +64,7 @@ export default function SkillBar() {
           {/* 슬롯 번호 */}
           <span style={{
             position: 'absolute', top: 1, left: 3,
-            fontSize: 7, color: 'var(--text-mute)',
+            fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
             fontFamily: 'var(--font-mono)', fontWeight: 700, opacity: 0.5,
           }}>1</span>
 
@@ -74,7 +74,7 @@ export default function SkillBar() {
             boxShadow: potionAutoUse ? `0 0 6px ${hpColor}` : 'none',
           }} />
           <span style={{
-            fontSize: 7, fontWeight: 700,
+            fontSize: 'var(--fs-2xs)', fontWeight: 700,
             fontFamily: 'var(--font-mono)',
             color: potionAutoUse ? hpColor : 'var(--text-mute)',
             lineHeight: 1, marginTop: 1,
@@ -85,7 +85,7 @@ export default function SkillBar() {
           {/* 보유 수 */}
           <span style={{
             position: 'absolute', bottom: 1, right: 2,
-            fontSize: 7, fontWeight: 800,
+            fontSize: 'var(--fs-2xs)', fontWeight: 800,
             fontFamily: 'var(--font-mono)',
             color: hpCount > 0 ? 'var(--text-dim)' : 'var(--danger)',
           }}>
@@ -110,7 +110,7 @@ export default function SkillBar() {
               borderRadius: 'var(--r-sm)',
               background: 'var(--bg-panel)',
               color: 'var(--text-mute)',
-              fontSize: 10,
+              fontSize: 'var(--fs-xs)',
               fontFamily: 'var(--font-mono)',
               fontWeight: 700,
               cursor: 'pointer',

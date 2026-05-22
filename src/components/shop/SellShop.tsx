@@ -42,7 +42,7 @@ export default function SellShop({
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontWeight: 700, fontSize: 12,
+                fontWeight: 700, fontSize: 'var(--fs-sm)',
                 color: 'var(--text)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -52,7 +52,7 @@ export default function SellShop({
               </div>
               <div style={{
                 display: 'flex', gap: 8, marginTop: 2,
-                fontSize: 10, color: 'var(--text-mute)',
+                fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
                 fontFamily: 'var(--font-mono)',
               }}>
                 <span>{isWpn ? `타격 ${eq.baseAtk}/${eq.baseAtkLarge}` : `AC ${eq.baseDef}+${eq.enhanceLevel}`}{eq.enhanceLevel > 0 && eq.type === 'weapon' && ` (+${eq.enhanceLevel})`}</span>
@@ -60,7 +60,7 @@ export default function SellShop({
               {eq.bonusEffects.length > 0 && (
                 <div style={{
                   display: 'flex', gap: 6, marginTop: 2,
-                  fontSize: 9, color: 'var(--info)',
+                  fontSize: 'var(--fs-xs)', color: 'var(--info)',
                   fontFamily: 'var(--font-mono)',
                 }}>
                   {eq.bonusEffects.map((eff, i) => (
@@ -79,7 +79,7 @@ export default function SellShop({
                 border: '1px solid var(--danger)',
                 background: 'color-mix(in oklch, var(--danger) 10%, transparent)',
                 color: 'var(--danger)',
-                fontSize: 11,
+                fontSize: 'var(--fs-sm)',
                 fontWeight: 700,
                 fontFamily: 'var(--font-mono)',
                 cursor: 'pointer',
