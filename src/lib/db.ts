@@ -219,9 +219,9 @@ export interface OfflineReward {
 
 /**
  * 존 데이터 기반 오프라인 보상 계산
+ * - 로그아웃 5분 후부터 계산 시작
  * - 효율 30% (온라인 대비)
  * - 최대 480분 (8시간) 캡
- * - 10분 미만 무시
  */
 export function calcOfflineReward(
   lastActiveAt: string,
@@ -235,10 +235,11 @@ export function calcOfflineReward(
   if (!lastZoneId || !zoneData || zoneData.monsters.length === 0) return null;
 
   const offlineMs = Date.now() - new Date(lastActiveAt).getTime();
-  const offlineMin = Math.floor(offlineMs / 60000);
+  const GRACE_MIN = 5; // 로그아웃 5분 후부터 보상 시작
+  const offlineMin = Math.floor(offlineMs / 60000) - GRACE_MIN;
   const cappedMin = Math.min(offlineMin, 480); // 최대 8시간
 
-  if (cappedMin < 10) return null; // 10분 미만 무시
+  if (cappedMin < 1) return null; // 5분 유예 후 1분 미만이면 무시
 
   // 평균 몬스터 보상
   const avgExp = zoneData.monsters.reduce((s, m) => s + m.expReward, 0) / zoneData.monsters.length;
