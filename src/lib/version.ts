@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v1.13.0 — 이벤트 별 1.5배+글로우, 몬스터 닷 size별 차등, 변신 닷 색상
-export const APP_VERSION = '1.13.0';
+// v1.14.0 — 존별 접속자 기반 몬스터 리젠 조절, 몬스터 닷 size 차등
+export const APP_VERSION = '1.14.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
