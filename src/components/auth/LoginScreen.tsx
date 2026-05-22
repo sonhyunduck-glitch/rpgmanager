@@ -10,7 +10,7 @@ type Mode = 'login' | 'signup';
 const TOS_SECTIONS = [
   {
     title: '제1조 (목적)',
-    body: '본 약관은 RPG MANAGER(이하 "게임")의 이용에 관한 조건 및 절차, 이용자와 운영자 간의 권리·의무를 규정함을 목적으로 합니다.',
+    body: '본 약관은 LogDot(로그닷)(이하 "게임")의 이용에 관한 조건 및 절차, 이용자와 운영자 간의 권리·의무를 규정함을 목적으로 합니다.',
   },
   {
     title: '제2조 (용어의 정의)',
@@ -138,7 +138,7 @@ export default function LoginScreen() {
             color: 'var(--accent)',
             letterSpacing: '-0.02em',
           }}>
-            RPG MANAGER
+            LogDot
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 4 }}>
             {mode === 'login' ? '로그인' : '회원가입'}
@@ -304,7 +304,7 @@ export default function LoginScreen() {
                 color: 'var(--text)',
                 fontFamily: 'var(--font-ui)',
               }}>
-                RPG MANAGER 이용약관
+                LogDot 이용약관
               </span>
               <button
                 onClick={() => setShowTerms(false)}
