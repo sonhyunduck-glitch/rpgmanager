@@ -52,17 +52,17 @@ export default function StatusBar() {
           style={{
             fontFamily: "'Space Grotesk', var(--font-display)",
             fontWeight: 700,
-            fontSize: 15,
+            fontSize: 'var(--fs-base)',
             color: 'var(--info)',
           }}
         >
           {playerName}
         </span>
-        <span style={{ ...LABEL, fontSize: 10, color: 'var(--text-dim)' }}>
+        <span style={{ ...LABEL, color: 'var(--text-dim)' }}>
           Lv.{level}
         </span>
         {title && (
-          <span style={{ ...LABEL, fontSize: 9, color: 'var(--accent)' }}>
+          <span style={{ ...LABEL, fontSize: 'calc(var(--fs-xs) - 1px)', color: 'var(--accent)' }}>
             {title}
           </span>
         )}
@@ -99,7 +99,7 @@ export default function StatusBar() {
         </div>
         <span
           style={{
-            fontSize: 9,
+            fontSize: 'calc(var(--fs-xs) - 2px)',
             fontFamily: 'var(--font-mono)',
             fontWeight: 700,
             color: 'var(--info)',
@@ -119,7 +119,7 @@ export default function StatusBar() {
           color: 'var(--accent)',
         }}
       >
-        <span style={{ fontSize: 13 }}>$</span>
+        <span style={{ fontSize: 'var(--fs-sm)' }}>$</span>
         <span style={STAT_VALUE}>{gold.toLocaleString()}</span>
       </div>
 
@@ -165,7 +165,7 @@ export default function StatusBar() {
           color: 'var(--text-mute)',
           cursor: 'pointer',
           fontFamily: 'var(--font-mono)',
-          fontSize: 10,
+          fontSize: 'var(--fs-xs)',
           marginLeft: 'var(--s-2)',
         }}
         title="로그아웃"

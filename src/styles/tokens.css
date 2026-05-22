@@ -80,6 +80,33 @@
 }
 
 /* =========================================================
+   MOBILE LANDSCAPE (Galaxy S25 등 — 높이 ≤ 500px)
+   ========================================================= */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    /* ---- Type (축소) ---- */
+    --fs-xs: 8px; --fs-sm: 9px; --fs-base: 11px;
+    --fs-md: 12px; --fs-lg: 15px; --fs-xl: 20px;
+    --fs-2xl: 28px; --fs-3xl: 36px;
+
+    /* ---- Space (축소) ---- */
+    --s-1: 2px; --s-2: 4px; --s-3: 6px; --s-4: 10px;
+    --s-5: 14px; --s-6: 20px; --s-7: 28px; --s-8: 40px;
+
+    /* ---- Layout ---- */
+    --layout-gap: 4px;
+    --layout-pad: 4px;
+    --status-h: 28px;
+
+    /* ---- Radius (축소) ---- */
+    --r-xs: 2px; --r-sm: 4px; --r-md: 6px;
+    --r-lg: 8px; --r-xl: 12px;
+  }
+
+  body { font-size: var(--fs-base); line-height: 1.4; }
+}
+
+/* =========================================================
    GLOBAL RESET & BASE
    ========================================================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

@@ -7,7 +7,7 @@ import type React from 'react';
 /** 모노 라벨 (UPPERCASE, 작은 글씨) */
 export const LABEL: React.CSSProperties = {
   fontFamily: 'var(--font-mono)',
-  fontSize: 11,
+  fontSize: 'var(--fs-xs)',
   textTransform: 'uppercase',
   letterSpacing: '0.14em',
   color: 'var(--text-mute)',
@@ -25,11 +25,11 @@ const PANEL: React.CSSProperties = {
   background: 'var(--bg-panel)',
   border: '1px solid var(--border-soft)',
   borderRadius: 'var(--r-md)',
-  padding: 'var(--s-5)',
+  padding: 'var(--s-4)',
   boxShadow: 'var(--shadow-sm)',
   display: 'flex',
   flexDirection: 'column',
-  gap: 'var(--s-4)',
+  gap: 'var(--s-3)',
 };
 
 /** 패널 (전체 높이, 오버플로 숨김) */
@@ -44,9 +44,9 @@ export const CHIP: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 'var(--s-1)',
-  padding: '2px 10px',
+  padding: 'var(--s-1) var(--s-3)',
   borderRadius: 999,
-  fontSize: 12,
+  fontSize: 'var(--fs-sm)',
   fontWeight: 600,
   whiteSpace: 'nowrap',
 };
@@ -54,7 +54,7 @@ export const CHIP: React.CSSProperties = {
 /** 기본 버튼 (Primary gradient) */
 export const BTN_PRIMARY: React.CSSProperties = {
   width: '100%',
-  padding: '12px 0',
+  padding: 'var(--s-3) 0',
   border: 'none',
   borderRadius: 'var(--r-sm)',
   background: 'linear-gradient(135deg, var(--accent), oklch(0.68 0.18 45))',
@@ -81,13 +81,13 @@ export const BTN_SUCCESS: React.CSSProperties = {
 
 /** 작은 액션 버튼 (카드 내부) */
 export const BTN_SM: React.CSSProperties = {
-  height: 30,
+  height: 'var(--s-7)',
   borderRadius: 'var(--r-sm)',
   fontWeight: 600,
-  fontSize: 11,
+  fontSize: 'var(--fs-xs)',
   cursor: 'pointer',
   border: 'none',
-  padding: '0 12px',
+  padding: '0 var(--s-3)',
   transition: 'transform 0.1s ease, background 0.15s ease',
   fontFamily: 'var(--font-mono)',
   textTransform: 'uppercase',
@@ -106,7 +106,7 @@ export const TAB_CONTAINER: React.CSSProperties = {
 /** 탭 버튼 기본 (내부 전용 — tabStyle()에서 확장) */
 const TAB_BASE: React.CSSProperties = {
   flex: 1,
-  padding: '8px 0',
+  padding: 'var(--s-2) 0',
   border: 'none',
   borderRadius: 'var(--r-xs)',
   fontFamily: 'var(--font-ui)',
@@ -142,10 +142,10 @@ export function tabStyle(active: boolean): React.CSSProperties {
 export function chipStyle(active: boolean): React.CSSProperties {
   return {
     ...CHIP,
-    padding: '4px 12px',
+    padding: 'var(--s-1) var(--s-3)',
     border: '1px solid var(--border-soft)',
     fontFamily: 'var(--font-ui)',
-    fontSize: '11px',
+    fontSize: 'var(--fs-xs)',
     cursor: 'pointer',
     transition: 'all var(--dur-fast)',
     background: active ? 'var(--bg-elevated)' : 'transparent',
