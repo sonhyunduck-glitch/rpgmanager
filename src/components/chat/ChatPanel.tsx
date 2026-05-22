@@ -46,12 +46,6 @@ function MessageLine({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
       }}>
         {formatTime(msg.createdAt)}
       </span>
-      <span style={{
-        fontSize: 'var(--fs-2xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
-        color: levelColor(msg.userLevel), flexShrink: 0,
-      }}>
-        {msg.userLevel}
-      </span>
       <ClickableName
         userId={msg.userId}
         name={msg.userName}
