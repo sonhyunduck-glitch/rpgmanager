@@ -70,7 +70,7 @@ console.log(`[push-meta] APP_VERSION = ${version}, APP_EPOCH = ${epoch}`);
 // ── Supabase REST API 로 upsert ──
 async function upsertMeta(key, value) {
   const url = `${SUPABASE_URL}/rest/v1/app_meta`;
-  const body = JSON.stringify({ key, value: String(value) });
+  const body = JSON.stringify({ key, value: String(value), updated_at: new Date().toISOString() });
 
   const res = await fetch(url, {
     method: 'POST',

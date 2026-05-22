@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v1.1.0 — 훈련소 존 추가, 게임명 LogDot 변경
-export const APP_VERSION = '1.1.0';
+// v1.2.0 — 코드 모듈 분리, 레벨제한 제거, 길드 생성 조건
+export const APP_VERSION = '1.2.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
