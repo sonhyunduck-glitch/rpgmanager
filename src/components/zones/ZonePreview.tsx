@@ -10,10 +10,13 @@ import { calcHitRate } from '../../data/statFormulas';
 import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
 
 export default function ZonePreview({
-  zone, playerHit, playerEvasion, onMove, materials,
+  zone, playerHit, playerEvasion, playerLevel, onMove, materials,
 }: {
-  zone: HuntZone; playerHit: number; playerEvasion: number; onMove: () => void; materials: Record<string, number>;
+  zone: HuntZone; playerHit: number; playerEvasion: number; playerLevel?: number; onMove: () => void; materials: Record<string, number>;
 }) {
+  // 훈련소 Lv.12 이후 경험치 제한
+  const isTrainingCapped = zone.id === 'map_training' && (playerLevel ?? 0) >= 12;
+
   // 던전 2층 이상: 이동주문서 필요
   const needsScroll = zone.zoneType === 'dungeon' && zone.floor != null && zone.floor > 1;
   const scrollId = needsScroll ? `scroll_${zone.id}` : '';
@@ -206,6 +209,25 @@ export default function ZonePreview({
           몬스터 {zone.monsters.length}종
         </span>
       </div>
+
+      {/* 훈련소 Lv.12 이후 경험치 제한 안내 */}
+      {isTrainingCapped && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 'var(--s-2)',
+          padding: 'var(--s-2)',
+          background: 'color-mix(in oklch, var(--warning) 8%, var(--bg-sunken))',
+          border: '1px solid color-mix(in oklch, var(--warning) 30%, var(--border-soft))',
+          borderRadius: 'var(--r-xs)',
+          fontSize: 'var(--fs-xs)',
+          color: 'var(--warning)',
+          fontWeight: 700,
+        }}>
+          ⚠ Lv.12 이상 — 경험치 획득 불가
+        </div>
+      )}
 
       {/* Scroll info for dungeon floors */}
       {needsScroll && (

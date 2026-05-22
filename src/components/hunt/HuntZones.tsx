@@ -107,6 +107,7 @@ export default function HuntZones() {
 
   const isDungeon = currentZone.zoneType === 'dungeon';
   const accentColor = isDungeon ? 'var(--warning)' : 'var(--accent)';
+  const isTrainingCapped = currentZone.id === 'map_training' && level >= 12;
 
   return (
     <div
@@ -163,6 +164,11 @@ export default function HuntZones() {
               </div>
               <div style={{ ...LABEL, fontSize: 'var(--fs-xs)', marginTop: 2 }}>
                 Lv.{currentZone.levelRange[0]}~{currentZone.levelRange[1]}
+                {isTrainingCapped && (
+                  <span style={{ color: 'var(--warning)', fontWeight: 700, marginLeft: 6 }}>
+                    ⚠ EXP 획득 불가
+                  </span>
+                )}
               </div>
               {isActive && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>

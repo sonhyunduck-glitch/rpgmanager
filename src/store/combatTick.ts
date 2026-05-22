@@ -358,7 +358,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           const goldDrop = Math.floor((monster.goldReward + Math.floor(Math.random() * 5)) * RATE_GOLD);
           newGold += goldDrop;
           huntGold += goldDrop;
-          newExp += Math.floor(monster.expReward * RATE_EXP);
+          // 훈련소는 Lv.12 이후 경험치 획득 불가
+          const isTrainingCapped = zone.id === 'map_training' && newLevel >= 12;
+          if (!isTrainingCapped) {
+            newExp += Math.floor(monster.expReward * RATE_EXP);
+          }
 
           newLogs.push({
             id: genLogId(), type: 'loot',
