@@ -967,18 +967,18 @@ export default function Minimap() {
           />
         </div>
 
-        {/* 존 라벨 */}
+        {/* 존 라벨 + 접속자 */}
         <span style={{ position: 'absolute', top: 8, left: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
           {zone.name}
-        </span>
-
-        {/* 몬스터 수 + 접속자 */}
-        <span style={{ position: 'absolute', top: 8, right: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
           {zonePlayerCount > 1 && (
-            <span style={{ marginRight: 4, color: 'var(--warning)' }}>
+            <span style={{ marginLeft: 4, color: 'var(--warning)' }}>
               👤{zonePlayerCount}
             </span>
           )}
+        </span>
+
+        {/* 몬스터 수 */}
+        <span style={{ position: 'absolute', top: 8, right: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
           {VISIBLE_MONSTERS}m
         </span>
       </div>
