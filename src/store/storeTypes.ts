@@ -8,10 +8,10 @@ import type {
 } from '../types';
 import type { OfflineReward } from '../lib/db';
 
-// ── 획득 배율 ──
-export const RATE_GOLD = 1.0;
-export const RATE_EXP  = 1.0;
-export const RATE_DROP = 1.0;
+// ── 획득 배율 (테스트) ──
+export const RATE_GOLD = 10.0;
+export const RATE_EXP  = 3.0;
+export const RATE_DROP = 5.0;
 
 // ── 방(Room) 진행 ──
 export const ROOM_KILL_REQ = 5;
