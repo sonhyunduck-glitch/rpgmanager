@@ -18,7 +18,6 @@ export default function CraftTab() {
         const template = EQUIPMENT_TEMPLATES[recipe.resultTemplateId];
         if (!template) return null;
 
-        const hasLevel = level >= recipe.requiredLevel;
         const hasGold = gold >= recipe.goldCost;
         const hasSpace = inventory.length < inventoryCapacity;
 
@@ -34,7 +33,7 @@ export default function CraftTab() {
         });
 
         const allMats = matChecks.every(m => m.enough);
-        const canCraft = hasLevel && hasGold && allMats && hasSpace;
+        const canCraft = hasGold && allMats && hasSpace;
 
         return (
           <div
@@ -93,9 +92,6 @@ export default function CraftTab() {
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
               <span style={{ color: hasGold ? 'var(--accent)' : 'var(--danger)', fontFamily: 'var(--font-mono)' }}>
                 {recipe.goldCost.toLocaleString()} G
-              </span>
-              <span style={{ color: hasLevel ? 'var(--text-mute)' : 'var(--danger)' }}>
-                Lv.{recipe.requiredLevel} 이상
               </span>
             </div>
 

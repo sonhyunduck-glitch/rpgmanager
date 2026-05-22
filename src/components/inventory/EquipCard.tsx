@@ -1,0 +1,114 @@
+/* ══════════════════════════════════════════════════════════
+   Equipment Card — 장비 카드
+   ══════════════════════════════════════════════════════════ */
+import { equipDisplayName } from '../../store/gameStore';
+import type { Equipment } from '../../types';
+
+export default function EquipCard({
+  eq, isEquipped, isSelected, onSelect, onAction, actionLabel, actionStyle,
+}: {
+  eq: Equipment;
+  isEquipped: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+  onAction: () => void;
+  actionLabel: string;
+  actionStyle: 'success' | 'ghost';
+}) {
+  const isWpn = eq.type === 'weapon';
+  const enh = eq.enhanceLevel;
+
+  return (
+    <div
+      onClick={onSelect}
+      style={{
+        background: isSelected
+          ? 'radial-gradient(ellipse at 50% 0%, color-mix(in oklch, var(--accent) 12%, var(--bg-panel)), var(--bg-panel))'
+          : 'var(--bg-panel)',
+        border: isSelected
+          ? '2px solid var(--accent)'
+          : '1px solid var(--border-soft)',
+        borderRadius: 'var(--r-sm)',
+        padding: 'var(--s-3)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--s-1)',
+        position: 'relative',
+        cursor: 'pointer',
+        transition: 'border-color 0.15s ease, background 0.15s ease',
+      }}
+    >
+
+      {/* Equipped badge */}
+      {isEquipped && (
+        <span style={{
+          position: 'absolute',
+          top: 6,
+          left: 6,
+          fontSize: '8px',
+          padding: '1px 5px',
+          borderRadius: 'var(--r-full)',
+          background: 'var(--accent-soft)',
+          color: 'var(--accent)',
+          fontWeight: 700,
+        }}>
+          착용
+        </span>
+      )}
+
+      {/* Name */}
+      <div style={{
+        color: 'var(--text)',
+        fontWeight: 700,
+        fontSize: 'var(--fs-sm)',
+        lineHeight: 1.3,
+        paddingRight: 'var(--s-6)',
+        marginTop: isEquipped ? 16 : 0,
+      }}>
+        {equipDisplayName(eq)}
+      </div>
+
+      {/* Stat — Lineage style */}
+      <div style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--fs-xs)',
+        color: 'var(--text-dim)',
+      }}>
+        {isWpn
+          ? <>타격 {eq.baseAtk}/{eq.baseAtkLarge}{enh > 0 && <span style={{ color: 'var(--success)' }}> (+{enh})</span>}</>
+          : <>AC {eq.baseDef}<span style={{ color: enh > 0 ? 'var(--success)' : 'var(--text-mute)' }}>+{enh}</span></>
+        }
+      </div>
+
+      {/* Bonus */}
+      {eq.bonusEffects.length > 0 && (
+        <div style={{ fontSize: '10px', color: 'var(--info)' }}>
+          {eq.bonusEffects.join(' / ')}
+        </div>
+      )}
+
+      {/* Action button */}
+      <div style={{ marginTop: 'var(--s-1)' }}>
+        <button
+          onClick={e => { e.stopPropagation(); onAction(); }}
+          style={{
+            width: '100%',
+            padding: '5px 0',
+            border: actionStyle === 'ghost' ? '1px solid var(--border)' : 'none',
+            borderRadius: 'var(--r-xs)',
+            background: actionStyle === 'success'
+              ? 'linear-gradient(135deg, var(--success), oklch(0.66 0.16 135))'
+              : 'transparent',
+            color: actionStyle === 'success' ? '#fff' : 'var(--text-dim)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: '11px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {actionLabel}
+        </button>
+      </div>
+    </div>
+  );
+}

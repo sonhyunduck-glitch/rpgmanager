@@ -375,11 +375,7 @@ export default function HuntZones() {
                 >
                   {Math.round(nextZoneHitRate * 100)}%
                 </span>
-                {level < displayNextZone.requiredLevel && (
-                  <span style={{ color: 'var(--danger)', fontSize: 8 }}>
-                    Lv.{displayNextZone.requiredLevel} 필요
-                  </span>
-                )}
+                {/* 레벨 제한 없음 */}
               </div>
               {/* 주문서 이동 버튼 (던전, 주문서 보유 시) */}
               {nextFloorZone && nextFloorScrollCount > 0 && (
