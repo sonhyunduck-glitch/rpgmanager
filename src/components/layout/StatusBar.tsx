@@ -1,0 +1,177 @@
+import { useGameStore } from '../../store/gameStore';
+import { xpForLevel } from '../../data/gameData';
+import { signOut } from '../../lib/auth';
+import { LABEL, STAT_VALUE, CHIP } from '../../styles/shared';
+import type { ViewMode } from '../../types';
+
+const NAV_ITEMS: { mode: ViewMode; label: string }[] = [
+  { mode: 'main', label: 'Main' },
+  { mode: 'inventory', label: 'Inventory' },
+  { mode: 'zones', label: 'Zones' },
+  { mode: 'shop', label: 'Shop' },
+  { mode: 'trade', label: 'Trade' },
+  { mode: 'craft', label: 'Craft' },
+];
+
+export default function StatusBar() {
+  const playerName = useGameStore((s) => s.playerName);
+  const level = useGameStore((s) => s.level);
+  const exp = useGameStore((s) => s.exp);
+  const title = useGameStore((s) => s.title);
+  const gold = useGameStore((s) => s.gold);
+  const viewMode = useGameStore((s) => s.viewMode);
+  const setViewMode = useGameStore((s) => s.setViewMode);
+  const logout = useGameStore((s) => s.logout);
+
+  const handleLogout = async () => {
+    logout();       // DB flush + 동기화 해제
+    await signOut(); // Supabase 세션 종료
+  };
+
+  const needed = xpForLevel(level);
+  const expPct = needed > 0 ? Math.min(100, (exp / needed) * 100) : 0;
+
+  return (
+    <header
+      style={{
+        height: 'var(--status-h)',
+        background: 'var(--bg-elevated)',
+        borderBottom: '1px solid var(--border-soft)',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 var(--s-4)',
+        gap: 'var(--s-4)',
+        boxShadow: 'var(--shadow-sm)',
+        zIndex: 100,
+        flexShrink: 0,
+      }}
+    >
+      {/* Player identity */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)' }}>
+        <span
+          style={{
+            fontFamily: "'Space Grotesk', var(--font-display)",
+            fontWeight: 700,
+            fontSize: 15,
+            color: 'var(--info)',
+          }}
+        >
+          {playerName}
+        </span>
+        <span style={{ ...LABEL, fontSize: 10, color: 'var(--text-dim)' }}>
+          Lv.{level}
+        </span>
+        {title && (
+          <span style={{ ...LABEL, fontSize: 9, color: 'var(--accent)' }}>
+            {title}
+          </span>
+        )}
+      </div>
+
+      {/* EXP bar */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--s-2)',
+          minWidth: 80,
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            height: 5,
+            borderRadius: 3,
+            background: 'color-mix(in oklch, var(--text-mute) 15%, transparent)',
+            overflow: 'hidden',
+            minWidth: 50,
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              width: `${expPct}%`,
+              background: 'var(--info)',
+              borderRadius: 3,
+              transition: 'width 0.3s ease',
+            }}
+          />
+        </div>
+        <span
+          style={{
+            fontSize: 9,
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 700,
+            color: 'var(--info)',
+            flexShrink: 0,
+          }}
+        >
+          {expPct.toFixed(1)}%
+        </span>
+      </div>
+
+      {/* Gold chip */}
+      <div
+        style={{
+          ...CHIP,
+          background: 'color-mix(in oklch, var(--accent) 15%, transparent)',
+          border: '1px solid color-mix(in oklch, var(--accent) 40%, transparent)',
+          color: 'var(--accent)',
+        }}
+      >
+        <span style={{ fontSize: 13 }}>$</span>
+        <span style={STAT_VALUE}>{gold.toLocaleString()}</span>
+      </div>
+
+      <div style={{ flex: 1 }} />
+
+      {/* Nav buttons */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
+        {NAV_ITEMS.map(({ mode, label }) => {
+          const isActive = viewMode === mode;
+          return (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                ...CHIP,
+                background: isActive
+                  ? 'color-mix(in oklch, var(--accent) 18%, transparent)'
+                  : 'transparent',
+                border: isActive
+                  ? '1px solid var(--accent)'
+                  : '1px solid var(--border-soft)',
+                color: isActive ? 'var(--accent)' : 'var(--text-mute)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                fontFamily: 'var(--font-mono)',
+                textTransform: 'uppercase' as const,
+                letterSpacing: '0.1em',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Logout */}
+      <button
+        onClick={handleLogout}
+        style={{
+          ...CHIP,
+          background: 'transparent',
+          border: '1px solid var(--border-soft)',
+          color: 'var(--text-mute)',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          marginLeft: 'var(--s-2)',
+        }}
+        title="로그아웃"
+      >
+        ⏻
+      </button>
+    </header>
+  );
+}
