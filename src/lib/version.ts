@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v1.7.0 — 메뉴 한글화, 훈련소 Lv12 제한, 미니맵 닷 반응형
-export const APP_VERSION = '1.7.0';
+// v1.8.0 — 다음 사냥터 바로 이동, 메뉴 한글화
+export const APP_VERSION = '1.8.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

@@ -26,6 +26,8 @@ export default function HuntZones() {
   const setViewMode = useGameStore((s) => s.setViewMode);
   const moveToRoom = useGameStore((s) => s.moveToRoom);
   const moveToNextFloor = useGameStore((s) => s.moveToNextFloor);
+  const startHunt = useGameStore((s) => s.startHunt);
+  const setMaterials = useGameStore((s) => s.setMaterials);
   const getStr = useGameStore((s) => s.getStr);
 
   const currentZone = HUNT_ZONES.find((z) => z.id === hunt.zoneId);
@@ -108,6 +110,21 @@ export default function HuntZones() {
   const isDungeon = currentZone.zoneType === 'dungeon';
   const accentColor = isDungeon ? 'var(--warning)' : 'var(--accent)';
   const isTrainingCapped = currentZone.id === 'map_training' && level >= 12;
+
+  // 다음 사냥터 이동 가능 여부
+  const canMoveNext = (() => {
+    if (!displayNextZone) return false;
+    if (nextFloorZone) {
+      // 던전: 전체 클리어 OR 주문서 보유
+      return allRoomsCleared || nextFloorScrollCount > 0;
+    }
+    // 필드 → 다음 존
+    if (nextZone?.zoneType === 'dungeon' && nextZone.floor && nextZone.floor > 1) {
+      const scrollId = `scroll_${nextZone.id}`;
+      return (materials[scrollId] ?? 0) >= 1;
+    }
+    return true;
+  })();
 
   return (
     <div
@@ -320,28 +337,49 @@ export default function HuntZones() {
           style={{
             flex: 2,
             minWidth: 0,
-            background: allRoomsCleared && nextFloorZone
+            background: canMoveNext
               ? 'color-mix(in oklch, var(--success) 6%, var(--bg-sunken))'
               : 'var(--bg-sunken)',
-            border: allRoomsCleared && nextFloorZone
+            border: canMoveNext
               ? '1px solid var(--success)'
               : '1px solid var(--border-soft)',
             borderRadius: 'var(--r-md)',
             padding: 'var(--s-2) var(--s-3)',
             overflow: 'hidden',
-            cursor: displayNextZone ? 'pointer' : 'default',
-            opacity: displayNextZone ? 1 : 0.5,
+            cursor: canMoveNext ? 'pointer' : 'default',
+            opacity: canMoveNext ? 1 : displayNextZone ? 0.6 : 0.4,
           }}
           onClick={() => {
-            if (allRoomsCleared && nextFloorZone) {
-              // 전체 클리어 + 다음 층 있음 → 자동 이동 (이미 setTimeout으로 처리됨)
+            if (!displayNextZone) return;
+
+            // 던전 다음 층
+            if (nextFloorZone) {
+              if (allRoomsCleared) {
+                // 전체 클리어 → 무료 이동
+                moveToNextFloor(false);
+              } else if (nextFloorScrollCount > 0) {
+                // 주문서 보유 → 주문서 사용 이동
+                moveToNextFloor(true);
+              }
+              // 조건 미충족 → 아무것도 안 함
               return;
             }
-            if (displayNextZone) setViewMode('zones');
+
+            // 필드 → 다음 필드: 바로 이동
+            if (nextZone) {
+              // 던전 2층+ 이면 주문서 소모
+              if (nextZone.zoneType === 'dungeon' && nextZone.floor && nextZone.floor > 1) {
+                const scrollId = `scroll_${nextZone.id}`;
+                const scrollCount = materials[scrollId] ?? 0;
+                if (scrollCount < 1) return;
+                setMaterials({ ...materials, [scrollId]: scrollCount - 1 });
+              }
+              startHunt(nextZone.id);
+            }
           }}
         >
           <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 3 }}>
-            {nextFloorZone ? 'NEXT FLOOR' : 'NEXT MAP'}
+            {nextFloorZone ? '다음 층' : '다음 사냥터'}
           </div>
           {displayNextZone ? (
             <>
@@ -349,7 +387,7 @@ export default function HuntZones() {
                 style={{
                   fontSize: 'var(--fs-sm)',
                   fontWeight: 700,
-                  color: allRoomsCleared && nextFloorZone ? 'var(--success)' : 'var(--text-dim)',
+                  color: canMoveNext ? 'var(--success)' : 'var(--text-dim)',
                   fontFamily: 'var(--font-display)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -362,15 +400,6 @@ export default function HuntZones() {
                 Lv.{displayNextZone.levelRange[0]}~{displayNextZone.levelRange[1]}
               </div>
               <div style={{ fontSize: 'var(--fs-xs)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {/* 주문서 표시 (던전일 때) */}
-                {nextFloorZone && nextFloorScrollCount > 0 && (
-                  <>
-                    <span style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                      📜 {nextFloorScrollCount}장
-                    </span>
-                    <span style={{ color: 'var(--border-soft)' }}>|</span>
-                  </>
-                )}
                 <span style={{ color: 'var(--text-mute)' }}>명중 </span>
                 <span
                   style={{
@@ -381,31 +410,25 @@ export default function HuntZones() {
                 >
                   {Math.round(nextZoneHitRate * 100)}%
                 </span>
-                {/* 레벨 제한 없음 */}
               </div>
-              {/* 주문서 이동 버튼 (던전, 주문서 보유 시) */}
-              {nextFloorZone && nextFloorScrollCount > 0 && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); moveToNextFloor(true); }}
-                  style={{
-                    marginTop: 4,
-                    fontSize: 'var(--fs-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
-                    padding: '2px 8px',
-                    border: '1px solid var(--accent)',
-                    borderRadius: 'var(--r-xs)',
-                    background: 'color-mix(in oklch, var(--accent) 12%, transparent)',
-                    color: 'var(--accent)',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  📜 이동
-                </button>
-              )}
+              {/* 이동 방법 안내 */}
+              <div style={{ fontSize: 'var(--fs-xs)', marginTop: 3, fontWeight: 700 }}>
+                {canMoveNext ? (
+                  <span style={{ color: 'var(--success)' }}>
+                    {nextFloorZone
+                      ? (allRoomsCleared ? '▲ 클릭하여 이동' : `📜 주문서 이동 (${nextFloorScrollCount}장)`)
+                      : '▶ 클릭하여 이동'}
+                  </span>
+                ) : nextFloorZone ? (
+                  <span style={{ color: 'var(--text-mute)' }}>
+                    방 클리어 또는 📜 주문서 필요
+                  </span>
+                ) : null}
+              </div>
             </>
           ) : (
             <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 4 }}>
-              {allRoomsCleared ? '최종 층 클리어!' : '최종 스테이지'}
+              {allRoomsCleared ? '최종 층 클리어!' : '최종 사냥터'}
             </div>
           )}
         </div>
