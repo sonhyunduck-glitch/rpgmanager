@@ -3,6 +3,7 @@
    ========================================================= */
 import { HUNT_ZONES, getMonstersForRoom } from '../data/gameData';
 import { getClassBaseStats } from '../data/classData';
+import { getAvailableSkills, getSkillSlotCount } from '../data/playerSkillData';
 import { genLogId } from './helpers';
 import { ROOMS_PER_ZONE } from './storeTypes';
 import { upsertZonePresence, getZonePlayerCount, removeZonePresence } from '../lib/db';
@@ -101,6 +102,27 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
         },
         combatLog: [entry],
       });
+
+      // 스킬 슬롯 비어있으면 자동 배치
+      const afterHunt = get();
+      if (!afterHunt.equippedSkills || afterHunt.equippedSkills.filter(id => id > 0).length === 0) {
+        const maxSlots = getSkillSlotCount(afterHunt.level);
+        const available = getAvailableSkills(afterHunt.playerClass, afterHunt.level);
+        const buffs = available.filter(s => s.skillType === 'buff').sort((a, b) => b.skillCircle - a.skillCircle);
+        const heals = available.filter(s => s.skillType === 'heal').sort((a, b) => b.skillCircle - a.skillCircle);
+        const attacks = available.filter(s => s.skillType === 'attack').sort((a, b) => b.skillCircle - a.skillCircle);
+        const ordered = [...buffs, ...heals, ...attacks];
+        const autoSlots: number[] = [];
+        const used = new Set<number>();
+        for (const skill of ordered) {
+          if (autoSlots.length >= maxSlots) break;
+          if (used.has(skill.id)) continue;
+          autoSlots.push(skill.id);
+          used.add(skill.id);
+        }
+        while (autoSlots.length < maxSlots) autoSlots.push(0);
+        set({ equippedSkills: autoSlots });
+      }
 
       // 존 접속자 추적 (훈련소 제외, 비동기)
       const userId = get().authUserId;

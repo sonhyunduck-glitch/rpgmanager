@@ -109,6 +109,9 @@ export interface GameState {
   lastPotionUsedAt: number;    // 물약 쿨타임 (timestamp)
   potionAutoBuy: boolean;
 
+  // Skills
+  equippedSkills: number[];  // 슬롯에 장착된 스킬 ID 목록 (최대 8)
+
   // Buffs
   activeBuffs: ActiveBuff[];
   greenPotionEnabled: boolean;
@@ -190,6 +193,11 @@ export interface GameState {
   toggleCouragePotion: () => void;
   toggleTransformScroll: () => void;
   setTransformScrollType: (type: 'normal' | 'event') => void;
+
+  // Skill actions
+  equipSkill: (skillId: number, slotIndex: number) => void;
+  unequipSkill: (slotIndex: number) => void;
+  autoEquipSkills: () => void;
 
   // Profile
   openProfile: (userId: string) => void;

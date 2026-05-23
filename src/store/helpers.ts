@@ -147,6 +147,7 @@ export function saveState(state: {
   couragePotionEnabled?: boolean;
   transformScrollEnabled?: boolean;
   transformScrollType?: 'normal' | 'event';
+  equippedSkills: number[];
 }): void {
   try {
     const {
@@ -160,6 +161,7 @@ export function saveState(state: {
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
       activeBuffs,
       greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
+      equippedSkills,
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       epoch: APP_EPOCH,
@@ -174,6 +176,7 @@ export function saveState(state: {
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
       activeBuffs,
       greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
+      equippedSkills,
     }));
   } catch {
     /* localStorage may be full or unavailable — silently ignore */

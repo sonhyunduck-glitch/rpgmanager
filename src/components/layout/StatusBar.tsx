@@ -14,6 +14,7 @@ const CLASS_ICONS: Record<string, string> = {
 const NAV_ITEMS: { mode: ViewMode; label: string }[] = [
   { mode: 'main', label: '사냥' },
   { mode: 'inventory', label: '가방' },
+  { mode: 'skills', label: '스킬' },
   { mode: 'zones', label: '사냥터' },
   { mode: 'shop', label: '상점' },
   { mode: 'trade', label: '거래소' },
@@ -27,6 +28,10 @@ export default function StatusBar() {
   const exp = useGameStore((s) => s.exp);
   const title = useGameStore((s) => s.title);
   const gold = useGameStore((s) => s.gold);
+  const hunt = useGameStore((s) => s.hunt);
+  const getMaxMp = useGameStore((s) => s.getMaxMp);
+  const maxMp = getMaxMp();
+  const currentMp = hunt.currentMp;
   const viewMode = useGameStore((s) => s.viewMode);
   const setViewMode = useGameStore((s) => s.setViewMode);
   const logout = useGameStore((s) => s.logout);
@@ -120,6 +125,21 @@ export default function StatusBar() {
           {expPct.toFixed(1)}%
         </span>
       </div>
+
+      {/* MP chip */}
+      {maxMp > 0 && (
+        <div
+          style={{
+            ...CHIP,
+            background: 'color-mix(in oklch, #4D8FFF 12%, transparent)',
+            border: '1px solid color-mix(in oklch, #4D8FFF 35%, transparent)',
+            color: '#6BA3FF',
+          }}
+        >
+          <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 700 }}>MP</span>
+          <span style={STAT_VALUE}>{currentMp}/{maxMp}</span>
+        </div>
+      )}
 
       {/* Gold chip */}
       <div

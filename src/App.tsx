@@ -13,6 +13,7 @@ import InventoryPanel from './components/inventory/InventoryPanel';
 import ZoneSelectPanel from './components/zones/ZoneSelectPanel';
 import ShopPanel from './components/shop/ShopPanel';
 import TradePanel from './components/trade/TradePanel';
+import SkillPanel from './components/skills/SkillPanel';
 import ChatPanel from './components/chat/ChatPanel';
 import RightPanel from './components/layout/RightPanel';
 import ProfileModal from './components/profile/ProfileModal';
@@ -72,7 +73,7 @@ export default function App({ userId }: AppProps) {
     };
   }, [huntStatus, tickHunt, getAtkSpeedMult]);
 
-  const isWideCenter = viewMode === 'inventory' || viewMode === 'zones' || viewMode === 'shop' || viewMode === 'trade';
+  const isWideCenter = viewMode === 'inventory' || viewMode === 'zones' || viewMode === 'shop' || viewMode === 'trade' || viewMode === 'skills';
 
   return (
     <div style={{
@@ -150,6 +151,7 @@ export default function App({ userId }: AppProps) {
         {viewMode === 'zones' && <ZoneSelectPanel />}
         {viewMode === 'shop' && <ShopPanel />}
         {viewMode === 'trade' && <TradePanel />}
+        {viewMode === 'skills' && <SkillPanel />}
 
         {viewMode === 'craft' && (
           <div style={{

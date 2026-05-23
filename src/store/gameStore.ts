@@ -20,6 +20,7 @@ import type {
   Equipment, HuntSession, ScrollType,
   StatAllocation, ActiveBuff,
 } from '../types';
+import { getAvailableSkills, getSkillSlotCount } from '../data/playerSkillData';
 
 // ── 분리된 모듈 ──
 import type { GameState } from './storeTypes';
@@ -279,6 +280,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   potionAutoBuy: (saved?.potionAutoBuy as boolean) ?? true,
   lastPotionUsedAt: 0,
 
+  // ── Skills ──
+  equippedSkills: (saved?.equippedSkills as number[]) ?? [],
+
   // ── Buffs ──
   activeBuffs: (saved?.activeBuffs as ActiveBuff[]) ?? [],
   greenPotionEnabled: (saved?.greenPotionEnabled as boolean) ?? true,
@@ -339,6 +343,55 @@ export const useGameStore = create<GameState>((set, get) => ({
     void flushNow(); // 즉시 DB 동기화 → last_active_at 갱신 (재접속 시 중복 보상 방지)
   },
   dismissOfflineReward: () => set({ offlineReward: null }),
+
+  // ── Skill Actions ──
+  equipSkill: (skillId: number, slotIndex: number) => {
+    const state = get();
+    const maxSlots = getSkillSlotCount(state.level);
+    if (slotIndex < 0 || slotIndex >= maxSlots) return;
+    const available = getAvailableSkills(state.playerClass, state.level);
+    if (!available.find(s => s.id === skillId)) return;
+    const newSlots = [...state.equippedSkills];
+    // 패딩: 슬롯 배열이 짧으면 0으로 채움
+    while (newSlots.length < maxSlots) newSlots.push(0);
+    // 이미 다른 슬롯에 있으면 제거 (중복 방지)
+    const existIdx = newSlots.indexOf(skillId);
+    if (existIdx !== -1) newSlots[existIdx] = 0;
+    newSlots[slotIndex] = skillId;
+    set({ equippedSkills: newSlots });
+    saveState(get());
+  },
+
+  unequipSkill: (slotIndex: number) => {
+    const state = get();
+    const newSlots = [...state.equippedSkills];
+    if (slotIndex < 0 || slotIndex >= newSlots.length) return;
+    newSlots[slotIndex] = 0;
+    set({ equippedSkills: newSlots });
+    saveState(get());
+  },
+
+  autoEquipSkills: () => {
+    const state = get();
+    const maxSlots = getSkillSlotCount(state.level);
+    const available = getAvailableSkills(state.playerClass, state.level);
+    // 우선순위: 버프 → 힐 → 공격(높은 서클 우선) → 클래스 전용
+    const buffs = available.filter(s => s.skillType === 'buff').sort((a, b) => b.skillCircle - a.skillCircle);
+    const heals = available.filter(s => s.skillType === 'heal').sort((a, b) => b.skillCircle - a.skillCircle);
+    const attacks = available.filter(s => s.skillType === 'attack').sort((a, b) => b.skillCircle - a.skillCircle);
+    const ordered = [...buffs, ...heals, ...attacks];
+    const newSlots: number[] = [];
+    const used = new Set<number>();
+    for (const skill of ordered) {
+      if (newSlots.length >= maxSlots) break;
+      if (used.has(skill.id)) continue;
+      newSlots.push(skill.id);
+      used.add(skill.id);
+    }
+    while (newSlots.length < maxSlots) newSlots.push(0);
+    set({ equippedSkills: newSlots });
+    saveState(get());
+  },
 
   // ── Composed Actions ──
   ...createDerivedStats(get),

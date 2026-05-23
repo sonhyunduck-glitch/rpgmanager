@@ -305,6 +305,6 @@ export interface TradeListing {
 }
 
 // ── UI State ──
-export type ViewMode = 'main' | 'inventory' | 'zones' | 'craft' | 'shop' | 'trade';
+export type ViewMode = 'main' | 'inventory' | 'zones' | 'craft' | 'shop' | 'trade' | 'skills';
 export type ShopTab = 'potion' | 'weapon' | 'armor' | 'accessory' | 'scroll' | 'consumable';
 export type ForgeTab = 'enhance' | 'craft';

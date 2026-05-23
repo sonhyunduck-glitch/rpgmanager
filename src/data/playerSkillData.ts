@@ -635,6 +635,21 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
 // ---------------------------------------------------------------------------
 
 /**
+ * 레벨에 따른 스킬 슬롯 수 (4~8칸)
+ * Lv.1: 4칸, Lv.20: 5칸, Lv.30: 6칸, Lv.40: 7칸, Lv.50: 8칸
+ */
+export function getSkillSlotCount(level: number): number {
+  if (level >= 50) return 8;
+  if (level >= 40) return 7;
+  if (level >= 30) return 6;
+  if (level >= 20) return 5;
+  return 4;
+}
+
+/** 최대 스킬 슬롯 수 */
+export const MAX_SKILL_SLOTS = 8;
+
+/**
  * 특정 클래스가 해당 레벨에서 사용할 수 있는 모든 스킬 반환
  * - requiredLevel 이하인지 확인
  * - 마법 서클 스킬은 magicLevel 이하인지 확인
