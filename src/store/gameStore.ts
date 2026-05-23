@@ -307,6 +307,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       offlineReward: null,
     });
     saveState(get());
+    void flushNow(); // 즉시 DB 동기화 → last_active_at 갱신 (재접속 시 중복 보상 방지)
   },
   dismissOfflineReward: () => set({ offlineReward: null }),
 
