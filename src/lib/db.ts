@@ -248,6 +248,10 @@ export async function getZonePlayerCount(zoneId: string): Promise<number> {
 
 // ── 오프라인 보상 계산 ──
 
+import {
+  RATE_GOLD, RATE_EXP, RATE_DROP,
+} from '../store/storeTypes';
+
 export interface OfflineReward {
   minutes: number;        // 오프라인 시간(분)
   kills: number;
@@ -255,13 +259,29 @@ export interface OfflineReward {
   exp: number;
   materials: Record<string, number>;
   zoneName: string;
+  potionsUsed: Record<string, number>;   // 소모된 물약
+  scrollsUsed: Record<string, number>;   // 소모된 주문서
+}
+
+/** 오프라인 보상에 필요한 유저 소모품 상태 */
+export interface OfflinePlayerState {
+  potions: Record<string, number>;
+  selectedPotionId: string;
+  potionAutoUse: boolean;
+  greenPotionEnabled: boolean;
+  couragePotionEnabled: boolean;
+  transformScrollEnabled: boolean;
+  transformScrollType: 'normal' | 'event';
+  materials: Record<string, number>;
+  level: number;
 }
 
 /**
  * 존 데이터 기반 오프라인 보상 계산
  * - 로그아웃 5분 후부터 계산 시작
- * - 효율 30% (온라인 대비)
- * - 최대 480분 (8시간) 캡
+ * - 온라인 효율 100% (RATE_GOLD, RATE_EXP, RATE_DROP 동일 적용)
+ * - 최대 1440분 (24시간) 캡
+ * - 소모품 보유량 역산: 체력물약/버프물약/변신주문서 차감
  */
 export function calcOfflineReward(
   lastActiveAt: string,
@@ -271,38 +291,94 @@ export function calcOfflineReward(
     monsters: { expReward: number; goldReward: number }[];
     dropMaterials: { materialId: string; rate: number; minQty: number; maxQty: number }[];
   } | null,
+  playerState: OfflinePlayerState,
 ): OfflineReward | null {
   if (!lastZoneId || !zoneData || zoneData.monsters.length === 0) return null;
 
   const offlineMs = Date.now() - new Date(lastActiveAt).getTime();
-  const GRACE_MIN = 5; // 로그아웃 5분 후부터 보상 시작
+  const GRACE_MIN = 5;
   const offlineMin = Math.floor(offlineMs / 60000) - GRACE_MIN;
-  const cappedMin = Math.min(offlineMin, 480); // 최대 8시간
+  let effectiveMin = Math.min(offlineMin, 1440); // 최대 24시간
 
-  if (cappedMin < 1) return null; // 5분 유예 후 1분 미만이면 무시
+  if (effectiveMin < 1) return null;
 
-  // 평균 몬스터 보상
+  // ── 소모품 역산 ──
+  const potionsUsed: Record<string, number> = {};
+  const scrollsUsed: Record<string, number> = {};
+
+  // 킬 속도: 분당 10킬 (온라인 동일 — 틱당 1킬, 2틱 평균)
+  const KILLS_PER_MIN = 10;
+  // 체력물약: 분당 3개 소모 (틱 쿨타임 감안)
+  const HEAL_POTIONS_PER_MIN = 3;
+
+  // 1) 체력물약 — 부족 시 사냥 시간 단축
+  if (playerState.potionAutoUse) {
+    const needed = Math.ceil(effectiveMin * HEAL_POTIONS_PER_MIN);
+    const available = playerState.potions[playerState.selectedPotionId] ?? 0;
+    if (available <= 0) return null; // 물약 없으면 사냥 불가
+    if (available < needed) {
+      effectiveMin = Math.floor(available / HEAL_POTIONS_PER_MIN);
+      potionsUsed[playerState.selectedPotionId] = available;
+    } else {
+      potionsUsed[playerState.selectedPotionId] = needed;
+    }
+    if (effectiveMin < 1) return null;
+  }
+
+  // 2) 초록 물약 (300초 = 5분당 1개)
+  if (playerState.greenPotionEnabled) {
+    const needed = Math.ceil(effectiveMin / 5);
+    const available = playerState.potions['green_potion'] ?? 0;
+    const used = Math.min(needed, available);
+    if (used > 0) potionsUsed['green_potion'] = used;
+  }
+
+  // 3) 용기의 물약 (300초 = 5분당 1개)
+  if (playerState.couragePotionEnabled) {
+    const needed = Math.ceil(effectiveMin / 5);
+    const available = playerState.potions['courage_potion'] ?? 0;
+    const used = Math.min(needed, available);
+    if (used > 0) potionsUsed['courage_potion'] = used;
+  }
+
+  // 4) 변신주문서 (1800초 = 30분당 1개, Lv.12+)
+  if (playerState.transformScrollEnabled && playerState.level >= 12) {
+    const scrollId = playerState.transformScrollType === 'event'
+      ? 'event_transform_scroll'
+      : 'transform_scroll';
+    const needed = Math.ceil(effectiveMin / 30);
+    const available = playerState.materials[scrollId] ?? 0;
+    const used = Math.min(needed, available);
+    if (used > 0) scrollsUsed[scrollId] = used;
+  }
+
+  // ── 보상 계산 (온라인 동일 효율) ──
+  const totalKills = Math.floor(KILLS_PER_MIN * effectiveMin);
+
   const avgExp = zoneData.monsters.reduce((s, m) => s + m.expReward, 0) / zoneData.monsters.length;
   const avgGold = zoneData.monsters.reduce((s, m) => s + m.goldReward, 0) / zoneData.monsters.length;
 
-  // 분당 약 2킬 × 30% 효율 = 분당 0.6킬
-  const killsPerMin = 0.6;
-  const totalKills = Math.floor(killsPerMin * cappedMin);
+  // 온라인과 동일 배율 적용
+  const gold = Math.floor((avgGold + 2) * RATE_GOLD * totalKills);
+  const exp = Math.floor(avgExp * RATE_EXP * totalKills);
 
-  // 재료 드롭 시뮬레이션
+  // 재료 드롭 (RATE_DROP 적용)
   const materials: Record<string, number> = {};
   for (const drop of zoneData.dropMaterials) {
-    const expected = totalKills * drop.rate;
-    const qty = Math.floor(expected * ((drop.minQty + drop.maxQty) / 2));
+    const expected = totalKills * Math.min(1, drop.rate * RATE_DROP);
+    const avgQty = (drop.minQty + drop.maxQty) / 2;
+    const qty = Math.floor(expected * avgQty);
     if (qty > 0) materials[drop.materialId] = qty;
   }
 
   return {
-    minutes: cappedMin,
+    minutes: effectiveMin,
     kills: totalKills,
-    gold: Math.floor(avgGold * totalKills),
-    exp: Math.floor(avgExp * totalKills),
+    gold,
+    exp,
     materials,
     zoneName: zoneData.name,
+    potionsUsed,
+    scrollsUsed,
   };
 }

@@ -1,9 +1,10 @@
 /* =========================================================
    OFFLINE REWARD MODAL — 오프라인 사냥 보상 팝업
-   로그인 시 10분 이상 부재 → 보상 표시
+   로그인 시 5분+ 부재 → 보상 표시
+   온라인 효율 100% + 소모품 역산 차감
    ========================================================= */
 import { useGameStore } from '../../store/gameStore';
-import { MATERIALS } from '../../data/gameData';
+import { MATERIALS, POTIONS } from '../../data/gameData';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
 
 function formatDuration(minutes: number): string {
@@ -13,14 +14,23 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
 }
 
+/** 소모품 이름 조회 (물약 → POTIONS, 주문서 → MATERIALS) */
+function getConsumableName(id: string): string {
+  if (POTIONS[id]) return POTIONS[id].name;
+  if (MATERIALS[id]) return MATERIALS[id].name;
+  return id;
+}
+
 export default function OfflineRewardModal() {
   const reward = useGameStore(s => s.offlineReward);
   const claim = useGameStore(s => s.claimOfflineReward);
-  const dismiss = useGameStore(s => s.dismissOfflineReward);
 
   if (!reward) return null;
 
-  const matEntries = Object.entries(reward.materials);
+  const matEntries = Object.entries(reward.materials).filter(([, q]) => q > 0);
+  const potionEntries = Object.entries(reward.potionsUsed).filter(([, q]) => q > 0);
+  const scrollEntries = Object.entries(reward.scrollsUsed).filter(([, q]) => q > 0);
+  const hasConsumables = potionEntries.length > 0 || scrollEntries.length > 0;
 
   return (
     <div
@@ -69,7 +79,7 @@ export default function OfflineRewardModal() {
           <RewardBox label="EXP" value={reward.exp.toLocaleString()} color="var(--info)" />
         </div>
 
-        {/* 재료 목록 */}
+        {/* 획득 재료 */}
         {matEntries.length > 0 && (
           <div style={{
             background: 'var(--bg-sunken)',
@@ -77,25 +87,52 @@ export default function OfflineRewardModal() {
             borderRadius: 'var(--r-sm)',
             padding: 'var(--s-2)',
           }}>
-            <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 4 }}>Materials</div>
+            <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 4 }}>획득 재료</div>
             <div style={{
               display: 'flex', flexWrap: 'wrap', gap: 4,
             }}>
-              {matEntries.map(([matId, qty]) => {
-                const mat = MATERIALS[matId];
-                return (
-                  <span key={matId} style={{
-                    fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
-                    color: 'var(--text-dim)',
-                    padding: '1px 5px',
-                    background: 'color-mix(in oklch, var(--info) 8%, transparent)',
-                    borderRadius: 'var(--r-xs)',
-                    border: '1px solid var(--border-soft)',
-                  }}>
-                    {mat?.name ?? matId} x{qty}
-                  </span>
-                );
-              })}
+              {matEntries.map(([matId, qty]) => (
+                <span key={matId} style={{
+                  fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-dim)',
+                  padding: '1px 5px',
+                  background: 'color-mix(in oklch, var(--info) 8%, transparent)',
+                  borderRadius: 'var(--r-xs)',
+                  border: '1px solid var(--border-soft)',
+                }}>
+                  {MATERIALS[matId]?.name ?? matId} x{qty}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 소모품 사용 내역 */}
+        {hasConsumables && (
+          <div style={{
+            background: 'color-mix(in oklch, var(--danger) 5%, var(--bg-sunken))',
+            border: '1px solid color-mix(in oklch, var(--danger) 20%, var(--border-soft))',
+            borderRadius: 'var(--r-sm)',
+            padding: 'var(--s-2)',
+          }}>
+            <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 4, color: 'var(--danger)' }}>
+              소모품 사용
+            </div>
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: 4,
+            }}>
+              {[...potionEntries, ...scrollEntries].map(([id, qty]) => (
+                <span key={id} style={{
+                  fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
+                  color: 'color-mix(in oklch, var(--danger) 80%, var(--text-dim))',
+                  padding: '1px 5px',
+                  background: 'color-mix(in oklch, var(--danger) 8%, transparent)',
+                  borderRadius: 'var(--r-xs)',
+                  border: '1px solid color-mix(in oklch, var(--danger) 15%, var(--border-soft))',
+                }}>
+                  {getConsumableName(id)} -{qty}
+                </span>
+              ))}
             </div>
           </div>
         )}
@@ -106,42 +143,25 @@ export default function OfflineRewardModal() {
           fontFamily: 'var(--font-mono)', textAlign: 'center',
           fontStyle: 'italic',
         }}>
-          오프라인 효율: 30% | 최대 8시간
+          온라인 효율 100% | 최대 24시간
         </div>
 
-        {/* 버튼 */}
-        <div style={{ display: 'flex', gap: 'var(--s-2)' }}>
-          <button
-            onClick={dismiss}
-            style={{
-              flex: 1, padding: '8px 0',
-              border: '1px solid var(--border-soft)',
-              borderRadius: 'var(--r-sm)',
-              background: 'var(--bg-sunken)',
-              color: 'var(--text-mute)',
-              fontSize: 'var(--fs-sm)', fontWeight: 600,
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-            }}
-          >
-            포기
-          </button>
-          <button
-            onClick={claim}
-            style={{
-              flex: 2, padding: '8px 0',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              background: 'linear-gradient(135deg, var(--accent), oklch(0.68 0.18 45))',
-              color: '#fff',
-              fontSize: 'var(--fs-sm)', fontWeight: 700,
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-            }}
-          >
-            보상 수령
-          </button>
-        </div>
+        {/* 보상 수령 버튼 */}
+        <button
+          onClick={claim}
+          style={{
+            width: '100%', padding: '10px 0',
+            border: 'none',
+            borderRadius: 'var(--r-sm)',
+            background: 'linear-gradient(135deg, var(--accent), oklch(0.68 0.18 45))',
+            color: '#fff',
+            fontSize: 'var(--fs-sm)', fontWeight: 700,
+            fontFamily: 'var(--font-mono)',
+            cursor: 'pointer',
+          }}
+        >
+          보상 수령
+        </button>
       </div>
     </div>
   );

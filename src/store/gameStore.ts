@@ -159,9 +159,21 @@ export const useGameStore = create<GameState>((set, get) => ({
       const lastZoneId = p.last_zone_id as string | null;
       const lastActiveAt = p.last_active_at as string;
       const zone = lastZoneId ? HUNT_ZONES.find(z => z.id === lastZoneId) : null;
+      const s = get();
       const reward = calcOfflineReward(
         lastActiveAt, lastZoneId,
         zone ? { name: zone.name, monsters: zone.monsters, dropMaterials: zone.dropMaterials } : null,
+        {
+          potions: s.potions,
+          selectedPotionId: s.selectedPotionId,
+          potionAutoUse: s.potionAutoUse,
+          greenPotionEnabled: s.greenPotionEnabled,
+          couragePotionEnabled: s.couragePotionEnabled,
+          transformScrollEnabled: s.transformScrollEnabled,
+          transformScrollType: s.transformScrollType,
+          materials: s.materials,
+          level: s.level,
+        },
       );
       if (reward) set({ offlineReward: reward });
     }
@@ -236,6 +248,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   potionAutoUse: (saved?.potionAutoUse as boolean) ?? true,
   potionAutoThreshold: (saved?.potionAutoThreshold as number) ?? 50,
   potionAutoBuy: (saved?.potionAutoBuy as boolean) ?? true,
+  lastPotionUsedAt: 0,
 
   // ── Buffs ──
   activeBuffs: (saved?.activeBuffs as ActiveBuff[]) ?? [],
@@ -271,13 +284,26 @@ export const useGameStore = create<GameState>((set, get) => ({
     const reward = state.offlineReward;
     if (!reward) return;
     const newMaterials = { ...state.materials };
+    const newPotions = { ...state.potions };
+
+    // 획득 재료 추가
     for (const [matId, qty] of Object.entries(reward.materials)) {
       newMaterials[matId] = (newMaterials[matId] ?? 0) + qty;
     }
+    // 소모 물약 차감
+    for (const [pid, qty] of Object.entries(reward.potionsUsed)) {
+      newPotions[pid] = Math.max(0, (newPotions[pid] ?? 0) - qty);
+    }
+    // 소모 주문서 차감 (materials에서)
+    for (const [sid, qty] of Object.entries(reward.scrollsUsed)) {
+      newMaterials[sid] = Math.max(0, (newMaterials[sid] ?? 0) - qty);
+    }
+
     set({
       gold: state.gold + reward.gold,
       exp: state.exp + reward.exp,
       materials: newMaterials,
+      potions: newPotions,
       offlineReward: null,
     });
     saveState(get());
