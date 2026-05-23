@@ -14,6 +14,7 @@ const STAT_LABELS: Record<StatKey, { label: string; full: string; color: string 
   dex: { label: 'DEX', full: '민첩', color: 'var(--success)' },
   con: { label: 'CON', full: '체력', color: 'var(--warning)' },
   wis: { label: 'WIS', full: '지혜', color: 'var(--info)' },
+  int: { label: 'INT', full: '지능', color: 'var(--accent)' },
 };
 
 export default function LeftPanel() {
@@ -29,6 +30,7 @@ export default function LeftPanel() {
   const equippedRing = useGameStore((s) => s.equippedRing);
   const equippedRing2 = useGameStore((s) => s.equippedRing2);
   const equippedBelt = useGameStore((s) => s.equippedBelt);
+  const equippedEarring = useGameStore((s) => s.equippedEarring);
   const getTotalDefense = useGameStore((s) => s.getTotalDefense);
   const level = useGameStore((s) => s.level);
   const baseMaxHp = useGameStore((s) => s.maxHp);
@@ -40,12 +42,14 @@ export default function LeftPanel() {
   const getDex = useGameStore((s) => s.getDex);
   const getCon = useGameStore((s) => s.getCon);
   const getWis = useGameStore((s) => s.getWis);
+  const getInt = useGameStore((s) => s.getInt);
   const getRemainingPoints = useGameStore((s) => s.getRemainingPoints);
 
   const str = getStr();
   const dex = getDex();
   const con = getCon();
   const wis = getWis();
+  const int = getInt();
   const remaining = getRemainingPoints();
 
   const weaponEnchant = equippedWeapon?.enhanceLevel ?? 0;
@@ -56,7 +60,7 @@ export default function LeftPanel() {
   // 장비 보너스 합산
   const allSlots = [equippedWeapon, equippedTshirt, equippedArmor, equippedHelmet,
     equippedCloak, equippedGloves, equippedBoots, equippedShield,
-    equippedNecklace, equippedRing, equippedRing2, equippedBelt];
+    equippedNecklace, equippedRing, equippedRing2, equippedBelt, equippedEarring];
   const bonusHit = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hit ?? 0), 0);
   const bonusExtraDmg = allSlots.reduce((s, eq) => s + (eq?.bonuses?.extraDmg ?? 0), 0);
   const bonusMr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.mr ?? 0), 0);
@@ -67,11 +71,12 @@ export default function LeftPanel() {
   const dmgMaxS = maxDamage(weaponBaseDmgS, level, weaponEnchant, str) + bonusExtraDmg;
   const dmgMinL = minDamage(level, weaponEnchant, str) + bonusExtraDmg;
   const dmgMaxL = maxDamage(weaponBaseDmgL, level, weaponEnchant, str) + bonusExtraDmg;
-  const ac = finalAC(totalDefense, level, dex);
+  const playerClass = useGameStore(s => s.playerClass);
+  const ac = finalAC(totalDefense, level, dex, playerClass);
   const mr = finalMR(level, wis) + bonusMr;
   const hpRange = hpGainRange(con);
 
-  const statValues: Record<StatKey, number> = { str, dex, con, wis };
+  const statValues: Record<StatKey, number> = { str, dex, con, wis, int };
 
   return (
     <aside
@@ -199,6 +204,7 @@ export default function LeftPanel() {
       <SlotCard label="Ring 1" equipment={equippedRing} />
       <SlotCard label="Ring 2" equipment={equippedRing2} />
       <SlotCard label="Belt" equipment={equippedBelt} />
+      <SlotCard label="Earring" equipment={equippedEarring} />
     </aside>
   );
 }

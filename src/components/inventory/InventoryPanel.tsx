@@ -36,11 +36,12 @@ export default function InventoryPanel() {
   const equippedRing = useGameStore(s => s.equippedRing);
   const equippedRing2 = useGameStore(s => s.equippedRing2);
   const equippedBelt = useGameStore(s => s.equippedBelt);
+  const equippedEarring = useGameStore(s => s.equippedEarring);
 
   const allEquipped: (Equipment | null)[] = [
     equippedWeapon, equippedTshirt, equippedHelmet, equippedArmor, equippedCloak,
     equippedGloves, equippedBoots, equippedShield,
-    equippedNecklace, equippedRing, equippedRing2, equippedBelt,
+    equippedNecklace, equippedRing, equippedRing2, equippedBelt, equippedEarring,
   ];
   const equippedItems = allEquipped.filter((e): e is Equipment => e !== null);
   const equippedUids = new Set(equippedItems.map(e => e.uid));
@@ -48,13 +49,14 @@ export default function InventoryPanel() {
   const [filter, setFilter] = useState<FilterMode>('all');
 
   // Filter inventory (non-equipped) items
+  const isWeaponType = (t: string) => t === 'weapon' || t === 'bow' || t === 'staff';
   const filteredInv = filter === 'all'
     ? inventory
     : filter === 'material'
       ? []
       : filter === 'weapon'
-        ? inventory.filter(eq => eq.type === 'weapon')
-        : inventory.filter(eq => eq.type !== 'weapon');
+        ? inventory.filter(eq => isWeaponType(eq.type))
+        : inventory.filter(eq => !isWeaponType(eq.type));
 
   // Filter equipped items (same logic)
   const filteredEquipped = filter === 'all'
@@ -62,8 +64,8 @@ export default function InventoryPanel() {
     : filter === 'material'
       ? []
       : filter === 'weapon'
-        ? equippedItems.filter(eq => eq.type === 'weapon')
-        : equippedItems.filter(eq => eq.type !== 'weapon');
+        ? equippedItems.filter(eq => isWeaponType(eq.type))
+        : equippedItems.filter(eq => !isWeaponType(eq.type));
 
   // Currently selected for enhance
   const selectedUid = enhanceTargetUid;

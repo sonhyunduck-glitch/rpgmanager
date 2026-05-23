@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v1.18.0 — 오프라인 보상 리워크 (100%효율, 24시간, 소모품 역산 차감)
-export const APP_VERSION = '1.18.0';
+// v2.1.0 — 장비 확장(귀걸이+782종) + 드롭테이블 + 세트효과 + 월드맵
+export const APP_VERSION = '2.1.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
@@ -22,7 +22,8 @@ export const APP_VERSION = '1.18.0';
 //
 //   히스토리:
 //     1 — 초기 배포
-export const APP_EPOCH = 1;
+//     2 — 클래스 시스템 도입 (전체 데이터 초기화 + 캐릭터 재생성)
+export const APP_EPOCH = 2;
 
 // 빌드 문자열
 export const APP_BUILD = `v${APP_VERSION}`;

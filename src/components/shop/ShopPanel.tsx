@@ -9,6 +9,7 @@ import PotionShop from './PotionShop';
 import ScrollShop from './ScrollShop';
 import EquipShop from './EquipShop';
 import SellShop from './SellShop';
+import ConsumableShop from './ConsumableShop';
 
 type FullShopTab = ShopTab | 'sell';
 
@@ -18,6 +19,7 @@ const TABS: { key: FullShopTab; label: string }[] = [
   { key: 'armor', label: '방어구' },
   { key: 'accessory', label: '악세사리' },
   { key: 'scroll', label: '주문서' },
+  { key: 'consumable', label: '소비' },
   { key: 'sell', label: '판매' },
 ];
 
@@ -92,6 +94,13 @@ export default function ShopPanel() {
               gold={gold}
               inventory={inventory}
               inventoryCapacity={inventoryCapacity}
+            />
+          )}
+          {tab === 'consumable' && (
+            <ConsumableShop
+              gold={gold}
+              materials={materials}
+              buyMaterial={buyMaterial}
             />
           )}
           {tab === 'sell' && (

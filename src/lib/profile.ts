@@ -14,6 +14,8 @@ export interface PlayerProfile {
   stat_dex: number;
   stat_con: number;
   stat_wis: number;
+  stat_int: number;
+  player_class: string | null;
   guild_id: string | null;
   guild_name: string | null;
   last_active_at: string;
@@ -29,7 +31,7 @@ export interface PlayerEquipment {
 export async function getPlayerProfile(userId: string): Promise<PlayerProfile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, level, title, gold, stat_str, stat_dex, stat_con, stat_wis, guild_id, last_active_at, created_at')
+    .select('id, name, level, title, gold, stat_str, stat_dex, stat_con, stat_wis, stat_int, player_class, guild_id, last_active_at, created_at')
     .eq('id', userId)
     .single();
 
@@ -74,6 +76,7 @@ export async function getPlayerEquipment(userId: string): Promise<PlayerEquipmen
     baseAtkLarge: row.base_atk_large,
     baseDef: row.base_def,
     enhanceLevel: row.enhance_level,
+    safeEnchant: row.safe_enchant ?? ((['weapon','bow','staff'].includes(row.type)) ? 6 : 4),
     maxEnhance: row.max_enhance,
     bonuses: (row.bonuses ?? {}) as EquipBonuses,
     bonusEffects: (row.bonus_effects ?? []) as string[],

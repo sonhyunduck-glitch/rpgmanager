@@ -2,7 +2,9 @@
    SHOP ACTIONS — 포션/장비/재료 구매, 포션 설정
    ========================================================= */
 import { POTIONS, EQUIPMENT_TEMPLATES } from '../data/gameData';
+import { canClassEquip } from '../data/classData';
 import { createEquipment } from './helpers';
+import type { EquipType } from '../types';
 import type { GameState, SetState, GetState } from './storeTypes';
 
 type SaveFn = (state: GameState) => void;
@@ -26,6 +28,9 @@ export function createShopActions(set: SetState, get: GetState, save: SaveFn) {
       const state = get();
       const tmpl = EQUIPMENT_TEMPLATES[templateId];
       if (!tmpl) return;
+      // 클래스 제한 체크
+      if (!canClassEquip(state.playerClass, tmpl.type as EquipType)) return;
+      if (tmpl.classRestriction && !tmpl.classRestriction.includes(state.playerClass)) return;
       const shopPrice = tmpl.sellPrice * 2;
       if (state.gold < shopPrice) return;
       if (state.inventory.length >= state.inventoryCapacity) return;

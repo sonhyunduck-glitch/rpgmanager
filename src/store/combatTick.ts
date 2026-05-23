@@ -7,13 +7,24 @@ import {
   getTransformScrollSpeed, TRANSFORM_SCROLL_DURATION,
   TRANSFORM_SCROLL_DROP_RATE, TRANSFORM_SCROLL_MAX,
 } from '../data/gameData';
-import { getMonsterDrops } from '../data/monsterData';
+import { getMonsterDrops } from '../data/dropData';
+import { getMonsterSkills } from '../data/monsterSkillData';
+import { getWeaponSkill } from '../data/weaponSkillData';
+import { getClassCombatStyle } from '../data/classData';
 import {
-  meleeHit, rollHit, rollDamage, rollHpGain,
-  finalAC, acToEvasion, finalMR,
-  calcHitRate, rollMonsterDamage, applyMagicReduction, magicReduction,
+  rollDamage, rollHpGain,
+  finalAC, finalMR,
+  rollMonsterDamage, applyMagicReduction, magicReduction,
   deathExpLossRate,
+  calcPlayerHitRate, rollD20PcNpcHit, rollD20NpcPcHit,
+  calcPcDefense, calcMonsterHitRate,
+  rollBowDamage, rollMagicDamage, rollMagicCritical, consecutiveMagicDecay,
+  calcMpRegen, rollSpellDamage,
 } from '../data/statFormulas';
+import {
+  getAvailableSkills, getBestAttackSpell, getBestHealSpell, getAvailableBuffs,
+} from '../data/playerSkillData';
+import { secureRandom, secureRandomInt } from '../lib/random';
 import { genLogId, createEquipment } from './helpers';
 import {
   RATE_GOLD, RATE_EXP, RATE_DROP, ROOM_KILL_REQ, ROOMS_PER_ZONE,
@@ -48,12 +59,12 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (prev && monsterHp > 0) {
           monster = prev;
         } else {
-          monster = monsters[Math.floor(Math.random() * monsters.length)];
+          monster = monsters[secureRandomInt(0, monsters.length - 1)];
           monsterHp = monster.hp;
           isNewTarget = true;
         }
       } else {
-        monster = monsters[Math.floor(Math.random() * monsters.length)];
+        monster = monsters[secureRandomInt(0, monsters.length - 1)];
         monsterHp = monster.hp;
         isNewTarget = true;
       }
@@ -144,6 +155,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       const playerDex = state.getDex();
       const playerCon = state.getCon();
       const playerWis = state.getWis();
+      const playerInt = state.getInt();
       const weaponEnchant = state.equippedWeapon?.enhanceLevel ?? 0;
       const weaponBaseDmg = monster.size === 'large'
         ? (state.equippedWeapon?.baseAtkLarge ?? 0)
@@ -151,17 +163,19 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       const armorDef = state.getTotalDefense();
 
       const allEquipSlots = getAllEquipped(state);
-      const equipBonusHit = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.hit ?? 0), 0);
-      const equipBonusExtraDmg = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.extraDmg ?? 0), 0);
-      const equipBonusMr = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.mr ?? 0), 0);
+      const equipBonusHit = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.hit ?? 0), 0) + state.getSetBonusHit();
+      const equipBonusExtraDmg = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.extraDmg ?? 0), 0) + state.getSetBonusDmg();
+      const equipBonusMr = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.mr ?? 0), 0) + state.getSetBonusMr();
       const equipBonusHp = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.hp ?? 0), 0);
       const setBonusHp = state.getSetBonusHp();
       const hpBonus = equipBonusHp + setBonusHp;
 
-      const playerMeleeHit = meleeHit(state.level, weaponEnchant, playerStr) + equipBonusHit;
-      const monsterEvasion = monster.level + monster.ac;
-      const playerAC = finalAC(armorDef, state.level, playerDex);
-      const playerEvasion = acToEvasion(playerAC);
+      const playerAC = finalAC(armorDef, state.level, playerDex, state.playerClass);
+      const combatStyle = getClassCombatStyle(state.playerClass);
+      const equipBonusBowHit = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.bowHit ?? 0), 0) + state.getSetBonusBowHit();
+      const equipBonusBowDmg = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.bowDmg ?? 0), 0) + state.getSetBonusBowDmg();
+      const equipBonusSp = state.getSp();
+      const equipBonusMagicDmg = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.magicDmg ?? 0), 0);
 
       const newLogs: LogEntry[] = [];
       const newMaterials = { ...state.materials };
@@ -181,9 +195,28 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       let newRoomCleared = hunt.roomCleared;
       let shouldAdvanceFloor = false;
       let killed = false;
+      let newLastPotionUsedAt = state.lastPotionUsedAt;
       const fightTicks = isNewTarget ? 1 : hunt.currentFightTicks + 1;
       let currentJoined = [...(hunt.joinedMonsters ?? [])];
       let currentApproaching = [...(hunt.approachingMonsters ?? [])];
+
+      // ── MP 관리 ──
+      let huntMp = hunt.currentMp;
+      const maxMp = state.getMaxMp();
+      // MP 0이면 최대 MP로 초기화 (첫 전투 등)
+      if (huntMp <= 0 && maxMp > 0) huntMp = maxMp;
+      // 틱당 MP 자연 회복
+      const mpRegen = calcMpRegen(state.level, playerWis, state.playerClass);
+      huntMp = Math.min(maxMp, huntMp + mpRegen);
+
+      // ── 스킬 쿨다운 감소 ──
+      const skillCooldowns: Record<number, number> = { ...(hunt.skillCooldowns ?? {}) };
+      for (const key of Object.keys(skillCooldowns)) {
+        const numKey = Number(key);
+        if (skillCooldowns[numKey] > 0) skillCooldowns[numKey]--;
+      }
+      let monsterStunnedTicks = Math.max(0, (hunt.monsterStunnedTicks ?? 0) - 1);
+      let windShackleTicks = Math.max(0, (hunt.windShackleTicks ?? 0) - 1);
 
       // ── 버프 물약 자동 사용 ──
       const now = Date.now();
@@ -244,6 +277,38 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               timestamp: now,
             });
           }
+        }
+      }
+
+      // ── 스킬 버프 자동 시전 (MP 충분 시) ──
+      if (huntMp > 0) {
+        const activeSkillBuffIds = newActiveBuffs
+          .filter(b => b.skillId != null && b.skillId > 0 && b.expiresAt > now)
+          .map(b => b.skillId!);
+        const buffSkills = getAvailableBuffs(state.playerClass, state.level, huntMp, activeSkillBuffIds);
+        for (const buff of buffSkills) {
+          if (huntMp < buff.consumeMp) continue;
+          // 쿨다운 체크
+          if ((skillCooldowns[buff.id] ?? 0) > 0) continue;
+          huntMp -= buff.consumeMp;
+          newActiveBuffs.push({
+            potionId: `skill_${buff.id}`,
+            skillId: buff.id,
+            name: buff.name,
+            expiresAt: now + buff.buffDuration * 1000,
+            atkSpeedMult: buff.buffEffect?.atkSpeedMult ?? 1,
+            moveSpeedMult: 1,
+            acBonus: buff.buffEffect?.acBonus,
+            hitBonus: buff.buffEffect?.hitBonus,
+            dmgBonus: buff.buffEffect?.dmgBonus,
+            fireDmgBonus: buff.buffEffect?.fireDmgBonus,
+          });
+          if (buff.reuseDelayTicks > 0) skillCooldowns[buff.id] = buff.reuseDelayTicks;
+          newLogs.push({
+            id: genLogId(), type: 'skill',
+            text: `${buff.name} 시전! (${Math.floor(buff.buffDuration / 60)}분)`,
+            timestamp: now,
+          });
         }
       }
 
@@ -322,33 +387,175 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         currentApproaching = stillApproaching;
       }
 
-      // ── 플레이어 → 몬스터 명중 판정 ──
-      const { hit: isHit, rate: hitRate } = rollHit(playerMeleeHit, monsterEvasion);
+      // ── 스킬 버프 보너스 수집 ──
+      const skillBuffHit = newActiveBuffs
+        .filter(b => b.skillId && b.expiresAt > now)
+        .reduce((s, b) => s + (b.hitBonus ?? 0), 0);
+      const skillBuffDmg = newActiveBuffs
+        .filter(b => b.skillId && b.expiresAt > now)
+        .reduce((s, b) => s + (b.dmgBonus ?? 0), 0);
+      const skillBuffFireDmg = newActiveBuffs
+        .filter(b => b.skillId && b.expiresAt > now)
+        .reduce((s, b) => s + (b.fireDmgBonus ?? 0), 0);
+      const skillBuffAc = newActiveBuffs
+        .filter(b => b.skillId && b.expiresAt > now)
+        .reduce((s, b) => s + (b.acBonus ?? 0), 0);
+      const effectivePlayerAC = playerAC + skillBuffAc;
 
-      if (!isHit) {
+      // ── 플레이어 → 몬스터 공격 (3갈래 분기 — L1J D20) ──
+      const isUndead = monster.undead && state.equippedWeapon?.bonuses?.undeadSlayer;
+      const undeadBonus = isUndead ? secureRandomInt(1, 20) : 0;
+      const undeadText = isUndead ? ` (은빛 가속 +${undeadBonus})` : '';
+      let playerAttackHit = false;
+      let finalDmg = 0;
+      let isCrit = false;
+      let usedSpellName = '';
+
+      if (combatStyle === 'ranged_magic') {
+        // ── 마법사: 스킬 기반 마법 공격 (L1J skills.csv) ──
+        playerAttackHit = true;
+        const spell = getBestAttackSpell(state.playerClass, state.level, huntMp);
+        if (spell) {
+          huntMp -= spell.consumeMp;
+          const rawMagic = rollSpellDamage(
+            spell.damageValue, spell.damageDice, spell.damageDiceCount,
+            playerInt, equipBonusSp, state.level, state.playerClass,
+          );
+          const { isCrit: magicCrit } = rollMagicCritical();
+          isCrit = magicCrit;
+          const critDmg = isCrit ? Math.floor(rawMagic * 1.5) : rawMagic;
+          const afterMr = applyMagicReduction(critDmg, monster.mr);
+          finalDmg = afterMr + equipBonusMagicDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
+          usedSpellName = spell.name;
+        } else {
+          // MP 부족 → 지팡이 기본 공격 (약한 물리)
+          const rawMagic = rollMagicDamage(
+            weaponBaseDmg, playerInt, equipBonusSp,
+            state.level, state.playerClass,
+          );
+          finalDmg = Math.max(1, Math.floor(rawMagic * 0.3)) + undeadBonus;
+          usedSpellName = '';
+        }
+      } else {
+        // ── 기사/요정: D20 명중 판정 ──
+        const hitBonusForBow = combatStyle === 'ranged_bow' ? equipBonusBowHit : 0;
+        const hitRate = calcPlayerHitRate(
+          state.level, playerStr, playerDex,
+          weaponEnchant, equipBonusHit + hitBonusForBow + skillBuffHit,
+        );
+        const { hit } = rollD20PcNpcHit(hitRate, monster.ac);
+        playerAttackHit = hit;
+
+        if (hit) {
+          if (combatStyle === 'ranged_bow') {
+            // 요정: DEX 기반 활 대미지
+            const bowDmg = rollBowDamage(weaponBaseDmg, state.level, weaponEnchant, playerDex);
+            finalDmg = bowDmg + equipBonusExtraDmg + equipBonusBowDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
+          } else {
+            // 기사: STR 기반 근접 대미지
+            finalDmg = rollDamage(weaponBaseDmg, state.level, weaponEnchant, playerStr)
+              + equipBonusExtraDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
+          }
+          isCrit = secureRandom() < 0.1;
+          finalDmg = isCrit ? Math.floor(finalDmg * 1.5) : finalDmg;
+        }
+      }
+
+      if (!playerAttackHit) {
         newLogs.push({
           id: genLogId(), type: 'miss',
-          text: `${monster.name}에게 공격이 빗나갔습니다! (명중률 ${Math.round(hitRate * 100)}%)`,
+          text: `${monster.name}에게 공격이 빗나갔습니다!`,
           timestamp: Date.now(),
         });
       } else {
-        const isUndead = monster.undead && state.equippedWeapon?.bonuses?.undeadSlayer;
-        const undeadBonus = isUndead ? Math.floor(Math.random() * 20) + 1 : 0;
-        const damage = rollDamage(weaponBaseDmg, state.level, weaponEnchant, playerStr) + equipBonusExtraDmg + undeadBonus;
-        const isCrit = Math.random() < 0.1;
-        const finalDmg = isCrit ? Math.floor(damage * 1.5) : damage;
-        const undeadText = isUndead ? ` (은빛 가속 +${undeadBonus})` : '';
         monsterHp = Math.max(0, monsterHp - finalDmg);
+
+        // ── 무기 특수 스킬 발동 (L1J weapon_skills.csv) ──
+        // kill 체크 전에 실행 — 스킬 대미지로 처치 시에도 보상 정상 지급
+        let weaponSkillDmg = 0;
+        if (monsterHp > 0 && state.equippedWeapon) {
+          const wSkill = getWeaponSkill(state.equippedWeapon.templateId);
+          if (wSkill) {
+            const effectiveProb = wSkill.probability + wSkill.probEnchant * weaponEnchant;
+            if (secureRandomInt(1, 100) <= effectiveProb) {
+              if (wSkill.fixDamage > 0) {
+                weaponSkillDmg = wSkill.fixDamage
+                  + (wSkill.randomDamage > 0 ? secureRandomInt(0, wSkill.randomDamage - 1) : 0);
+                if (wSkill.enableMr && monster.mr > 0) {
+                  weaponSkillDmg = applyMagicReduction(weaponSkillDmg, monster.mr);
+                }
+                weaponSkillDmg = Math.max(1, weaponSkillDmg);
+                monsterHp = Math.max(0, monsterHp - weaponSkillDmg);
+                newLogs.push({
+                  id: genLogId(), type: 'battle',
+                  text: `${wSkill.skillName} 발동! ${monster.name}에게 ${weaponSkillDmg} 추가 대미지${monster.mr > 0 ? ` (MR ${Math.round(magicReduction(monster.mr) * 100)}%)` : ''}`,
+                  timestamp: Date.now(),
+                });
+              } else {
+                newLogs.push({
+                  id: genLogId(), type: 'battle',
+                  text: `${wSkill.skillName} 발동!`,
+                  timestamp: Date.now(),
+                });
+              }
+            }
+          }
+        }
+
+        // ── 클래스 스킬 사용 (트리플 애로우, 쇼크 스턴 등) ──
+        if (monsterHp > 0 && huntMp > 0) {
+          const classSkills = getAvailableSkills(state.playerClass, state.level)
+            .filter(s => s.skillCircle === 0 && s.skillType === 'attack' && s.consumeMp <= huntMp && (skillCooldowns[s.id] ?? 0) <= 0);
+
+          if (classSkills.length > 0) {
+            const classSkill = classSkills[0];
+            huntMp -= classSkill.consumeMp;
+            if (classSkill.reuseDelayTicks > 0) skillCooldowns[classSkill.id] = classSkill.reuseDelayTicks;
+
+            if (classSkill.id === 132) {
+              // 트리플 애로우: 3회 활 공격
+              let tripleTotal = 0;
+              for (let i = 0; i < 3; i++) {
+                const bowDmg = rollBowDamage(weaponBaseDmg, state.level, weaponEnchant, playerDex);
+                const arrowDmg = bowDmg + equipBonusExtraDmg + equipBonusBowDmg + skillBuffDmg + skillBuffFireDmg;
+                tripleTotal += arrowDmg;
+              }
+              monsterHp = Math.max(0, monsterHp - tripleTotal);
+              newLogs.push({
+                id: genLogId(), type: 'skill',
+                text: `${classSkill.name}! ${monster.name}에게 ${tripleTotal} 대미지 (3연발)`,
+                timestamp: Date.now(),
+              });
+            } else if (classSkill.id === 87) {
+              // 쇼크 스턴: 몬스터 1틱 기절
+              monsterStunnedTicks = 1;
+              newLogs.push({
+                id: genLogId(), type: 'skill',
+                text: `${classSkill.name}! ${monster.name} 기절! (1턴 공격 불가)`,
+                timestamp: Date.now(),
+              });
+            } else if (classSkill.id === 167) {
+              // 윈드 셰클: 몬스터 공격/이동 속도 감소 3틱
+              windShackleTicks = 3;
+              newLogs.push({
+                id: genLogId(), type: 'skill',
+                text: `${classSkill.name}! ${monster.name}의 공격 속도 감소! (3턴)`,
+                timestamp: Date.now(),
+              });
+            }
+          }
+        }
 
         if (monsterHp <= 0) {
           // ── 몬스터 처치 ──
           killed = true;
 
+          const spellPrefixKill = usedSpellName ? `[${usedSpellName}] ` : '';
           newLogs.push({
             id: genLogId(), type: isCrit ? 'crit' : 'kill',
             text: isCrit
-              ? `치명타! ${monster.name}을(를) 처치! (${finalDmg} dmg, Lv.${monster.level})${undeadText}`
-              : `${monster.name}을(를) 처치. (${finalDmg} dmg, Lv.${monster.level})${undeadText}`,
+              ? `치명타! ${spellPrefixKill}${monster.name}을(를) 처치! (${finalDmg} dmg, Lv.${monster.level})${undeadText}`
+              : `${spellPrefixKill}${monster.name}을(를) 처치. (${finalDmg} dmg, Lv.${monster.level})${undeadText}`,
             timestamp: Date.now(),
           });
 
@@ -392,7 +599,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             : ((hunt.avgKillTime * (newKills - 1)) + thisKillMs) / newKills;
 
           // Gold & EXP
-          const goldDrop = Math.floor((monster.goldReward + Math.floor(Math.random() * 5)) * RATE_GOLD);
+          const goldDrop = Math.floor((monster.goldReward + secureRandomInt(0, 4)) * RATE_GOLD);
           newGold += goldDrop;
           huntGold += goldDrop;
           // 훈련소는 Lv.12 이후 경험치 획득 불가
@@ -424,13 +631,18 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             if (newLevel >= 30) newTitle = '베테랑';
           }
 
-          // Monster drops
+          // Monster drops (L1J drop_items.csv 기반)
           const monsterDropList = getMonsterDrops(monster.id);
           for (const [gameId, chance, minQty, maxQty] of monsterDropList) {
-            if (Math.random() >= Math.min(1, chance * RATE_DROP)) continue;
-            const qty = minQty + Math.floor(Math.random() * (maxQty - minQty + 1));
+            if (secureRandom() >= Math.min(1, chance * RATE_DROP)) continue;
+            const qty = minQty + secureRandomInt(0, maxQty - minQty);
 
-            if (MATERIALS[gameId]) {
+            if (gameId === '__GOLD__') {
+              // 아데나 드롭 → 골드 직접 추가
+              const goldAmt = Math.floor(qty * RATE_GOLD);
+              newGold += goldAmt;
+              huntGold += goldAmt;
+            } else if (MATERIALS[gameId]) {
               const matName = MATERIALS[gameId].name;
               newMaterials[gameId] = (newMaterials[gameId] ?? 0) + qty;
               gainedMats[gameId] = (gainedMats[gameId] ?? 0) + qty;
@@ -449,7 +661,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           if (zone.zoneType === 'dungeon' && zone.floor && zone.maxFloor) {
             if (zone.floor < zone.maxFloor) {
               const nextScrollId = `scroll_${zone.dungeonGroup}_${zone.floor + 1}f`;
-              if ((newMaterials[nextScrollId] ?? 0) < DUNGEON_SCROLL_MAX && Math.random() < DUNGEON_SCROLL_DROP) {
+              if ((newMaterials[nextScrollId] ?? 0) < DUNGEON_SCROLL_MAX && secureRandom() < DUNGEON_SCROLL_DROP) {
                 newMaterials[nextScrollId] = (newMaterials[nextScrollId] ?? 0) + 1;
                 const nextFloorName = zone.name.replace(/\d+F$/, `${zone.floor + 1}F`);
                 newLogs.push({ id: genLogId(), type: 'loot', text: `${nextFloorName} 이동주문서`, timestamp: Date.now() });
@@ -457,7 +669,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             }
             if (zone.floor > 1) {
               const curScrollId = `scroll_${zone.id}`;
-              if ((newMaterials[curScrollId] ?? 0) < DUNGEON_SCROLL_MAX && Math.random() < DUNGEON_SCROLL_DROP) {
+              if ((newMaterials[curScrollId] ?? 0) < DUNGEON_SCROLL_MAX && secureRandom() < DUNGEON_SCROLL_DROP) {
                 newMaterials[curScrollId] = (newMaterials[curScrollId] ?? 0) + 1;
                 newLogs.push({ id: genLogId(), type: 'loot', text: `${zone.name} 이동주문서`, timestamp: Date.now() });
               }
@@ -467,31 +679,55 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           // 변신주문서 드롭 (Lv.12+, 3%, 최대 10장)
           if (newLevel >= 12) {
             const tsCount = newMaterials['transform_scroll'] ?? 0;
-            if (tsCount < TRANSFORM_SCROLL_MAX && Math.random() < TRANSFORM_SCROLL_DROP_RATE) {
+            if (tsCount < TRANSFORM_SCROLL_MAX && secureRandom() < TRANSFORM_SCROLL_DROP_RATE) {
               newMaterials['transform_scroll'] = tsCount + 1;
               gainedMats['transform_scroll'] = (gainedMats['transform_scroll'] ?? 0) + 1;
               newLogs.push({ id: genLogId(), type: 'loot', text: '변신주문서', timestamp: Date.now() });
             }
           }
         } else {
+          const spellPrefix = usedSpellName ? `[${usedSpellName}] ` : '';
           newLogs.push({
             id: genLogId(), type: isCrit ? 'crit' : 'battle',
             text: isCrit
-              ? `치명타! ${monster.name}에게 ${finalDmg} 대미지 (HP: ${monsterHp}/${monster.hp})${undeadText}`
-              : `${monster.name}에게 ${finalDmg} 대미지 (HP: ${monsterHp}/${monster.hp})${undeadText}`,
+              ? `치명타! ${spellPrefix}${monster.name}에게 ${finalDmg} 대미지 (HP: ${monsterHp}/${monster.hp})${undeadText}`
+              : `${spellPrefix}${monster.name}에게 ${finalDmg} 대미지 (HP: ${monsterHp}/${monster.hp})${undeadText}`,
             timestamp: Date.now(),
           });
         }
       }
 
-      // ── 주 타겟 반격 ──
-      if (!killed && monsterHp > 0 && newCurrentHp > 0) {
+      // ── 주 타겟 반격 (L1J D20 NPC→PC) ──
+      let newLastMagicHitAt = hunt.lastMagicHitAt;
+      let newConsecutiveMagicHits = hunt.consecutiveMagicHits;
+
+      // 몬스터 스턴 체크 (쇼크 스턴 등)
+      const monsterCanAttack = monsterStunnedTicks <= 0;
+
+      if (!killed && monsterHp > 0 && newCurrentHp > 0 && monsterCanAttack) {
         const rawMonsterDmg = rollMonsterDamage(monster.damDice, monster.damDiceSides, monster.extraDam);
 
         if (monster.attackType === 'magic') {
           const playerMR = finalMR(state.level, playerWis) + equipBonusMr;
-          const reduced = applyMagicReduction(rawMonsterDmg, playerMR);
+          let reduced = applyMagicReduction(rawMonsterDmg, playerMR);
+          if (windShackleTicks > 0) reduced = Math.max(1, Math.floor(reduced * 0.7));
           const pct = Math.round(magicReduction(playerMR) * 100);
+
+          // 연속 마법 감쇠 (L1J: 2초 내 (2/3)^n, PC 타겟만)
+          const elapsed = now - newLastMagicHitAt;
+          let consecutive: number;
+          if (elapsed < 2000) {
+            consecutive = newConsecutiveMagicHits;
+          } else if (elapsed < 4000) {
+            consecutive = newConsecutiveMagicHits; // 전이 구간: 유지
+          } else {
+            consecutive = 0;
+          }
+          reduced = Math.max(1, Math.floor(reduced * consecutiveMagicDecay(consecutive)));
+          if (elapsed < 2000) consecutive++;
+          newLastMagicHitAt = now;
+          newConsecutiveMagicHits = consecutive;
+
           newCurrentHp = Math.max(0, newCurrentHp - reduced);
           newLogs.push({
             id: genLogId(), type: 'hit_taken',
@@ -499,26 +735,129 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             timestamp: Date.now(),
           });
         } else {
-          const monsterHitRate = calcHitRate(monster.level, playerEvasion);
-          const monsterHits = Math.random() < monsterHitRate;
+          // 물리 몬스터: D20 명중 → AC 대미지 감소 (별도 단계)
+          const mHitRate = calcMonsterHitRate(monster.level, 0);
+          const { hit: monsterHits } = rollD20NpcPcHit(mHitRate, effectivePlayerAC);
           if (monsterHits) {
-            newCurrentHp = Math.max(0, newCurrentHp - rawMonsterDmg);
+            // AC 기반 대미지 감소 (L1J calcPcDefense — 명중 판정과 별개)
+            const acReduction = calcPcDefense(effectivePlayerAC, state.playerClass);
+            // 윈드 셰클: 몬스터 대미지 30% 감소
+            const shackleReduction = windShackleTicks > 0 ? 0.7 : 1.0;
+            const finalMonsterDmg = Math.max(1, Math.floor((rawMonsterDmg - acReduction) * shackleReduction));
+            newCurrentHp = Math.max(0, newCurrentHp - finalMonsterDmg);
             newLogs.push({
               id: genLogId(), type: 'hit_taken',
-              text: `${monster.name}의 공격! -${rawMonsterDmg} HP (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+              text: `${monster.name}의 공격! -${finalMonsterDmg} HP (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
               timestamp: Date.now(),
             });
           } else {
             newLogs.push({
               id: genLogId(), type: 'miss',
-              text: `${monster.name}의 공격을 회피! (회피율 ${Math.round((1 - monsterHitRate) * 100)}%)`,
+              text: `${monster.name}의 공격을 회피!`,
               timestamp: Date.now(),
             });
           }
         }
       }
 
-      // ── 합류 몬스터 반격 ──
+      // ── 몬스터 스킬 AI (L1J mob_skills — 4종 행동 + 5종 트리거) ──
+      const mobSkillCooldowns = { ...(hunt.mobSkillCooldowns ?? {}) };
+      // 쿨다운 감소 (매 틱)
+      for (const key of Object.keys(mobSkillCooldowns)) {
+        if (mobSkillCooldowns[key] > 0) mobSkillCooldowns[key]--;
+      }
+
+      if (!killed && monsterHp > 0 && newCurrentHp > 0) {
+        const npcIdMatch = monster.id.match(/^npc_(\d+)$/);
+        const npcId = npcIdMatch ? parseInt(npcIdMatch[1], 10) : 0;
+        const skills = getMonsterSkills(npcId);
+
+        if (skills.length > 0) {
+          for (const skill of skills) {
+            const cdKey = `${monster.id}_${skill.skillName}`;
+            if ((mobSkillCooldowns[cdKey] ?? 0) > 0) continue;
+
+            // 5종 트리거 AND 체크
+            const hpPct = (monsterHp / monster.hp) * 100;
+            if (skill.trigger.triggerRandom > 0 && secureRandomInt(1, 100) > skill.trigger.triggerRandom) continue;
+            if (skill.trigger.triggerHp != null && hpPct > skill.trigger.triggerHp) continue;
+            if (skill.trigger.triggerCount != null && skill.trigger.triggerCount <= 0) continue;
+
+            // 스킬 실행
+            switch (skill.type) {
+              case 'PHYSICAL_ATTACK': {
+                const mult = skill.damageMult ?? 1.5;
+                const rawSkDmg = rollMonsterDamage(monster.damDice, monster.damDiceSides, monster.extraDam);
+                const skillDmg = Math.max(1, Math.floor(rawSkDmg * mult));
+                newCurrentHp = Math.max(0, newCurrentHp - skillDmg);
+                newLogs.push({
+                  id: genLogId(), type: 'hit_taken',
+                  text: `${monster.name}의 ${skill.skillName}! -${skillDmg} HP (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+                  timestamp: Date.now(),
+                });
+                break;
+              }
+              case 'MAGIC_ATTACK': {
+                const dice = skill.magicDice ?? 2;
+                const sides = skill.magicDiceSides ?? 6;
+                const bonus = skill.magicDamageBonus ?? 0;
+                let dmg = 0;
+                for (let i = 0; i < dice; i++) dmg += secureRandomInt(1, sides);
+                dmg += bonus;
+                const playerMR = finalMR(state.level, playerWis) + equipBonusMr;
+                dmg = applyMagicReduction(dmg, playerMR);
+                newCurrentHp = Math.max(0, newCurrentHp - dmg);
+                const pct = Math.round(magicReduction(playerMR) * 100);
+                newLogs.push({
+                  id: genLogId(), type: 'hit_taken',
+                  text: `${monster.name}의 ${skill.skillName}! -${dmg} HP (마법, MR ${pct}%) (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+                  timestamp: Date.now(),
+                });
+                break;
+              }
+              case 'SUMMON': {
+                if (skill.summonMonsterId && currentApproaching.length + currentJoined.length < 3) {
+                  const count = skill.summonCount ?? 1;
+                  for (let i = 0; i < count; i++) {
+                    const summonId = `npc_${skill.summonMonsterId}`;
+                    const summon = monsters.find(m => m.id === summonId) ?? zone.monsters.find(m => m.id === summonId);
+                    if (summon) {
+                      const dist = 10 + secureRandom() * 15;
+                      currentApproaching.push({ monsterId: summon.id, hp: summon.hp, distanceRemaining: dist });
+                    }
+                  }
+                  newLogs.push({
+                    id: genLogId(), type: 'battle',
+                    text: `${monster.name}이(가) ${skill.skillName}!`,
+                    timestamp: Date.now(),
+                  });
+                }
+                break;
+              }
+              case 'POLY': {
+                if (skill.polyEffect === 'heal') {
+                  const healAmt = skill.polyValue ?? Math.floor(monster.hp * 0.1);
+                  monsterHp = Math.min(monster.hp, monsterHp + healAmt);
+                  newLogs.push({
+                    id: genLogId(), type: 'battle',
+                    text: `${monster.name}의 ${skill.skillName}! (+${healAmt} HP, HP: ${monsterHp}/${monster.hp})`,
+                    timestamp: Date.now(),
+                  });
+                }
+                break;
+              }
+            }
+
+            // 쿨다운 설정
+            if (skill.cooldownTicks) {
+              mobSkillCooldowns[cdKey] = skill.cooldownTicks;
+            }
+            break; // 틱당 1스킬만 발동
+          }
+        }
+      }
+
+      // ── 합류 몬스터 반격 (L1J D20) ──
       if (newCurrentHp > 0 && currentJoined.length > 0) {
         for (const joined of currentJoined) {
           if (newCurrentHp <= 0) break;
@@ -538,12 +877,15 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               timestamp: Date.now(),
             });
           } else {
-            const jmHitRate = calcHitRate(jm.level, playerEvasion);
-            if (Math.random() < jmHitRate) {
-              newCurrentHp = Math.max(0, newCurrentHp - rawJDmg);
+            const jmHitRate = calcMonsterHitRate(jm.level, 0);
+            const { hit: jmHit } = rollD20NpcPcHit(jmHitRate, effectivePlayerAC);
+            if (jmHit) {
+              const acRed = calcPcDefense(effectivePlayerAC, state.playerClass);
+              const jmFinalDmg = Math.max(1, rawJDmg - acRed);
+              newCurrentHp = Math.max(0, newCurrentHp - jmFinalDmg);
               newLogs.push({
                 id: genLogId(), type: 'hit_taken',
-                text: `[합류] ${jm.name}의 공격! -${rawJDmg} HP (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+                text: `[합류] ${jm.name}의 공격! -${jmFinalDmg} HP (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
                 timestamp: Date.now(),
               });
             } else {
@@ -586,8 +928,32 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         return;
       }
 
-      // ── 물약 자동 사용 ──
-      if (newCurrentHp > 0 && newCurrentHp < newMaxHp + hpBonus && state.potionAutoUse) {
+      // ── 스킬 자동 힐 (HP 30% 이하, MP 충분 시) ──
+      if (newCurrentHp > 0 && huntMp > 0) {
+        const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
+        if (hpPct <= 30) {
+          const healSpell = getBestHealSpell(state.playerClass, state.level, huntMp);
+          if (healSpell && (skillCooldowns[healSpell.id] ?? 0) <= 0) {
+            huntMp -= healSpell.consumeMp;
+            const healAmt = rollSpellDamage(
+              healSpell.damageValue, healSpell.damageDice, healSpell.damageDiceCount,
+              playerInt, equipBonusSp, state.level, state.playerClass,
+            );
+            newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + healAmt);
+            if (healSpell.reuseDelayTicks > 0) skillCooldowns[healSpell.id] = healSpell.reuseDelayTicks;
+            newLogs.push({
+              id: genLogId(), type: 'skill',
+              text: `${healSpell.name} 시전! HP +${healAmt} (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+              timestamp: now,
+            });
+          }
+        }
+      }
+
+      // ── 물약 자동 사용 (쿨타임: 1틱 = 3초) ──
+      const POTION_COOLDOWN_MS = 3000;
+      const potionCooldownReady = now - state.lastPotionUsedAt >= POTION_COOLDOWN_MS;
+      if (newCurrentHp > 0 && newCurrentHp < newMaxHp + hpBonus && state.potionAutoUse && potionCooldownReady) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= state.potionAutoThreshold) {
           const pid = state.selectedPotionId;
@@ -596,9 +962,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           if (pCount > 0) {
             const potion = POTIONS[pid];
             if (potion) {
-              const heal = potion.healMin + Math.floor(Math.random() * (potion.healMax - potion.healMin + 1));
+              const heal = potion.healMin + secureRandomInt(0, potion.healMax - potion.healMin);
               newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + heal);
               newPotions[pid] = pCount - 1;
+              newLastPotionUsedAt = now;
               newLogs.push({
                 id: genLogId(), type: 'potion',
                 text: `${potion.name} 사용! HP +${heal} (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
@@ -629,7 +996,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             });
           } else {
             currentJoined = [];
-            const nextMonster = monsters[Math.floor(Math.random() * monsters.length)];
+            const nextMonster = monsters[secureRandomInt(0, monsters.length - 1)];
             nextTargetId = nextMonster.id;
             nextMonsterHp = nextMonster.hp;
             newLogs.push({
@@ -639,7 +1006,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             });
           }
         } else {
-          const nextMonster = monsters[Math.floor(Math.random() * monsters.length)];
+          const nextMonster = monsters[secureRandomInt(0, monsters.length - 1)];
           nextTargetId = nextMonster.id;
           nextMonsterHp = nextMonster.hp;
           newLogs.push({
@@ -656,6 +1023,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         maxHp: newMaxHp, currentHp: newCurrentHp,
         inventory: newInventory, materials: newMaterials,
         potions: newPotions, activeBuffs: newActiveBuffs,
+        lastPotionUsedAt: newLastPotionUsedAt,
         combatLog: [...state.combatLog, ...newLogs].slice(-80),
         hunt: {
           ...hunt,
@@ -665,6 +1033,13 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           fightStartedAt: killed ? Date.now() : hunt.fightStartedAt,
           currentTargetId: nextTargetId, monsterCurrentHp: nextMonsterHp,
           joinedMonsters: currentJoined, approachingMonsters: currentApproaching,
+          mobSkillCooldowns,
+          lastMagicHitAt: newLastMagicHitAt,
+          consecutiveMagicHits: newConsecutiveMagicHits,
+          currentMp: huntMp,
+          skillCooldowns,
+          monsterStunnedTicks,
+          windShackleTicks,
         },
       });
 

@@ -4,41 +4,14 @@
 import { supabase } from './supabase';
 import type { User } from '@supabase/supabase-js';
 
-/** 이메일 회원가입 + 프로필 생성 */
-export async function signUp(email: string, password: string, playerName: string) {
-  // 1) 닉네임 중복 체크
-  const { data: existing } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('name', playerName)
-    .maybeSingle();
-
-  if (existing) {
-    return { error: { message: '이미 사용 중인 닉네임입니다.' } };
-  }
-
-  // 2) 회원가입 (닉네임을 auth 메타데이터에 저장)
+/** 이메일 회원가입 (닉네임/프로필은 CharacterCreateScreen에서 처리) */
+export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { player_name: playerName } },
   });
   if (error) return { error };
   if (!data.user) return { error: { message: '회원가입 실패' } };
-
-  // 3) 프로필 생성 시도 (이메일 인증 전이면 세션 없어 RLS로 실패 가능)
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .insert({
-      id: data.user.id,
-      name: playerName,
-    });
-
-  // 실패해도 OK — initFromDB에서 재시도
-  if (profileError) {
-    console.warn('[auth] profile insert deferred (email confirmation pending):', profileError.message);
-  }
-
   return { data: data.user, error: null };
 }
 

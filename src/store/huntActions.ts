@@ -2,7 +2,7 @@
    HUNT ACTIONS — 사냥 생명주기 (시작/일시정지/부활/층 이동)
    ========================================================= */
 import { HUNT_ZONES, getMonstersForRoom } from '../data/gameData';
-import { BASE_STATS } from '../data/statFormulas';
+import { getClassBaseStats } from '../data/classData';
 import { genLogId } from './helpers';
 import { ROOMS_PER_ZONE } from './storeTypes';
 import { upsertZonePresence, getZonePlayerCount, removeZonePresence } from '../lib/db';
@@ -35,14 +35,15 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
     },
 
     /** 스탯 포인트 1 배분 */
-    allocateStat: (stat: 'str' | 'dex' | 'con' | 'wis') => {
+    allocateStat: (stat: 'str' | 'dex' | 'con' | 'wis' | 'int') => {
       const state = get();
       const remaining = state.getRemainingPoints();
       if (remaining <= 0) return;
 
-      const oldCon = BASE_STATS.con + state.statAllocation.con;
+      const base = getClassBaseStats(state.playerClass);
+      const oldCon = base.con + state.statAllocation.con;
       const newAllocation = { ...state.statAllocation, [stat]: state.statAllocation[stat] + 1 };
-      const newCon = BASE_STATS.con + newAllocation.con;
+      const newCon = base.con + newAllocation.con;
 
       let newMaxHp = state.maxHp;
       if (stat === 'con' && newCon > oldCon) {
@@ -90,6 +91,13 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           monsterCurrentHp: 0,
           joinedMonsters: [],
           approachingMonsters: [],
+          mobSkillCooldowns: {},
+          lastMagicHitAt: 0,
+          consecutiveMagicHits: 0,
+          currentMp: 0,
+          skillCooldowns: {},
+          monsterStunnedTicks: 0,
+          windShackleTicks: 0,
         },
         combatLog: [entry],
       });

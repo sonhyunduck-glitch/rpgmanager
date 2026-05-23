@@ -2,8 +2,12 @@
    TYPE DEFINITIONS — 모든 게임 타입 중앙 관리
    ========================================================= */
 
+// ── Class ──
+export type PlayerClass = 'knight' | 'elf' | 'wizard';
+export type CombatStyle = 'melee' | 'ranged_bow' | 'ranged_magic';
+
 // ── Player Stats ──
-export type StatKey = 'str' | 'dex' | 'con' | 'wis';
+export type StatKey = 'str' | 'dex' | 'con' | 'wis' | 'int';
 
 /** 각 스탯에 분배한 포인트 (기본 스탯 미포함) */
 export interface StatAllocation {
@@ -11,10 +15,11 @@ export interface StatAllocation {
   dex: number;
   con: number;
   wis: number;
+  int: number;
 }
 
 // ── Equipment ──
-export type EquipType = 'weapon' | 'tshirt' | 'helmet' | 'armor' | 'cloak' | 'gloves' | 'boots' | 'shield' | 'necklace' | 'ring' | 'belt';
+export type EquipType = 'weapon' | 'bow' | 'staff' | 'tshirt' | 'helmet' | 'armor' | 'cloak' | 'gloves' | 'boots' | 'shield' | 'necklace' | 'ring' | 'belt' | 'earring';
 
 /** 장비 보너스 스탯 (장착 시 적용) */
 export interface EquipBonuses {
@@ -26,8 +31,18 @@ export interface EquipBonuses {
   dex?: number;          // DEX 보너스
   con?: number;          // CON 보너스
   wis?: number;          // WIS 보너스
+  int?: number;          // INT 보너스
   unbreakable?: boolean; // 비손상 (몬스터에 의한 장비 파괴 면제)
   undeadSlayer?: boolean; // 언데드 추타 (은 재질 등)
+  // 클래스 확장
+  bowHit?: number;       // 활 명중 보너스
+  bowDmg?: number;       // 활 추가 대미지
+  sp?: number;           // SP(마법 강화) 보너스
+  magicDmg?: number;     // 마법 추가 대미지
+  // Phase 1 추가
+  mp?: number;           // MP 보너스
+  haste?: boolean;       // 헤이스트 (공격속도 증가)
+  doubleDmgChance?: number; // 이중 타격 확률 (%, L1J double_dmg_chance)
 }
 
 export interface EquipmentTemplate {
@@ -37,10 +52,13 @@ export interface EquipmentTemplate {
   baseAtk: number;          // 소형 타격치
   baseAtkLarge: number;     // 대형 타격치
   baseDef: number;          // AC 감소
+  safeEnchant: number;      // 안전 강화 수치 (이 미만 100% 성공 + 파괴 없음, L1J safe_enchant)
   maxEnhance: number;
   sellPrice: number;
   bonuses?: EquipBonuses;
   bonusEffects?: string[];  // UI 표시용 텍스트
+  classRestriction?: PlayerClass[];  // 장착 가능 클래스 (없으면 전체)
+  minLevel?: number;       // 최소 장착 레벨 (0 또는 미지정 = 제한 없음)
 }
 
 export interface Equipment {
@@ -52,6 +70,7 @@ export interface Equipment {
   baseAtkLarge: number;     // 대형 타격치
   baseDef: number;          // AC 감소
   enhanceLevel: number;
+  safeEnchant: number;      // 안전 강화 수치 (L1J safe_enchant)
   maxEnhance: number;
   bonuses: EquipBonuses;
   bonusEffects: string[];   // UI 표시용 텍스트
@@ -67,6 +86,38 @@ export interface Material {
 
 export type MonsterSize = 'small' | 'large';
 export type MonsterAttackType = 'melee' | 'magic';
+
+// ── 몬스터 스킬 AI (L1J L1MobSkillUse.java 기반) ──
+export type MobSkillType = 'PHYSICAL_ATTACK' | 'MAGIC_ATTACK' | 'SUMMON' | 'POLY';
+
+export interface MobSkillTrigger {
+  triggerRandom: number;        // 발동 확률 (0~100)
+  triggerHp?: number;           // HP% 이하일 때 (0~100)
+  triggerCompanionHp?: number;  // 동료 HP% 이하 (0~100)
+  triggerRange?: number;        // 거리 조건 (m)
+  triggerCount?: number;        // 최대 발동 횟수 (0=무한)
+}
+
+export interface MobSkill {
+  type: MobSkillType;
+  trigger: MobSkillTrigger;
+  // PHYSICAL_ATTACK: 특수 물리 공격 (대미지 배율)
+  damageMult?: number;          // 1.5 = 150% 대미지
+  // MAGIC_ATTACK: 마법 공격
+  magicDice?: number;           // 주사위 수
+  magicDiceSides?: number;      // 주사위 면수
+  magicDamageBonus?: number;    // 고정 추가 대미지
+  magicElement?: string;        // 속성 (fire/water/wind/earth)
+  // SUMMON: 소환
+  summonMonsterId?: string;     // 소환할 몬스터 ID
+  summonCount?: number;         // 소환 수
+  // POLY: 변신 (자기 강화) — L1J TYPE_POLY(4)
+  polyEffect?: string;          // 'haste' | 'shield' | 'heal' | 'ac_boost'
+  polyValue?: number;           // 효과 수치
+  // 공통
+  skillName: string;            // 로그 표시용 이름
+  cooldownTicks?: number;       // 쿨다운 (틱 단위, 기본 0)
+}
 
 export interface Monster {
   id: string;
@@ -88,6 +139,7 @@ export interface Monster {
   moveSpeed: number;    // 이동속도 (1m당 초, 낮을수록 빠름, 0.4~1.0)
   expReward: number;
   goldReward: number;
+  skills?: MobSkill[];          // 몬스터 스킬 목록
 }
 
 export type ZoneTier = 'beginner' | 'intermediate' | 'advanced';
@@ -138,6 +190,15 @@ export interface HuntSession {
   monsterCurrentHp: number;
   joinedMonsters: JoinedMonster[];
   approachingMonsters: ApproachingMonster[];
+  mobSkillCooldowns: Record<string, number>;  // skillKey → 남은 쿨다운 틱
+  lastMagicHitAt: number;       // 마법 연속 감쇠 추적 (timestamp)
+  consecutiveMagicHits: number; // 연속 마법 피격 횟수
+  // MP system
+  currentMp: number;           // 현재 MP
+  // Skill tracking
+  skillCooldowns: Record<number, number>;  // skillId → remaining cooldown ticks
+  monsterStunnedTicks: number; // 몬스터 스턴 남은 틱
+  windShackleTicks: number;    // 윈드 셰클 남은 틱 (몬스터 공격속도 감소)
 }
 
 // ── Queue & Log ──
@@ -151,7 +212,7 @@ export interface QueueItem {
 
 export interface LogEntry {
   id: string;
-  type: 'enter' | 'encounter' | 'battle' | 'kill' | 'loot' | 'find' | 'crit' | 'levelup' | 'miss' | 'hit_taken' | 'death' | 'potion' | 'join' | 'approach';
+  type: 'enter' | 'encounter' | 'battle' | 'kill' | 'loot' | 'find' | 'crit' | 'levelup' | 'miss' | 'hit_taken' | 'death' | 'potion' | 'join' | 'approach' | 'skill';
   text: string;
   timestamp: number;
 }
@@ -176,6 +237,12 @@ export interface ActiveBuff {
   expiresAt: number;          // Date.now() + duration
   atkSpeedMult: number;
   moveSpeedMult: number;
+  // Skill buff effects (from player skills)
+  skillId?: number;            // Skill source (for skill buffs, 0 for potion buffs)
+  acBonus?: number;            // AC bonus (negative = better defense)
+  hitBonus?: number;           // Hit rate bonus
+  dmgBonus?: number;           // Damage bonus
+  fireDmgBonus?: number;       // Fire element damage added to attacks
 }
 
 // ── Crafting ──
@@ -193,6 +260,7 @@ export type ScrollType = 'normal' | 'blessed' | 'cursed';
 export interface EnhanceResult {
   success: boolean;
   destroyed: boolean;
+  safeFailure?: boolean;     // +9 이상 안전 실패 (아이템 유지, 레벨 변동 없음)
   itemName: string;
   equipType: string;        // 'weapon' | 'armor' etc.
   fromLevel: number;
@@ -238,5 +306,5 @@ export interface TradeListing {
 
 // ── UI State ──
 export type ViewMode = 'main' | 'inventory' | 'zones' | 'craft' | 'shop' | 'trade';
-export type ShopTab = 'potion' | 'weapon' | 'armor' | 'accessory' | 'scroll';
+export type ShopTab = 'potion' | 'weapon' | 'armor' | 'accessory' | 'scroll' | 'consumable';
 export type ForgeTab = 'enhance' | 'craft';

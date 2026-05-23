@@ -20,9 +20,11 @@ export interface DBProfile {
   stat_dex: number;
   stat_con: number;
   stat_wis: number;
+  stat_int: number;
   last_zone_id: string | null;
   last_active_at: string;
   created_at: string;
+  player_class: string | null;
   guild_id: string | null;
   selected_potion: string;
   potion_auto_use: boolean;
@@ -40,6 +42,7 @@ export interface DBItem {
   base_atk_large: number;
   base_def: number;
   enhance_level: number;
+  safe_enchant?: number;
   max_enhance: number;
   bonuses: Record<string, unknown>;
   bonus_effects: string[];
@@ -91,6 +94,7 @@ export function dbItemToEquipment(item: DBItem): Equipment {
     baseAtkLarge: item.base_atk_large,
     baseDef: item.base_def,
     enhanceLevel: item.enhance_level,
+    safeEnchant: item.safe_enchant ?? ((['weapon','bow','staff'].includes(item.type)) ? 6 : 4),
     maxEnhance: item.max_enhance,
     bonuses: (item.bonuses ?? {}) as Equipment['bonuses'],
     bonusEffects: (item.bonus_effects ?? []) as string[],

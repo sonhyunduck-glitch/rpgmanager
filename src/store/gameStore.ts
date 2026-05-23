@@ -42,7 +42,7 @@ function saveState(state: Parameters<typeof _saveState>[0]) {
 const saved = loadState();
 
 const initialStatAllocation: StatAllocation = (saved?.statAllocation as StatAllocation) ?? {
-  str: 0, dex: 0, con: 0, wis: 0,
+  str: 0, dex: 0, con: 0, wis: 0, int: 0,
 };
 const initialCon = BASE_STATS.con + initialStatAllocation.con;
 const initialMaxHp = (saved?.maxHp as number) ?? startingHp(initialCon);
@@ -71,6 +71,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           name: row.name, type: row.type,
           baseAtk: row.base_atk, baseAtkLarge: row.base_atk_large,
           baseDef: row.base_def, enhanceLevel: row.enhance_level,
+          safeEnchant: row.safe_enchant ?? ((['weapon','bow','staff'].includes(row.type)) ? 6 : 4),
           maxEnhance: row.max_enhance, bonuses: row.bonuses ?? {},
           bonusEffects: row.bonus_effects ?? [], sellPrice: row.sell_price,
         };
@@ -82,6 +83,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       set({
         authUserId: userId,
+        playerClass: (p.player_class as import('../types').PlayerClass) ?? get().playerClass,
         playerName: p.name ?? get().playerName,
         level: p.level ?? get().level,
         exp: safeNumber(p.exp, get().exp),
@@ -92,6 +94,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         statAllocation: {
           str: p.stat_str ?? 0, dex: p.stat_dex ?? 0,
           con: p.stat_con ?? 0, wis: p.stat_wis ?? 0,
+          int: p.stat_int ?? 0,
         },
         ...(hasDBItems ? {
           equippedWeapon: equipped['weapon'] ?? null,
@@ -106,6 +109,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           equippedRing: equipped['ring'] ?? null,
           equippedRing2: equipped['ring2'] ?? null,
           equippedBelt: equipped['belt'] ?? null,
+          equippedEarring: equipped['earring'] ?? null,
           inventory: inv,
         } : {}),
         materials: Object.keys(dbData.materials).length > 0 ? dbData.materials : get().materials,
@@ -125,21 +129,32 @@ export const useGameStore = create<GameState>((set, get) => ({
           equippedBoots: s.equippedBoots, equippedShield: s.equippedShield,
           equippedNecklace: s.equippedNecklace, equippedRing: s.equippedRing,
           equippedRing2: s.equippedRing2, equippedBelt: s.equippedBelt,
+          equippedEarring: s.equippedEarring,
         });
         syncMaterials(s.materials);
         syncPotions(s.potions);
         syncProfile(s as any);
       }
     } else {
+      // DB에 프로필이 없음 — CharacterCreateScreen에서 생성 후 진입하므로
+      // 여기 도달하면 프로필이 방금 생성된 직후
       const { supabase } = await import('../lib/supabase');
-      const { data: { user } } = await supabase.auth.getUser();
-      const metaName = (user?.user_metadata?.player_name as string) || '모험가';
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, player_class')
+        .eq('id', userId)
+        .maybeSingle();
 
-      await supabase.from('profiles').upsert({
-        id: userId, name: metaName,
-      }, { onConflict: 'id' });
+      const metaName = profile?.name ?? '모험가';
+      const metaClass = (profile?.player_class as import('../types').PlayerClass) ?? 'knight';
 
-      set({ authUserId: userId, playerName: metaName });
+      if (!profile) {
+        await supabase.from('profiles').upsert({
+          id: userId, name: metaName,
+        }, { onConflict: 'id' });
+      }
+
+      set({ authUserId: userId, playerName: metaName, playerClass: metaClass });
       const s = get();
       syncAllItems(s.inventory, {
         equippedWeapon: s.equippedWeapon, equippedTshirt: s.equippedTshirt,
@@ -148,6 +163,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         equippedBoots: s.equippedBoots, equippedShield: s.equippedShield,
         equippedNecklace: s.equippedNecklace, equippedRing: s.equippedRing,
         equippedRing2: s.equippedRing2, equippedBelt: s.equippedBelt,
+        equippedEarring: s.equippedEarring,
       });
       syncMaterials(s.materials);
       syncPotions(s.potions);
@@ -188,6 +204,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   // ── Player State ──
+  playerClass: (saved?.playerClass as import('../types').PlayerClass) ?? 'knight',
   playerName: (saved?.playerName as string) ?? '초보 모험가',
   level: (saved?.level as number) ?? 1,
   exp: (saved?.exp as number) ?? 0,
@@ -197,6 +214,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   statAllocation: initialStatAllocation,
   maxHp: initialMaxHp,
   currentHp: initialCurrentHp,
+  maxMp: (saved?.maxMp as number) ?? 16,
+  currentMp: (saved?.currentMp as number) ?? 16,
 
   // ── Equipment ──
   equippedWeapon: (saved?.equippedWeapon as Equipment) ?? createEquipment('silver_long_sword'),
@@ -211,6 +230,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   equippedRing: (saved?.equippedRing as Equipment) ?? null,
   equippedRing2: (saved?.equippedRing2 as Equipment) ?? null,
   equippedBelt: (saved?.equippedBelt as Equipment) ?? null,
+  equippedEarring: (saved?.equippedEarring as Equipment) ?? null,
 
   // ── Inventory ──
   inventory: (saved?.inventory as Equipment[]) ?? [],
@@ -227,12 +247,21 @@ export const useGameStore = create<GameState>((set, get) => ({
       avgKillTime: 0, currentFightTicks: 0, fightStartedAt: 0,
       startedAt: 0, currentTargetId: null, monsterCurrentHp: 0,
       joinedMonsters: [], approachingMonsters: [],
+      mobSkillCooldowns: {}, lastMagicHitAt: 0, consecutiveMagicHits: 0,
+      currentMp: 0, skillCooldowns: {}, monsterStunnedTicks: 0, windShackleTicks: 0,
     } as HuntSession;
     return {
       ...h,
       currentRoom: h.currentRoom ?? 1,
       roomKills: h.roomKills ?? 0,
       roomCleared: h.roomCleared ?? 0,
+      mobSkillCooldowns: h.mobSkillCooldowns ?? {},
+      lastMagicHitAt: h.lastMagicHitAt ?? 0,
+      consecutiveMagicHits: h.consecutiveMagicHits ?? 0,
+      currentMp: h.currentMp ?? 0,
+      skillCooldowns: h.skillCooldowns ?? {},
+      monsterStunnedTicks: h.monsterStunnedTicks ?? 0,
+      windShackleTicks: h.windShackleTicks ?? 0,
     } as HuntSession;
   })(),
   combatLog: [],

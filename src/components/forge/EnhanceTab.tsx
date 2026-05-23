@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useGameStore, equipDisplayName, type Equipment } from '../../store/gameStore';
 import {
   getEnhanceRate, isEnhanceSafe,
-  getScrollId,
+  getScrollId, formatEnhanceRate,
 } from '../../data/gameData';
 import type { ScrollType } from '../../types';
 import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
@@ -37,6 +37,7 @@ export default function EnhanceTab() {
   const equippedRing = useGameStore(s => s.equippedRing);
   const equippedRing2 = useGameStore(s => s.equippedRing2);
   const equippedBelt = useGameStore(s => s.equippedBelt);
+  const equippedEarring = useGameStore(s => s.equippedEarring);
   const inventory = useGameStore(s => s.inventory);
   const materials = useGameStore(s => s.materials);
   const enhanceTargetUid = useGameStore(s => s.enhanceTargetUid);
@@ -53,7 +54,7 @@ export default function EnhanceTab() {
   const allEquipped = [
     equippedWeapon, equippedTshirt, equippedHelmet, equippedArmor, equippedCloak,
     equippedGloves, equippedBoots, equippedShield,
-    equippedNecklace, equippedRing, equippedRing2, equippedBelt,
+    equippedNecklace, equippedRing, equippedRing2, equippedBelt, equippedEarring,
   ];
   const equippedUids = new Set(allEquipped.filter(Boolean).map(e => e!.uid));
   const candidates: Equipment[] = [];
@@ -72,7 +73,7 @@ export default function EnhanceTab() {
     }
     const { fromLevel, toLevel, scrollType: animScroll } = enhanceAnim;
     const max = target?.maxEnhance ?? 10;
-    const safe = target ? isEnhanceSafe(target.type, fromLevel) : true;
+    const safe = target ? isEnhanceSafe(fromLevel, target.safeEnchant) : true;
     const isBlessed = animScroll === 'blessed';
     const steps: number[] = [];
     // 각 스텝별 딜레이 (ms) — 기본값은 나중에 채움
@@ -154,8 +155,8 @@ export default function EnhanceTab() {
   // 주문서 정보
   const scrollId = target ? getScrollId(target.type, scrollType) : '';
   const ownedScroll = materials[scrollId] ?? 0;
-  const successRate = getEnhanceRate(target?.type ?? 'weapon', level);
-  const safe = isEnhanceSafe(target?.type ?? 'weapon', level);
+  const successRate = getEnhanceRate(target?.type ?? 'weapon', level, target?.safeEnchant ?? 6);
+  const safe = isEnhanceSafe(level, target?.safeEnchant ?? 6);
 
   // 사용 가능 여부
   const canUse = (() => {
@@ -170,7 +171,7 @@ export default function EnhanceTab() {
     if (scrollType === 'blessed') {
       return safe ? '인챈트 +1~+3 (확정 성공)' : '성공 시 +1~+2 (실패 시 파괴)';
     }
-    return `인챈트 +1 (성공률 ${Math.round(successRate * 100)}%)`;
+    return `인챈트 +1 (성공률 ${formatEnhanceRate(successRate)})`;
   })();
 
   return (

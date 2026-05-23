@@ -4,7 +4,7 @@
 import type {
   Equipment, QueueItem, LogEntry, HuntSession,
   EnhanceResult, ViewMode, ForgeTab, ScrollType,
-  StatAllocation, StatKey, ActiveBuff,
+  StatAllocation, StatKey, ActiveBuff, PlayerClass,
 } from '../types';
 import type { OfflineReward } from '../lib/db';
 
@@ -23,17 +23,18 @@ export const DUNGEON_SCROLL_MAX = 3;
 export const ALL_EQUIP_SLOT_KEYS = [
   'equippedWeapon', 'equippedTshirt', 'equippedArmor', 'equippedHelmet', 'equippedCloak',
   'equippedGloves', 'equippedBoots', 'equippedShield', 'equippedNecklace', 'equippedRing',
-  'equippedRing2', 'equippedBelt',
+  'equippedRing2', 'equippedBelt', 'equippedEarring',
 ] as const;
 
 export type EquipSlotKey = typeof ALL_EQUIP_SLOT_KEYS[number];
 
 /** 장비 타입 → 슬롯 키 매핑 */
 export const EQUIP_TYPE_TO_SLOT: Record<string, EquipSlotKey> = {
-  weapon: 'equippedWeapon', tshirt: 'equippedTshirt', armor: 'equippedArmor',
+  weapon: 'equippedWeapon', bow: 'equippedWeapon', staff: 'equippedWeapon',
+  tshirt: 'equippedTshirt', armor: 'equippedArmor',
   helmet: 'equippedHelmet', cloak: 'equippedCloak', gloves: 'equippedGloves',
   boots: 'equippedBoots', shield: 'equippedShield', necklace: 'equippedNecklace',
-  ring: 'equippedRing', belt: 'equippedBelt',
+  ring: 'equippedRing', belt: 'equippedBelt', earring: 'equippedEarring',
 };
 
 // ── Zustand set/get 타입 ──
@@ -48,6 +49,7 @@ export function getAllEquipped(s: GameState): (Equipment | null)[] {
     s.equippedWeapon, s.equippedTshirt, s.equippedArmor, s.equippedHelmet,
     s.equippedCloak, s.equippedGloves, s.equippedBoots, s.equippedShield,
     s.equippedNecklace, s.equippedRing, s.equippedRing2, s.equippedBelt,
+    s.equippedEarring,
   ];
 }
 
@@ -60,18 +62,21 @@ export interface GameState {
   logout: () => Promise<void>;
 
   // Player
+  playerClass: PlayerClass;
   playerName: string;
   level: number;
   exp: number;
   gold: number;
   title: string;
 
-  // Stats (4-스탯 시스템)
+  // Stats (5-스탯 시스템)
   statAllocation: StatAllocation;
   maxHp: number;
   currentHp: number;
+  maxMp: number;
+  currentMp: number;
 
-  // Equipment (12 슬롯)
+  // Equipment (13 슬롯)
   equippedWeapon: Equipment | null;
   equippedTshirt: Equipment | null;
   equippedArmor: Equipment | null;
@@ -84,6 +89,7 @@ export interface GameState {
   equippedRing: Equipment | null;
   equippedRing2: Equipment | null;
   equippedBelt: Equipment | null;
+  equippedEarring: Equipment | null;
 
   // Inventory
   inventory: Equipment[];
@@ -100,6 +106,7 @@ export interface GameState {
   selectedPotionId: string;
   potionAutoUse: boolean;
   potionAutoThreshold: number;
+  lastPotionUsedAt: number;    // 물약 쿨타임 (timestamp)
   potionAutoBuy: boolean;
 
   // Buffs
@@ -130,12 +137,20 @@ export interface GameState {
   getDex: () => number;
   getCon: () => number;
   getWis: () => number;
+  getInt: () => number;
+  getSp: () => number;
   getRemainingPoints: () => number;
   getTotalDefense: () => number;
   getSetBonusHp: () => number;
+  getSetBonusMr: () => number;
+  getSetBonusHit: () => number;
+  getSetBonusDmg: () => number;
+  getSetBonusBowHit: () => number;
+  getSetBonusBowDmg: () => number;
   getTotalHpBonus: () => number;
   getAtkSpeedMult: () => number;
   getMoveSpeedMult: () => number;
+  getMaxMp: () => number;
 
   // ── Actions ──
   setViewMode: (mode: ViewMode) => void;

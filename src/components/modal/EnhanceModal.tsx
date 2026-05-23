@@ -4,7 +4,7 @@
 import { useEffect, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import {
-  getEnhanceRate, getScrollId,
+  getEnhanceRate, getScrollId, formatEnhanceRate,
 } from '../../data/gameData';
 
 /* ── keyframe injection (once) ── */
@@ -72,7 +72,10 @@ export default function EnhanceModal() {
   const hasNextScroll = (materials[nextScrollId] ?? 0) >= 1;
   const canRetry = !destroyed && toLevel < 10 && toLevel >= 0 && hasNextScroll;
   const nextLevel = toLevel;
-  const nextRate = getEnhanceRate(equipType, nextLevel);
+  // 결과 모달의 "다시 강화" 표시용 — 아이템별 safeEnchant는 실제 강화 시 적용됨
+  const isWeaponType = equipType === 'weapon' || equipType === 'bow' || equipType === 'staff';
+  const fallbackSafe = isWeaponType ? 6 : 4;
+  const nextRate = getEnhanceRate(equipType, nextLevel, fallbackSafe);
 
   const handleRetry = () => {
     if (enhanceTargetUid) {
@@ -265,7 +268,7 @@ export default function EnhanceModal() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>성공률</span>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>{Math.round(successRate * 100)}%</span>
+            <span style={{ fontFamily: 'var(--font-mono)' }}>{formatEnhanceRate(successRate)}</span>
           </div>
 
           {/* Next attempt preview — only show if item still exists */}
@@ -282,7 +285,7 @@ export default function EnhanceModal() {
             }}>
               <span>다음 시도</span>
               <span style={{ fontFamily: 'var(--font-mono)' }}>
-                {Math.round(nextRate * 100)}%
+                {formatEnhanceRate(nextRate)}
               </span>
             </div>
           )}

@@ -11,8 +11,9 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES, getMonstersForRoom, getPlayerDotColor, getTransformScrollLevel } from '../../data/gameData';
+import { getClassCombatStyle } from '../../data/classData';
 import { LABEL } from '../../styles/shared';
-import type { ActiveBuff } from '../../types';
+import type { ActiveBuff, CombatStyle } from '../../types';
 
 /* ── 상수 ── */
 const BASE_VISIBLE_MONSTERS = 8;
@@ -23,6 +24,8 @@ const MOVE_SPEED = 0.5;         // 1m당 0.5초
 const MONSTER_MOVE_MIN = 3000;       // 몬스터 개별 이동 최소 간격 (ms)
 const MONSTER_MOVE_MAX = 7000;       // 몬스터 개별 이동 최대 간격 (ms)
 const MONSTER_MOVE_RANGE_M = 2;      // 이동 반경 (m)
+const ATTACK_RANGE_M = 8;           // 원거리 공격 거리 (m)
+const ATTACK_RANGE_PCT = (ATTACK_RANGE_M / MAP_SIZE_M) * 100; // 16%
 
 /* ── 몬스터 색상 팔레트 (12색) ── */
 const MONSTER_PALETTE = [
@@ -62,6 +65,21 @@ interface MoveInfo {
   distM: number;
   aggressive?: boolean;   // 선공 몬스터 접근 표시용
   monsterColor?: string;  // 선공 시 화살표 색상
+}
+
+/** 투사체 이펙트 (원거리 전투) */
+interface Projectile {
+  id: string;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  type: 'arrow' | 'magic' | 'monster_magic' | 'monster_skill';
+}
+
+/** 몬스터 스킬 이펙트 */
+interface SkillEffect {
+  id: string;
+  pos: { x: number; y: number };
+  type: 'summon' | 'poly' | 'physical';
 }
 
 /** 로그 텍스트에서 데미지 숫자 추출 */
@@ -139,6 +157,23 @@ function nudgePos(pos: { x: number; y: number }): { x: number; y: number } {
   };
 }
 
+/** 원거리 클래스: 타겟 방향으로 공격 범위 거리에서 정지할 좌표 계산 */
+function calcRangedStopPos(
+  from: { x: number; y: number },
+  target: { x: number; y: number },
+): { x: number; y: number } {
+  const dx = target.x - from.x;
+  const dy = target.y - from.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist <= ATTACK_RANGE_PCT) return { ...from }; // 이미 범위 내
+  // 타겟 방향으로 공격범위만큼 떨어진 좌표
+  const ratio = ATTACK_RANGE_PCT / dist;
+  return {
+    x: target.x - dx * ratio,
+    y: target.y - dy * ratio,
+  };
+}
+
 /* ── 컴포넌트 ── */
 export default function Minimap() {
   const hunt = useGameStore(s => s.hunt);
@@ -148,6 +183,9 @@ export default function Minimap() {
   const getMoveSpeedMult = useGameStore(s => s.getMoveSpeedMult);
   const startApproach = useGameStore(s => s.startApproach);
   const zonePlayerCount = useGameStore(s => s.zonePlayerCount);
+  const playerClass = useGameStore(s => s.playerClass);
+  const combatStyle: CombatStyle = getClassCombatStyle(playerClass);
+  const isRanged = combatStyle === 'ranged_bow' || combatStyle === 'ranged_magic';
 
   // 존 접속자 수에 따른 몬스터 리젠 수: 8 - (접속자-1), 최소 1
   const VISIBLE_MONSTERS = Math.max(
@@ -198,6 +236,10 @@ export default function Minimap() {
   const [dotApproachDuration, setDotApproachDuration] = useState<Map<number, number>>(new Map());
   // 합류 중인 몬스터 닷 인덱스
   const [joinedDotIdxs, setJoinedDotIdxs] = useState<Set<number>>(new Set());
+  // 투사체 이펙트 (원거리 전투)
+  const [projectile, setProjectile] = useState<Projectile | null>(null);
+  // 몬스터 스킬 이펙트
+  const [skillEffect, setSkillEffect] = useState<SkillEffect | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const prevZoneId = useRef<string | null>(null);
@@ -328,9 +370,13 @@ export default function Minimap() {
       return;
     }
     const target = dots[targetIdx];
-    const dx = Math.abs(playerPos.x - target.x);
-    const dy = Math.abs(playerPos.y - target.y);
-    if (dx < 1 && dy < 1) {
+    // 원거리: 공격 범위 거리에서 정지하므로 정지좌표와 비교
+    const stopPos = isRanged
+      ? calcRangedStopPos(playerPos, target)
+      : target;
+    const dx = Math.abs(playerPos.x - stopPos.x);
+    const dy = Math.abs(playerPos.y - stopPos.y);
+    if (dx < 1.5 && dy < 1.5) {
       // 좌표 도달 확인 — CSS transition 완료까지 대기 (이속버프 반영)
       const remaining = arrivalTimeRef.current - Date.now();
       if (remaining <= 0) {
@@ -371,12 +417,16 @@ export default function Minimap() {
 
     // 같은 타겟이 로밍으로 이동함 → 플레이어가 새 위치로 추적
     const curPlayer = playerPosRef.current;
-    const { distM, timeMs } = calcMoveTime(curPlayer, target);
-    setMoveInfo({ from: { ...curPlayer }, to: { x: target.x, y: target.y }, timeMs, distM });
+    // 원거리: 공격 범위 거리로 추적
+    const trackDest = isRanged
+      ? calcRangedStopPos(curPlayer, target)
+      : { x: target.x, y: target.y };
+    const { distM, timeMs } = calcMoveTime(curPlayer, trackDest);
+    setMoveInfo({ from: { ...curPlayer }, to: trackDest, timeMs, distM });
     setMoveDurationMs(timeMs);
     setPlayerMoving(true);
     arrivalTimeRef.current = Date.now() + timeMs;
-    setTimeout(() => setPlayerPos({ x: target.x, y: target.y }), 50);
+    setTimeout(() => setPlayerPos(trackDest), 50);
     setTimeout(() => setMoveInfo(null), timeMs + 200);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dots, targetIdx, isHunting]);
@@ -445,17 +495,22 @@ export default function Minimap() {
       const dest = dots[nextI];
       setTargetIdx(nextI);
 
-      const { distM, timeMs } = calcMoveTime(playerPos, dest);
+      // 원거리 클래스: 공격 범위 거리에서 정지
+      const actualDest = isRanged
+        ? calcRangedStopPos(playerPos, dest)
+        : { x: dest.x, y: dest.y };
+
+      const { distM, timeMs } = calcMoveTime(playerPos, actualDest);
       setMoveInfo({
         from: { ...playerPos },
-        to: { x: dest.x, y: dest.y },
+        to: actualDest,
         timeMs, distM,
       });
       setMoveDurationMs(timeMs);
       setPlayerMoving(true);
       arrivalTimeRef.current = Date.now() + timeMs;  // CSS transition 완료 시점
       // playerPos를 목적지로 설정 (CSS transition이 시각적 이동 담당)
-      setTimeout(() => setPlayerPos({ x: dest.x, y: dest.y }), 50);
+      setTimeout(() => setPlayerPos(actualDest), 50);
       setTimeout(() => setMoveInfo(null), timeMs + 200);
     };
 
@@ -550,8 +605,38 @@ export default function Minimap() {
       movePlayerToTarget(nextI);
     };
 
+    /** ── 투사체 발사 헬퍼 (원거리 전투) ── */
+    const fireProjectile = (targetPos: { x: number; y: number }, projType: 'arrow' | 'magic') => {
+      const projId = `proj-${Date.now()}`;
+      setProjectile({ id: projId, from: { ...playerPos }, to: targetPos, type: projType });
+      setTimeout(() => setProjectile(null), projType === 'arrow' ? 250 : 350);
+    };
+
+    /** ── 몬스터 → 플레이어 역방향 투사체 (마법 몬스터/스킬) ── */
+    const fireMonsterProjectile = (fromPos: { x: number; y: number }, projType: 'monster_magic' | 'monster_skill') => {
+      const projId = `mproj-${Date.now()}`;
+      setProjectile({ id: projId, from: fromPos, to: { ...playerPos }, type: projType });
+      setTimeout(() => setProjectile(null), 400);
+    };
+
+    /** ── 몬스터 스킬 이펙트 표시 ── */
+    const showSkillEffect = (pos: { x: number; y: number }, effectType: 'summon' | 'poly' | 'physical') => {
+      const effId = `eff-${Date.now()}`;
+      setSkillEffect({ id: effId, pos, type: effectType });
+      setTimeout(() => setSkillEffect(null), 600);
+    };
+
     // ── 이벤트 분기 (else-if 체인 → return 없음 → proximity 항상 실행) ──
     if (combatEntry && currentTarget) {
+      // 원거리: 공격 이벤트 시 투사체 발사
+      const shouldFireProjectile = isRanged && (
+        combatEntry.type === 'battle' || combatEntry.type === 'crit' ||
+        combatEntry.type === 'kill' || combatEntry.type === 'miss'
+      );
+      if (shouldFireProjectile && combatEntry.type !== 'miss') {
+        fireProjectile(currentTarget, combatStyle === 'ranged_bow' ? 'arrow' : 'magic');
+      }
+
       if (isKillEvent) {
         // ── 킬 (일반킬 + 크리티컬킬) ──
         handleKill();
@@ -563,6 +648,10 @@ export default function Minimap() {
           handleDiscover();
         }
       } else if (combatEntry.type === 'miss' && combatEntry.text.includes('빗나갔')) {
+        // 원거리 빗나감도 투사체 발사 (빗나가는 연출)
+        if (isRanged) {
+          fireProjectile(currentTarget, combatStyle === 'ranged_bow' ? 'arrow' : 'magic');
+        }
         setEvent({ type: 'miss', pos: currentTarget, id: combatEntry.id, color: targetColor });
         setTimeout(() => setEvent(null), 900);
       } else if (combatEntry.type === 'miss' && combatEntry.text.includes('회피')) {
@@ -571,6 +660,14 @@ export default function Minimap() {
       } else if (combatEntry.type === 'hit_taken') {
         const dmg = extractHitDamage(combatEntry.text);
         if (dmg) {
+          // 몬스터 스킬 시각화: 마법 공격은 역방향 투사체
+          const isMagicHit = combatEntry.text.includes('마법');
+          const isSkillHit = combatEntry.text.includes('!') && !combatEntry.text.includes('공격');
+          if (isMagicHit) {
+            fireMonsterProjectile(currentTarget, 'monster_magic');
+          } else if (isSkillHit) {
+            showSkillEffect(currentTarget, 'physical');
+          }
           setEvent({ type: 'hit_taken', pos: playerPos, id: combatEntry.id, dmgText: dmg });
           setTimeout(() => setEvent(null), 900);
         }
@@ -585,6 +682,12 @@ export default function Minimap() {
         if (dmg) {
           setEvent({ type: 'damage', pos: currentTarget, id: combatEntry.id, color: targetColor, dmgText: dmg });
           setTimeout(() => setEvent(null), 900);
+        }
+        // 몬스터 스킬 시각화: 소환/변신
+        if (combatEntry.text.includes('소환') || combatEntry.text.includes('구원')) {
+          showSkillEffect(currentTarget, 'summon');
+        } else if (combatEntry.text.includes('치유') || combatEntry.text.includes('HP,')) {
+          showSkillEffect(currentTarget, 'poly');
         }
       }
       // death: 아무것도 안 함
@@ -914,6 +1017,74 @@ export default function Minimap() {
           );
         })()}
 
+        {/* 투사체 이펙트 (원거리 전투) */}
+        {projectile && (
+          <svg
+            key={`proj-${projectile.id}`}
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              zIndex: 6, pointerEvents: 'none',
+              overflow: 'visible',
+            }}
+          >
+            <line
+              x1={`${projectile.from.x}%`} y1={`${projectile.from.y}%`}
+              x2={`${projectile.to.x}%`}   y2={`${projectile.to.y}%`}
+              stroke={
+                projectile.type === 'arrow' ? '#FFD54F'
+                : projectile.type === 'magic' ? '#7C4DFF'
+                : projectile.type === 'monster_magic' ? '#FF4444'
+                : '#FF6B00'
+              }
+              strokeWidth={
+                projectile.type === 'arrow' ? 1.5
+                : projectile.type === 'magic' ? 2.5
+                : 2
+              }
+              strokeDasharray={
+                projectile.type === 'monster_magic' || projectile.type === 'monster_skill'
+                  ? '4,2' : 'none'
+              }
+              opacity="0.9"
+            >
+              <animate attributeName="opacity" from="0.9" to="0" dur="0.3s" fill="freeze" />
+            </line>
+            <circle
+              cx={`${projectile.to.x}%`} cy={`${projectile.to.y}%`} r="3"
+              fill={
+                projectile.type === 'arrow' ? '#FFD54F'
+                : projectile.type === 'magic' ? '#7C4DFF'
+                : '#FF4444'
+              }
+            >
+              <animate attributeName="r" from="3" to="7" dur="0.2s" fill="freeze" />
+              <animate attributeName="opacity" from="0.8" to="0" dur="0.3s" fill="freeze" />
+            </circle>
+          </svg>
+        )}
+
+        {/* 몬스터 스킬 이펙트 */}
+        {skillEffect && (
+          <div
+            key={`eff-${skillEffect.id}`}
+            style={{
+              position: 'absolute',
+              left: `${skillEffect.pos.x}%`,
+              top: `${skillEffect.pos.y}%`,
+              transform: 'translate(-50%, -50%)',
+              fontSize: 18,
+              zIndex: 7,
+              pointerEvents: 'none',
+              animation: 'mmSkillPop 0.5s ease-out forwards',
+            }}
+          >
+            {skillEffect.type === 'summon' && '★'}
+            {skillEffect.type === 'poly' && '🛡️'}
+            {skillEffect.type === 'physical' && '⚡'}
+          </div>
+        )}
+
         {/* 유저 점 */}
         <div
           style={{
@@ -1023,6 +1194,11 @@ export default function Minimap() {
         @keyframes mmTransformPulse {
           0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
           50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.5); }
+        }
+        @keyframes mmSkillPop {
+          0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+          40% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
         }
         .mm-transform-dot {
           animation: mmTransformPulse 1.2s ease-in-out infinite;

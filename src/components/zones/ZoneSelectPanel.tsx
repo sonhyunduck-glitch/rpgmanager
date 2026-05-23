@@ -1,5 +1,5 @@
 /* =========================================================
-   ZONE SELECT PANEL — 사냥터 선택 (20 스테이지)
+   ZONE SELECT PANEL — 사냥터 선택 (지도 / 목록 뷰)
    ========================================================= */
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
@@ -8,6 +8,9 @@ import { meleeHit, finalAC, acToEvasion } from '../../data/statFormulas';
 import { PANEL_FULL } from '../../styles/shared';
 import ZonePreview from './ZonePreview';
 import ZoneList from './ZoneList';
+import WorldMapPanel from '../worldmap/WorldMapPanel';
+
+type ZoneViewTab = 'map' | 'list';
 
 export default function ZoneSelectPanel() {
   const level = useGameStore(s => s.level);
@@ -20,6 +23,7 @@ export default function ZoneSelectPanel() {
   const getStr = useGameStore(s => s.getStr);
   const getDex = useGameStore(s => s.getDex);
 
+  const [viewTab, setViewTab] = useState<ZoneViewTab>('map');
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(huntZoneId);
   const selectedZone = HUNT_ZONES.find(z => z.id === selectedZoneId) ?? null;
 
@@ -28,7 +32,8 @@ export default function ZoneSelectPanel() {
   const weaponEnchant = weapon?.enhanceLevel ?? 0;
   const playerHit = meleeHit(level, weaponEnchant, str);
   const totalDefense = getTotalDefense();
-  const playerAC = finalAC(totalDefense, level, dex);
+  const playerClass = useGameStore(s => s.playerClass);
+  const playerAC = finalAC(totalDefense, level, dex, playerClass);
   const playerEvasion = acToEvasion(playerAC);
 
   const setMaterials = useGameStore(s => s.setMaterials);
@@ -51,47 +56,95 @@ export default function ZoneSelectPanel() {
   return (
     <div style={{
       display: 'flex',
-      gap: 'var(--s-3)',
+      flexDirection: 'column',
       height: '100%',
       overflow: 'hidden',
+      gap: 'var(--s-2)',
     }}>
-      {/* Left: Zone list */}
+      {/* View toggle tabs */}
       <div style={{
-        ...PANEL_FULL,
-        flex: 1,
-        minWidth: 0,
-      }}>
-        <div style={{ fontWeight: 700, fontSize: 'var(--fs-md)', marginBottom: 'var(--s-2)' }}>
-          사냥터 선택
-        </div>
-        <ZoneList
-          zones={HUNT_ZONES}
-          playerHit={playerHit}
-          selectedZoneId={selectedZoneId}
-          huntZoneId={huntZoneId}
-          onSelect={setSelectedZoneId}
-          materials={materials}
-        />
-      </div>
-
-      {/* Right: Zone preview */}
-      <div style={{
-        ...PANEL_FULL,
-        width: 240,
+        display: 'flex',
+        gap: 'var(--s-1)',
         flexShrink: 0,
       }}>
-        {selectedZone ? (
-          <ZonePreview zone={selectedZone} playerHit={playerHit} playerEvasion={playerEvasion} playerLevel={level} onMove={handleMove} materials={materials} />
+        {([
+          { key: 'map' as const, label: '🗺️ 월드맵' },
+          { key: 'list' as const, label: '📋 목록' },
+        ]).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setViewTab(key)}
+            style={{
+              padding: '6px 16px',
+              border: viewTab === key
+                ? '1px solid var(--accent)'
+                : '1px solid var(--border-soft)',
+              borderRadius: 'var(--r-sm)',
+              background: viewTab === key ? 'var(--bg-elevated)' : 'transparent',
+              color: viewTab === key ? 'var(--accent)' : 'var(--text-dim)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: 'var(--fs-sm)',
+              fontWeight: viewTab === key ? 700 : 500,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content area */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        {viewTab === 'map' ? (
+          <WorldMapPanel />
         ) : (
           <div style={{
-            flex: 1,
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-mute)',
-            fontSize: 'var(--fs-sm)',
+            gap: 'var(--s-3)',
+            height: '100%',
+            overflow: 'hidden',
           }}>
-            사냥터를 선택하세요
+            {/* Left: Zone list */}
+            <div style={{
+              ...PANEL_FULL,
+              flex: 1,
+              minWidth: 0,
+            }}>
+              <div style={{ fontWeight: 700, fontSize: 'var(--fs-md)', marginBottom: 'var(--s-2)' }}>
+                사냥터 선택
+              </div>
+              <ZoneList
+                zones={HUNT_ZONES}
+                playerHit={playerHit}
+                selectedZoneId={selectedZoneId}
+                huntZoneId={huntZoneId}
+                onSelect={setSelectedZoneId}
+                materials={materials}
+              />
+            </div>
+
+            {/* Right: Zone preview */}
+            <div style={{
+              ...PANEL_FULL,
+              width: 240,
+              flexShrink: 0,
+            }}>
+              {selectedZone ? (
+                <ZonePreview zone={selectedZone} playerHit={playerHit} playerEvasion={playerEvasion} playerLevel={level} onMove={handleMove} materials={materials} />
+              ) : (
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-mute)',
+                  fontSize: 'var(--fs-sm)',
+                }}>
+                  사냥터를 선택하세요
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

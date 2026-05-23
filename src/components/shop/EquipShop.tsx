@@ -2,8 +2,14 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { EQUIPMENT_TEMPLATES } from '../../data/gameData';
-import type { ShopTab, EquipmentTemplate } from '../../types';
+import { canClassEquip } from '../../data/classData';
+import type { ShopTab, EquipmentTemplate, EquipType } from '../../types';
 // shared styles not needed — sub-tabs use inline styles
+
+/** 공격 타입 장비인지 (무기/활/지팡이) */
+function isAtkType(t: string): boolean {
+  return t === 'weapon' || t === 'bow' || t === 'staff';
+}
 
 const ARMOR_GROUPS: { type: string; label: string }[] = [
   { type: 'tshirt', label: '티셔츠' },
@@ -56,7 +62,7 @@ function EquipRow({ tmpl, canBuy, buyEquip }: {
           fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
           fontFamily: 'var(--font-mono)',
         }}>
-          <span>{tmpl.type === 'weapon' ? `타격 ${tmpl.baseAtk}/${tmpl.baseAtkLarge}` : `AC ${tmpl.baseDef}`}</span>
+          <span>{isAtkType(tmpl.type) ? `타격 ${tmpl.baseAtk}/${tmpl.baseAtkLarge}` : `AC ${tmpl.baseDef}`}</span>
         </div>
         {tmpl.bonusEffects && tmpl.bonusEffects.length > 0 && (
           <div style={{
@@ -110,24 +116,33 @@ export default function EquipShop({
   inventoryCapacity: number;
 }) {
   const buyEquip = useGameStore(s => s.buyEquipFromShop);
+  const playerClass = useGameStore(s => s.playerClass);
   const all = Object.values(EQUIPMENT_TEMPLATES);
   const isFull = inventory.length >= inventoryCapacity;
 
   // 부위별 카테고리 그룹
+  const WEAPON_GROUPS: { type: string; label: string }[] = [
+    { type: 'weapon', label: '검/창/둔기' },
+    { type: 'bow',    label: '활' },
+    { type: 'staff',  label: '지팡이' },
+  ];
+
   const groups = tab === 'weapon'
-    ? [{ type: 'weapon', label: '무기' }]
+    ? WEAPON_GROUPS
     : tab === 'armor'
       ? ARMOR_GROUPS
       : ACCESSORY_GROUPS;
 
-  // 서브탭 (방어구/악세사리는 카테고리 선택)
+  // 서브탭 (카테고리 선택)
   const [subType, setSubType] = useState<string>(groups[0].type);
 
   // 탭 변경 시 서브탭 리셋
   const activeGroup = groups.find(g => g.type === subType) ?? groups[0];
 
   const items = all
-    .filter(t => groups.length === 1 ? t.type === groups[0].type : t.type === activeGroup.type)
+    .filter(t => t.type === activeGroup.type)
+    .filter(t => canClassEquip(playerClass, t.type as EquipType)
+      && (!t.classRestriction || t.classRestriction.includes(playerClass)))
     .sort((a, b) => a.sellPrice - b.sellPrice);
 
   return (

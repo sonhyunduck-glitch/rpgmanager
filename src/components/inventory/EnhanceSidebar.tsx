@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import type { Equipment, ScrollType } from '../../types';
-import { MATERIALS, getEnhanceRate, isEnhanceSafe, getScrollId } from '../../data/gameData';
+import { MATERIALS, getEnhanceRate, isEnhanceSafe, getScrollId, formatEnhanceRate } from '../../data/gameData';
 import { LABEL } from '../../styles/shared';
 
 const SCROLL_LABELS: Record<ScrollType, string> = {
@@ -40,8 +40,8 @@ export default function EnhanceSidebar({
   const target = selectedItem;
   const level = target ? target.enhanceLevel : 0;
   const maxed = target ? target.enhanceLevel >= target.maxEnhance : true;
-  const successRate = target ? getEnhanceRate(target.type, level) : 0;
-  const safe = target ? isEnhanceSafe(target.type, level) : true;
+  const successRate = target ? getEnhanceRate(target.type, level, target.safeEnchant) : 0;
+  const safe = target ? isEnhanceSafe(level, target.safeEnchant) : true;
 
   const isWeapon = target?.type === 'weapon';
 
@@ -63,7 +63,7 @@ export default function EnhanceSidebar({
     if (scrollType === 'blessed') {
       return safe ? '인챈트 +1~+3 (확정 성공)' : '성공 시 +1~+2 (실패 시 파괴)';
     }
-    return `인챈트 +1 (성공률 ${Math.round(successRate * 100)}%)`;
+    return `인챈트 +1 (성공률 ${formatEnhanceRate(successRate)})`;
   })();
 
   const displayLevel = animLevel ?? (target ? target.enhanceLevel : 0);
@@ -76,7 +76,7 @@ export default function EnhanceSidebar({
     }
     const { fromLevel, toLevel, scrollType: animScroll } = enhanceAnim;
     const max = target?.maxEnhance ?? 10;
-    const isSafe = target ? isEnhanceSafe(target.type, fromLevel) : true;
+    const isSafe = target ? isEnhanceSafe(fromLevel, target.safeEnchant) : true;
     const isBlessed = animScroll === 'blessed';
     const steps: number[] = [];
     const delays: number[] = [];

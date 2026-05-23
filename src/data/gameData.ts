@@ -4,7 +4,14 @@
 
 import type { EquipmentTemplate, Material, HuntZone, Recipe, Potion } from '../types';
 import { generateHuntZones, getMonstersForTier, getMonstersForRoom, roomToTier } from './monsterData';
+import { CSV_EQUIPMENT } from './csvEquipData';
+import { ETC_ITEMS } from './dropData';
+import { SHOP_ETC_ITEMS } from './shopItemData';
 export { getMonstersForTier, getMonstersForRoom, roomToTier };
+export { EQUIPMENT_SETS, getActiveSets } from './setData';
+export type { SetEffect, SetBonuses } from './setData';
+export { SHOP_ETC_ITEMS } from './shopItemData';
+export type { ShopEtcItem, ShopItemCategory } from './shopItemData';
 
 // Re-export types for backward compatibility
 export type { EquipmentTemplate, Material, Monster, HuntZone, Recipe, EquipType, ZoneTier, Potion } from '../types';
@@ -135,13 +142,21 @@ export const MATERIALS: Record<string, Material> = {
   armor_scroll:           { id: 'armor_scroll',           name: '방어구강화주문서',           sellPrice: 15500 },
   blessed_armor_scroll:   { id: 'blessed_armor_scroll',   name: '축복받은 방어구강화주문서', sellPrice: 31000 },
   cursed_armor_scroll:    { id: 'cursed_armor_scroll',    name: '저주받은 방어구강화주문서', sellPrice: 3100 },
+  // L1J etc_items.csv 기반 드롭 아이템 (dropData.ts에서 자동 생성)
+  ...ETC_ITEMS,
+  // L1J 상점 전용 아이템 (shopItemData.ts — ETC_ITEMS에 없는 것만 추가)
+  ...Object.fromEntries(
+    SHOP_ETC_ITEMS
+      .filter(item => !ETC_ITEMS[item.id])
+      .map(item => [item.id, { id: item.id, name: item.name, sellPrice: item.sellPrice > 0 ? item.sellPrice : 0 } as Material]),
+  ),
 };
 
-// ── Equipment Templates ──
+// ── Equipment Templates (수동 정의) ──
 // baseAtk/baseAtkLarge = 소형/대형 몹 타격치
 // 강화(인챈트)는 타격치에 영향 없음 — 추타+1, 명중+1 per level (statFormulas.ts)
-// [미구현 예정] 추타, 명중 보정, 재질(언데드 추타/비손상), 클래스 제한, HP 흡수, 마법 발동
-export const EQUIPMENT_TEMPLATES: Record<string, EquipmentTemplate> = {
+// safeEnchant 미지정 시 통합 단계에서 기본값 자동 적용 (무기=6, 방어구=4)
+const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchant'> & { safeEnchant?: number }> = {
   /* ── 무기 (17종) ──
      이름               작/큰  추타 명중  재질    손상   클래스     특징
      ───────────────────────────────────────────────────────────────────
@@ -179,6 +194,17 @@ export const EQUIPMENT_TEMPLATES: Record<string, EquipmentTemplate> = {
   duke_two_hand:       { id: 'duke_two_hand',       name: '무관의 양손검',       type: 'weapon', baseAtk: 14, baseAtkLarge: 18, baseDef: 0, maxEnhance: 10,  sellPrice: 500,  bonuses: { hit: 1, extraDmg: 2 }, bonusEffects: ['명중+1', '추타+2'] },
   dragon_slayer:       { id: 'dragon_slayer',       name: '드래곤 슬레이어',     type: 'weapon', baseAtk: 17, baseAtkLarge: 14, baseDef: 0, maxEnhance: 10,  sellPrice: 1000, bonuses: { extraDmg: 3, unbreakable: true }, bonusEffects: ['손상되지 않음', '추타+3'] },
   ancient_great_sword: { id: 'ancient_great_sword', name: '고대의 대검',        type: 'weapon', baseAtk: 24, baseAtkLarge: 42, baseDef: 0, maxEnhance: 0,  sellPrice: 2500, bonuses: { hit: 3 }, bonusEffects: ['명중+3', '강화 불가'] },
+
+  // ── 활 (요정 전용, type: bow) ──
+  wooden_bow:            { id: 'wooden_bow',            name: '나무 활',             type: 'bow',   baseAtk: 6,  baseAtkLarge: 8,  baseDef: 0, maxEnhance: 10, sellPrice: 50,   classRestriction: ['elf'] },
+  long_bow:              { id: 'long_bow',              name: '롱 보우',             type: 'bow',   baseAtk: 8,  baseAtkLarge: 10, baseDef: 0, maxEnhance: 10, sellPrice: 500,  classRestriction: ['elf'] },
+  elven_bow:             { id: 'elven_bow',             name: '요정 활',             type: 'bow',   baseAtk: 12, baseAtkLarge: 14, baseDef: 0, maxEnhance: 10, sellPrice: 5000, classRestriction: ['elf'], bonuses: { bowHit: 2 }, bonusEffects: ['활 명중+2'] },
+  ancient_elven_bow:     { id: 'ancient_elven_bow',     name: '고대 정령의 활',       type: 'bow',   baseAtk: 15, baseAtkLarge: 18, baseDef: 0, maxEnhance: 10, sellPrice: 20000, classRestriction: ['elf'], bonuses: { bowHit: 3, bowDmg: 2 }, bonusEffects: ['활 명중+3', '활 추타+2'] },
+
+  // ── 지팡이 (마법사 전용, type: staff) ──
+  oak_staff:             { id: 'oak_staff',             name: '참나무 지팡이',        type: 'staff', baseAtk: 4,  baseAtkLarge: 4,  baseDef: 0, maxEnhance: 10, sellPrice: 50,   classRestriction: ['wizard'], bonuses: { mr: 2, sp: 1 }, bonusEffects: ['MR+2', 'SP+1'] },
+  mithril_staff:         { id: 'mithril_staff',         name: '미스릴 지팡이',        type: 'staff', baseAtk: 6,  baseAtkLarge: 6,  baseDef: 0, maxEnhance: 10, sellPrice: 2000,  classRestriction: ['wizard'], bonuses: { mr: 4, sp: 2, magicDmg: 1 }, bonusEffects: ['MR+4', 'SP+2', '마법 추가대미지+1'] },
+  ancient_staff:         { id: 'ancient_staff',         name: '고대의 지팡이',        type: 'staff', baseAtk: 8,  baseAtkLarge: 8,  baseDef: 0, maxEnhance: 10, sellPrice: 15000, classRestriction: ['wizard'], bonuses: { mr: 6, sp: 3, magicDmg: 3 }, bonusEffects: ['MR+6', 'SP+3', '마법 추가대미지+3'] },
 
   /* ── 티셔츠 (1종, type: tshirt) ── 별도 슬롯 */
   tshirt:                  { id: 'tshirt',                  name: '티셔츠',           type: 'tshirt',   baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 3 },
@@ -433,32 +459,22 @@ export const EQUIPMENT_TEMPLATES: Record<string, EquipmentTemplate> = {
   giant_ring_belt:         { id: 'giant_ring_belt',         name: '에이션트 자이언트의 반지', type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 0, sellPrice: 1500, bonuses: { str: 1 }, bonusEffects: ['STR +1'] },
 };
 
-// ── 세트 효과 ──
-
-export interface SetEffect {
-  id: string;
-  name: string;
-  pieces: string[];          // 필요 templateId 목록
-  bonuses: { ac?: number; hp?: number; mr?: number; str?: number; dex?: number; con?: number; wis?: number };
-  description: string;
+// ── Equipment Templates (통합) ──
+// CSV 데이터 위에 수동 정의를 덮어씀 (수동 정의 우선)
+// 수동 정의에 safeEnchant 미지정 시 L1J 기본값 적용 (무기=6, 방어구=4)
+function defaultSafeEnchant(t: Omit<EquipmentTemplate, 'safeEnchant'> & { safeEnchant?: number }): EquipmentTemplate {
+  if (t.safeEnchant != null) return t as EquipmentTemplate;
+  const isWeapon = t.type === 'weapon' || t.type === 'bow' || t.type === 'staff';
+  return { ...t, safeEnchant: isWeapon ? 6 : 4 } as EquipmentTemplate;
 }
 
-export const EQUIPMENT_SETS: SetEffect[] = [
-  {
-    id: 'bone_set',
-    name: '뼈 세트',
-    pieces: ['skull_helm', 'bone_armor', 'gollack_shield'],
-    bonuses: { ac: 2, hp: 10 },
-    description: 'AC -2, HP +10',
-  },
-];
-
-/** 착용 중인 장비 templateId 배열로 활성 세트 목록 반환 */
-export function getActiveSets(equippedTemplateIds: string[]): SetEffect[] {
-  return EQUIPMENT_SETS.filter(set =>
-    set.pieces.every(piece => equippedTemplateIds.includes(piece))
-  );
+const merged: Record<string, EquipmentTemplate> = { ...CSV_EQUIPMENT };
+for (const [k, v] of Object.entries(HAND_CURATED_TEMPLATES)) {
+  merged[k] = defaultSafeEnchant(v);
 }
+export const EQUIPMENT_TEMPLATES: Record<string, EquipmentTemplate> = merged;
+
+// ── 세트 효과 → setData.ts로 이관됨 (L1J armor_sets.csv 34종) ──
 
 // ── Hunt Zones (monsterData.ts 에서 생성) ──
 export const HUNT_ZONES: HuntZone[] = generateHuntZones();
@@ -509,37 +525,59 @@ export const RECIPES: Recipe[] = [
   },
 ];
 
-// ── Enhance Config ──
+// ══════════════════════════════════════════════
+// Enhance Config — L1J L1EnchantScroll.java 원본
+// ══════════════════════════════════════════════
 
-/** 무기 인챈트 성공률 (+N → +N+1) */
-export const WEAPON_ENHANCE_RATE: Record<number, number> = {
-  0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1,   // +0~+5 → 안전 구간 100%
-  6: 0.33, 7: 0.25, 8: 0.20, 9: 0.10,    // +6→+7: 33%, +9→+10: 10%
-};
-/** 방어구 인챈트 성공률 (+N → +N+1) */
-export const ARMOR_ENHANCE_RATE: Record<number, number> = {
-  0: 1, 1: 1, 2: 1, 3: 1,                // +0~+3 → 안전 구간 100%
-  4: 0.25, 5: 0.20, 6: 0.16, 7: 0.12,    // +4→+5: 25%
-  8: 0.08, 9: 0.05,                       // +8→+9: 8%, +9→+10: 5%
-};
-
-/** 무기/방어구 공통 — 성공률 반환 */
-export function getEnhanceRate(equipType: string, level: number): number {
-  if (equipType === 'weapon') return WEAPON_ENHANCE_RATE[level] ?? 0.05;
-  return ARMOR_ENHANCE_RATE[level] ?? 0.02;
+/**
+ * 무기 강화 성공률 (L1J 원본)
+ * safe_enchant 이상 ~ +8: 1/3 (33.3%)
+ * +9 이상: 0.6%
+ */
+export function getWeaponEnchantRate(level: number): number {
+  if (level >= 9) return 0.006;
+  return 1 / 3;
 }
 
-/** 안전 인챈트 구간 판정 (실패 시 파괴 없음) */
-export function isEnhanceSafe(equipType: string, level: number): boolean {
-  if (equipType === 'weapon') return level < 6;
-  if (equipType === 'tshirt') return level < 4; // 티셔츠: +0~+3 안전, +4부터 파괴 위험
-  return level < 4;
+/**
+ * 방어구 강화 성공률 (L1J 원본)
+ * safe_enchant=0: 1/3 (33.3%)
+ * safe_enchant>0, +9 미만: 1/level
+ * +9 이상: 0.3%
+ */
+export function getArmorEnchantRate(level: number, safeEnchant: number = 4): number {
+  if (level >= 9) return 0.003;
+  if (safeEnchant === 0) return 1 / 3;
+  if (level <= 0) return 1;
+  return 1 / level;
 }
 
+/** 통합 성공률 조회
+ *  L1J: safe_enchant 미만 → 100% (판정 건너뜀)
+ *       safe_enchant 이상 → 공식 적용
+ */
+export function getEnhanceRate(equipType: string, level: number, safeEnchant: number): number {
+  if (level < safeEnchant) return 1; // 안전 구간: 무조건 100%
+  const isWeapon = equipType === 'weapon' || equipType === 'bow' || equipType === 'staff';
+  return isWeapon ? getWeaponEnchantRate(level) : getArmorEnchantRate(level, safeEnchant);
+}
+
+/** 안전 인챈트 구간 판정 (L1J: safe_enchant 미만이면 100% 성공 + 파괴 없음) */
+export function isEnhanceSafe(level: number, safeEnchant: number): boolean {
+  return level < safeEnchant;
+}
+
+/** 성공률 → 표시 문자열 (1% 미만은 소수점 표시) */
+export function formatEnhanceRate(rate: number): string {
+  const pct = rate * 100;
+  if (pct >= 1) return `${Math.round(pct)}%`;
+  if (pct > 0) return `${+pct.toFixed(1)}%`;
+  return '0%';
+}
 
 /** 장비 타입 + 주문서 종류 → 주문서 재료 ID */
 export function getScrollId(equipType: string, scrollType: import('../types').ScrollType): string {
-  const isWeapon = equipType === 'weapon';
+  const isWeapon = equipType === 'weapon' || equipType === 'bow' || equipType === 'staff';
   if (scrollType === 'blessed') return isWeapon ? 'blessed_weapon_scroll' : 'blessed_armor_scroll';
   if (scrollType === 'cursed') return isWeapon ? 'cursed_weapon_scroll' : 'cursed_armor_scroll';
   return isWeapon ? 'weapon_scroll' : 'armor_scroll';

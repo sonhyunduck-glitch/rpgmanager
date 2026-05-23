@@ -12,6 +12,9 @@ export default function CombatStatus() {
   const baseMaxHp = useGameStore((s) => s.maxHp);
   const getTotalHpBonus = useGameStore((s) => s.getTotalHpBonus);
   const maxHp = baseMaxHp + getTotalHpBonus();
+  const getMaxMp = useGameStore((s) => s.getMaxMp);
+  const maxMp = getMaxMp();
+  const currentMp = hunt.currentMp;
 
   const zone = HUNT_ZONES.find((z) => z.id === hunt.zoneId);
   const isActive = hunt.status !== 'idle' && !!zone;
@@ -26,6 +29,7 @@ export default function CombatStatus() {
   const monsterName = monster?.name ?? '';
 
   const playerHpPct = maxHp > 0 ? Math.max(0, Math.min(100, (currentHp / maxHp) * 100)) : 100;
+  const playerMpPct = maxMp > 0 ? Math.max(0, Math.min(100, (currentMp / maxMp) * 100)) : 0;
   const monsterHpPct = monsterMaxHp > 0 ? Math.max(0, Math.min(100, (monsterHp / monsterMaxHp) * 100)) : 0;
 
   // 몬스터 대미지 범위
@@ -62,6 +66,18 @@ export default function CombatStatus() {
           </span>
         </div>
         <HpBar percent={playerHpPct} color={hpColor(playerHpPct)} glow />
+        {/* MP Bar */}
+        {maxMp > 0 && (
+          <div style={{ marginTop: 3 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+              <span style={{ ...LABEL, fontSize: '9px' }}>MP</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#6BA3FF' }}>
+                {currentMp}/{maxMp}
+              </span>
+            </div>
+            <HpBar percent={playerMpPct} color="#4D8FFF" />
+          </div>
+        )}
       </div>
 
       {/* VS divider */}

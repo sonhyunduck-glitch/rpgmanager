@@ -6,9 +6,16 @@ import { useEffect, useState } from 'react';
 import { useGameStore, equipDisplayName } from '../../store/gameStore';
 import { getPlayerProfile, getPlayerEquipment } from '../../lib/profile';
 import type { PlayerProfile, PlayerEquipment } from '../../lib/profile';
-import type { Equipment, EquipType } from '../../types';
+import type { Equipment, EquipType, PlayerClass } from '../../types';
+import { CLASS_CONFIGS } from '../../data/classData';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
 import { timeAgo, dateFmt } from '../../lib/utils';
+
+const CLASS_ICONS: Record<string, string> = {
+  knight: '⚔️',
+  elf: '🏹',
+  wizard: '🔮',
+};
 
 /* ── 장비 슬롯 순서 ── */
 const EQUIP_SLOTS: { type: EquipType; label: string }[] = [
@@ -97,9 +104,14 @@ export default function ProfileModal() {
           </div>
         ) : (
           <>
-            {/* ── 헤더: 이름 + 레벨 + 칭호 ── */}
+            {/* ── 헤더: 이름 + 클래스 + 레벨 + 칭호 ── */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
+                {profile.player_class && (
+                  <span style={{ fontSize: 'var(--fs-sm)' }}>
+                    {CLASS_ICONS[profile.player_class] ?? ''}
+                  </span>
+                )}
                 <span style={{
                   fontSize: 'var(--fs-md)', fontWeight: 700,
                   color: isMe ? 'var(--accent)' : 'var(--info)',
@@ -107,6 +119,17 @@ export default function ProfileModal() {
                 }}>
                   {profile.name}
                 </span>
+                {profile.player_class && CLASS_CONFIGS[profile.player_class as PlayerClass] && (
+                  <span style={{
+                    fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
+                    fontFamily: 'var(--font-mono)',
+                    padding: '1px 6px',
+                    background: 'color-mix(in oklch, var(--accent) 10%, transparent)',
+                    borderRadius: 'var(--r-xs)',
+                  }}>
+                    {CLASS_CONFIGS[profile.player_class as PlayerClass].nameKo}
+                  </span>
+                )}
                 <span style={{
                   ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0,
                   color: 'var(--text-dim)',
@@ -137,13 +160,14 @@ export default function ProfileModal() {
 
             {/* ── 스탯 ── */}
             <div style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
+              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
               gap: 'var(--s-1)',
             }}>
               <StatBox label="STR" value={profile.stat_str} color="var(--danger)" />
               <StatBox label="DEX" value={profile.stat_dex} color="var(--success)" />
               <StatBox label="CON" value={profile.stat_con} color="var(--info)" />
               <StatBox label="WIS" value={profile.stat_wis} color="var(--warning)" />
+              <StatBox label="INT" value={profile.stat_int} color="var(--accent)" />
             </div>
 
             {/* ── 장비 ── */}

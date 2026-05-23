@@ -1,8 +1,15 @@
 import { useGameStore } from '../../store/gameStore';
 import { xpForLevel } from '../../data/gameData';
+import { CLASS_CONFIGS } from '../../data/classData';
 import { signOut } from '../../lib/auth';
 import { LABEL, STAT_VALUE, CHIP } from '../../styles/shared';
 import type { ViewMode } from '../../types';
+
+const CLASS_ICONS: Record<string, string> = {
+  knight: '⚔️',
+  elf: '🏹',
+  wizard: '🔮',
+};
 
 const NAV_ITEMS: { mode: ViewMode; label: string }[] = [
   { mode: 'main', label: '사냥' },
@@ -15,6 +22,7 @@ const NAV_ITEMS: { mode: ViewMode; label: string }[] = [
 
 export default function StatusBar() {
   const playerName = useGameStore((s) => s.playerName);
+  const playerClass = useGameStore((s) => s.playerClass);
   const level = useGameStore((s) => s.level);
   const exp = useGameStore((s) => s.exp);
   const title = useGameStore((s) => s.title);
@@ -48,6 +56,9 @@ export default function StatusBar() {
     >
       {/* Player identity */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)' }}>
+        <span style={{ fontSize: 'var(--fs-sm)' }} title={CLASS_CONFIGS[playerClass].nameKo}>
+          {CLASS_ICONS[playerClass] ?? ''}
+        </span>
         <span
           style={{
             fontFamily: "'Space Grotesk', var(--font-display)",

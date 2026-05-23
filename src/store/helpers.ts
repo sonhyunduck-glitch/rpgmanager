@@ -2,7 +2,7 @@
    STORE HELPERS — UID 생성, 장비 유틸, localStorage 영속화
    gameStore.ts 에서 분리된 순수 함수 & 상수
    ========================================================= */
-import type { Equipment, HuntSession, QueueItem, StatAllocation, ActiveBuff } from '../types';
+import type { Equipment, HuntSession, QueueItem, StatAllocation, ActiveBuff, PlayerClass } from '../types';
 import { EQUIPMENT_TEMPLATES } from '../data/gameData';
 import { APP_EPOCH } from '../lib/version';
 
@@ -34,6 +34,7 @@ export function createEquipment(templateId: string): Equipment {
     baseAtkLarge: t.baseAtkLarge,
     baseDef: t.baseDef,
     enhanceLevel: 0,
+    safeEnchant: t.safeEnchant,
     maxEnhance: t.maxEnhance,
     bonuses: t.bonuses ? { ...t.bonuses } : {},
     bonusEffects: t.bonusEffects ? [...t.bonusEffects] : [],
@@ -47,7 +48,7 @@ export function createEquipment(templateId: string): Equipment {
  * 방어구: baseDef + enhanceLevel (AC 감소 = 기본 + 강화)
  */
 export function equipStat(eq: Equipment): number {
-  if (eq.type === 'weapon') return eq.baseAtk;
+  if (eq.type === 'weapon' || eq.type === 'bow' || eq.type === 'staff') return eq.baseAtk;
   return eq.baseDef + eq.enhanceLevel;
 }
 
@@ -106,12 +107,15 @@ export function loadState(): Record<string, unknown> | null {
  * normalised to "paused" so the player never resumes mid-fight on reload.
  */
 export function saveState(state: {
+  playerClass: PlayerClass;
   playerName: string;
   level: number;
   exp: number;
   gold: number;
   title: string;
   currentHp: number;
+  maxMp: number;
+  currentMp: number;
   equippedWeapon: Equipment | null;
   equippedTshirt: Equipment | null;
   equippedArmor: Equipment | null;
@@ -124,6 +128,7 @@ export function saveState(state: {
   equippedRing: Equipment | null;
   equippedRing2: Equipment | null;
   equippedBelt: Equipment | null;
+  equippedEarring: Equipment | null;
   inventory: Equipment[];
   inventoryCapacity: number;
   materials: Record<string, number>;
@@ -145,10 +150,10 @@ export function saveState(state: {
 }): void {
   try {
     const {
-      playerName, level, exp, gold, title, currentHp,
+      playerClass, playerName, level, exp, gold, title, currentHp, maxMp, currentMp,
       equippedWeapon, equippedTshirt, equippedArmor, equippedHelmet, equippedCloak,
       equippedGloves, equippedBoots, equippedShield,
-      equippedNecklace, equippedRing, equippedRing2, equippedBelt,
+      equippedNecklace, equippedRing, equippedRing2, equippedBelt, equippedEarring,
       inventory, inventoryCapacity, materials,
       hunt, queue, queueCapacity,
       statAllocation, maxHp,
@@ -158,10 +163,10 @@ export function saveState(state: {
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       epoch: APP_EPOCH,
-      playerName, level, exp, gold, title, currentHp,
+      playerClass, playerName, level, exp, gold, title, currentHp, maxMp, currentMp,
       equippedWeapon, equippedTshirt, equippedArmor, equippedHelmet, equippedCloak,
       equippedGloves, equippedBoots, equippedShield,
-      equippedNecklace, equippedRing, equippedRing2, equippedBelt,
+      equippedNecklace, equippedRing, equippedRing2, equippedBelt, equippedEarring,
       inventory, inventoryCapacity, materials,
       hunt: { ...hunt, status: hunt.status === 'hunting' ? 'paused' : hunt.status },
       queue, queueCapacity,

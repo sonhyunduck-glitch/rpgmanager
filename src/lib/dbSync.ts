@@ -45,13 +45,14 @@ export function markDirty() {
 // ── 프로필 저장 ──
 
 export async function syncProfile(state: {
+  playerClass: string;
   level: number;
   exp: number;
   gold: number;
   title: string;
   currentHp: number;
   maxHp: number;
-  statAllocation: { str: number; dex: number; con: number; wis: number };
+  statAllocation: { str: number; dex: number; con: number; wis: number; int: number };
   hunt: { zoneId: string | null };
   selectedPotionId: string;
   potionAutoUse: boolean;
@@ -60,6 +61,7 @@ export async function syncProfile(state: {
 }) {
   if (!_userId) return;
   await supabase.from('profiles').update({
+    player_class: state.playerClass,
     level: state.level,
     exp: state.exp,
     gold: state.gold,
@@ -70,6 +72,7 @@ export async function syncProfile(state: {
     stat_dex: state.statAllocation.dex,
     stat_con: state.statAllocation.con,
     stat_wis: state.statAllocation.wis,
+    stat_int: state.statAllocation.int,
     last_zone_id: state.hunt.zoneId,
     last_active_at: new Date().toISOString(),
     selected_potion: state.selectedPotionId,
@@ -94,12 +97,14 @@ interface EquipSlots {
   equippedRing: Equipment | null;
   equippedRing2: Equipment | null;
   equippedBelt: Equipment | null;
+  equippedEarring: Equipment | null;
 }
 
 const SLOT_KEYS: (keyof EquipSlots)[] = [
   'equippedWeapon', 'equippedTshirt', 'equippedArmor', 'equippedHelmet',
   'equippedCloak', 'equippedGloves', 'equippedBoots', 'equippedShield',
   'equippedNecklace', 'equippedRing', 'equippedRing2', 'equippedBelt',
+  'equippedEarring',
 ];
 
 const SLOT_TO_TYPE: Record<string, string> = {
@@ -107,6 +112,7 @@ const SLOT_TO_TYPE: Record<string, string> = {
   equippedHelmet: 'helmet', equippedCloak: 'cloak', equippedGloves: 'gloves',
   equippedBoots: 'boots', equippedShield: 'shield', equippedNecklace: 'necklace',
   equippedRing: 'ring', equippedRing2: 'ring2', equippedBelt: 'belt',
+  equippedEarring: 'earring',
 };
 
 function equipToRow(eq: Equipment, equipped: boolean, slot: string | null) {
@@ -302,6 +308,7 @@ async function flushSync() {
         equippedRing: state.equippedRing,
         equippedRing2: state.equippedRing2,
         equippedBelt: state.equippedBelt,
+        equippedEarring: state.equippedEarring,
       }),
       syncMaterials(state.materials),
       syncPotions(state.potions),
@@ -357,6 +364,7 @@ export async function flushNow() {
       equippedRing: state.equippedRing,
       equippedRing2: state.equippedRing2,
       equippedBelt: state.equippedBelt,
+      equippedEarring: state.equippedEarring,
     });
   }
 }

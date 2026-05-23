@@ -5,7 +5,7 @@ import {
   MATERIALS, EQUIPMENT_TEMPLATES,
   type HuntZone,
 } from '../../data/gameData';
-import { getMonsterDrops } from '../../data/monsterData';
+import { getMonsterDrops } from '../../data/dropData';
 import { calcHitRate } from '../../data/statFormulas';
 import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
 
@@ -146,6 +146,7 @@ export default function ZonePreview({
           const eqDrops = new Map<string, number>();
           for (const m of zone.monsters) {
             for (const [gameId, chance] of getMonsterDrops(m.id)) {
+              if (gameId === '__GOLD__') continue; // 아데나는 드롭 프리뷰에서 제외
               if (MATERIALS[gameId]) {
                 matDrops.set(gameId, Math.max(matDrops.get(gameId) ?? 0, chance));
               } else if (EQUIPMENT_TEMPLATES[gameId]) {

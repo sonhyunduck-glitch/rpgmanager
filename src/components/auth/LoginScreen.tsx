@@ -1,5 +1,6 @@
 /* =========================================================
    LOGIN SCREEN — 로그인 / 회원가입 화면
+   닉네임/클래스 선택은 CharacterCreateScreen에서 처리
    ========================================================= */
 import { useState } from 'react';
 import { signIn, signUp } from '../../lib/auth';
@@ -11,7 +12,6 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [signupDone, setSignupDone] = useState(false);
@@ -28,16 +28,6 @@ export default function LoginScreen() {
         const result = await signIn(email, password);
         if (result.error) setError(result.error.message);
       } else {
-        if (!playerName.trim()) {
-          setError('닉네임을 입력하세요.');
-          setLoading(false);
-          return;
-        }
-        if (playerName.trim().length < 2 || playerName.trim().length > 12) {
-          setError('닉네임은 2~12자입니다.');
-          setLoading(false);
-          return;
-        }
         if (password.length < 6) {
           setError('비밀번호는 6자 이상이어야 합니다.');
           setLoading(false);
@@ -48,14 +38,14 @@ export default function LoginScreen() {
           setLoading(false);
           return;
         }
-        const result = await signUp(email, password, playerName.trim());
+        const result = await signUp(email, password);
         if (result.error) {
           setError(result.error.message);
         } else {
           setSignupDone(true);
         }
       }
-    } catch (err) {
+    } catch {
       setError('오류가 발생했습니다.');
     }
 
@@ -103,18 +93,6 @@ export default function LoginScreen() {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {mode === 'signup' && (
-            <input
-              type="text"
-              placeholder="닉네임 (2~12자)"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              maxLength={12}
-              style={inputStyle}
-              autoComplete="off"
-            />
-          )}
-
           <input
             type="email"
             placeholder="이메일"
