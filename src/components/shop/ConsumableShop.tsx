@@ -8,8 +8,6 @@ import {
 import { LABEL, TAB_CONTAINER, tabStyle } from '../../styles/shared';
 
 const CATEGORIES: { key: ShopItemCategory; label: string }[] = [
-  { key: 'potion', label: '물약' },
-  { key: 'scroll', label: '주문서' },
   { key: 'material', label: '재료' },
   { key: 'food', label: '음식' },
   { key: 'gem', label: '보석' },
@@ -29,7 +27,7 @@ export default function ConsumableShop({
   materials: Record<string, number>;
   buyMaterial: (id: string, qty: number, unitPrice: number) => void;
 }) {
-  const [category, setCategory] = useState<ShopItemCategory>('potion');
+  const [category, setCategory] = useState<ShopItemCategory>('material');
 
   const items = useMemo(() =>
     SHOP_ETC_ITEMS.filter(item => item.category === category),

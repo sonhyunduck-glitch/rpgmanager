@@ -7,11 +7,9 @@
    ========================================================= */
 
 // ── 상점 기타 아이템 카테고리 ──
-export type ShopItemCategory = 'potion' | 'scroll' | 'material' | 'food' | 'gem';
+export type ShopItemCategory = 'material' | 'food' | 'gem';
 
 export const SHOP_CATEGORY_NAMES: Record<ShopItemCategory, string> = {
-  potion: '물약',
-  scroll: '주문서',
   material: '재료',
   food: '음식',
   gem: '보석',
@@ -69,37 +67,6 @@ export const SHOP_ETC_ITEMS: ShopEtcItem[] = [
   { id: 'e_50575', name: '특별한 진돗개의 먹이', buyPrice: 100000, sellPrice: 50000, category: 'food' },
   { id: 'e_40319', name: '정령옥', buyPrice: 300, sellPrice: 150, category: 'material' },
   { id: 'e_40318', name: '마력의 돌', buyPrice: 400, sellPrice: 200, category: 'material' },
-  { id: 'e_40033', name: '엘릭서 (STR)', buyPrice: 1, sellPrice: -1, category: 'potion' },
-  { id: 'e_40034', name: '엘릭서 (CON)', buyPrice: 1, sellPrice: -1, category: 'potion' },
-  { id: 'e_40035', name: '엘릭서 (DEX)', buyPrice: 1, sellPrice: -1, category: 'potion' },
-  { id: 'e_40036', name: '엘릭서 (INT)', buyPrice: 1, sellPrice: -1, category: 'potion' },
-  { id: 'e_40037', name: '엘릭서 (WIS)', buyPrice: 1, sellPrice: -1, category: 'potion' },
-  { id: 'e_40010', name: '체력 회복제', buyPrice: 37, sellPrice: 18, category: 'potion' },
-  { id: 'e_40019', name: '농축 체력 회복제', buyPrice: 55, sellPrice: 27, category: 'potion' },
-  { id: 'e_40022', name: '고대의 체력 회복제', buyPrice: 63, sellPrice: 31, category: 'potion' },
-  { id: 'e_40017', name: '해독제', buyPrice: 70, sellPrice: 35, category: 'potion' },
-  { id: 'e_40011', name: '고급 체력 회복제', buyPrice: 200, sellPrice: 100, category: 'potion' },
-  { id: 'e_40013', name: '속도 향상 물약', buyPrice: 200, sellPrice: 100, category: 'potion' },
-  { id: 'e_40020', name: '농축 고급 체력 회복제', buyPrice: 300, sellPrice: 150, category: 'potion' },
-  { id: 'e_40032', name: '에바의 축복', buyPrice: 330, sellPrice: 165, category: 'potion' },
-  { id: 'e_40023', name: '고대의 고급 체력 회복제', buyPrice: 375, sellPrice: 187, category: 'potion' },
-  { id: 'e_40012', name: '강력 체력 회복제', buyPrice: 600, sellPrice: 300, category: 'potion' },
-  { id: 'e_40016', name: '지혜의 물약', buyPrice: 600, sellPrice: 300, category: 'potion' },
-  { id: 'e_40015', name: '마력 회복 물약', buyPrice: 700, sellPrice: 350, category: 'potion' },
-  { id: 'e_40014', name: '용기의 물약', buyPrice: 800, sellPrice: 400, category: 'potion' },
-  { id: 'e_40021', name: '농축 강력 체력 회복제', buyPrice: 900, sellPrice: 450, category: 'potion' },
-  { id: 'e_40024', name: '고대의 강력 체력 회복제', buyPrice: 990, sellPrice: 495, category: 'potion' },
-  { id: 'e_40018', name: '강화 속도향상 물약', buyPrice: 1500, sellPrice: 750, category: 'potion' },
-  { id: 'e_41415', name: '강화 용기의 물약', buyPrice: 1800, sellPrice: 900, category: 'potion' },
-  { id: 'e_40068', name: '엘븐 와퍼', buyPrice: 2000, sellPrice: 1000, category: 'potion' },
-  { id: 'e_40031', name: '악마의 피', buyPrice: 3000, sellPrice: 1500, category: 'potion' },
-  { id: 'e_140074', name: '갑옷 마법 주문서', buyPrice: 1, sellPrice: -1, category: 'scroll' },
-  { id: 'e_140087', name: '무기 마법 주문서', buyPrice: 1, sellPrice: -1, category: 'scroll' },
-  { id: 'e_240074', name: '갑옷 마법 주문서', buyPrice: 1, sellPrice: -1, category: 'scroll' },
-  { id: 'e_240087', name: '무기 마법 주문서', buyPrice: 1, sellPrice: -1, category: 'scroll' },
-  { id: 'e_40088', name: '변신 주문서', buyPrice: 1300, sellPrice: 650, category: 'scroll' },
-  { id: 'e_40074', name: '갑옷 마법 주문서', buyPrice: 31000, sellPrice: 15500, category: 'scroll' },
-  { id: 'e_40087', name: '무기 마법 주문서', buyPrice: 75000, sellPrice: 37500, category: 'scroll' },
 ];
 
 // ── 카테고리별 필터 ──
@@ -109,8 +76,6 @@ export function getShopItemsByCategory(category: ShopItemCategory): ShopEtcItem[
 
 // ── 카테고리별 아이템 수 ──
 export const SHOP_CATEGORY_COUNTS: Record<ShopItemCategory, number> = {
-  potion: 24,
-  scroll: 7,
   material: 2,
   food: 39,
   gem: 0,
