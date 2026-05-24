@@ -491,15 +491,20 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           if (combatStyle === 'ranged_bow') {
             // 요정: DEX 기반 활 대미지
             const bowDmg = rollBowDamage(weaponBaseDmg, state.level, weaponEnchant, playerDex);
-            // 은 화살 소모 → 추가 대미지 +1 (L1J 은 화살: 언데드 추가 타격)
-            let silverArrowBonus = 0;
+            // 은 화살 소모 (L1J L1Attack.java — 매 발사마다 1개 소모)
+            // 기본 대미지: dmg_small=7 → random(0~6)+1 = 1~7
+            // 은 재질 vs 언데드: random(0~19)+1 = 1~20 추가 (calcMaterialBlessDmg)
+            let silverArrowDmg = 0;
             const silverArrowKey = 'e_40744';
             const silverArrowCount = newMaterials[silverArrowKey] ?? 0;
             if (silverArrowCount > 0) {
               newMaterials[silverArrowKey] = silverArrowCount - 1;
-              silverArrowBonus = 1;
+              silverArrowDmg = secureRandomInt(1, 7); // dmg_small=7: random(0~6)+1
+              if (monster.undead) {
+                silverArrowDmg += secureRandomInt(1, 20); // 은 재질 vs 언데드 보너스
+              }
             }
-            finalDmg = bowDmg + equipBonusExtraDmg + equipBonusBowDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus + silverArrowBonus;
+            finalDmg = bowDmg + equipBonusExtraDmg + equipBonusBowDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus + silverArrowDmg;
           } else {
             // 기사: STR 기반 근접 대미지
             finalDmg = rollDamage(weaponBaseDmg, state.level, weaponEnchant, playerStr)
