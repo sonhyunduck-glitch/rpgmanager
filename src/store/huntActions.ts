@@ -95,6 +95,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           mobSkillCooldowns: {},
           lastMagicHitAt: 0,
           consecutiveMagicHits: 0,
+          hpRegenPoint: 0,
           currentMp: 0,
           mpRegenPoint: 0,
           skillCooldowns: {},

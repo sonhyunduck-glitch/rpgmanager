@@ -9,6 +9,8 @@ import {
   meleeHit,
   minDamage, maxDamage,
   hpGainRange,
+  calcHpRegenRange, calcHpRegenIntervalSec,
+  calcMpRegenAmount, calcBluePotionMpBonus, calcMpRegenIntervalSec,
 } from '../../data/statFormulas';
 import { getAllEquipped } from '../../store/storeTypes';
 import { useTimer } from '../hunt/BuffPotionButton';
@@ -170,6 +172,17 @@ function TabStats() {
   const mr = finalMR(level, wis) + bonusMr;
   const hpRange = hpGainRange(con);
   const maxMp = getMaxMp();
+  const activeBuffs = useGameStore(s => s.activeBuffs);
+  const hasBlueBuff = activeBuffs.some(b => b.potionId === 'blue_potion' && b.expiresAt > Date.now());
+
+  // HP 리젠 (L1J HpRegeneration.java)
+  const hpRegenRange = calcHpRegenRange(level, con);
+  const hpRegenSec = calcHpRegenIntervalSec(level, playerClass);
+  // MP 리젠 (L1J MpRegeneration.java)
+  const mpRegenBase = calcMpRegenAmount(wis);
+  const mpRegenBlueBonus = hasBlueBuff ? calcBluePotionMpBonus(wis) : 0;
+  const mpRegenTotal = mpRegenBase + mpRegenBlueBonus;
+  const mpRegenSec = calcMpRegenIntervalSec();
 
   return (
     <>
@@ -229,6 +242,8 @@ function TabStats() {
         <CombatCell label="DMG(대)" value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
         <CombatCell label="MR" value={mr} color="var(--info)" />
         <CombatCell label="LV HP" value={`${hpRange.min}~${hpRange.max}`} color="var(--text-dim)" />
+        <CombatCell label="HPR" value={`${hpRegenRange.min}~${hpRegenRange.max}/${hpRegenSec}s`} color="oklch(0.68 0.16 145)" />
+        <CombatCell label="MPR" value={`${mpRegenTotal}/${mpRegenSec}s${hasBlueBuff ? ' ★' : ''}`} color="oklch(0.65 0.20 300)" />
       </div>
     </>
   );

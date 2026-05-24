@@ -193,7 +193,8 @@ export interface HuntSession {
   mobSkillCooldowns: Record<string, number>;  // skillKey → 남은 쿨다운 틱
   lastMagicHitAt: number;       // 마법 연속 감쇠 추적 (timestamp)
   consecutiveMagicHits: number; // 연속 마법 피격 횟수
-  // MP system
+  // HP/MP regen (L1J point accumulation system)
+  hpRegenPoint: number;        // HP 리젠 포인트 누적 (L1J: 레벨별 임계값 도달 시 회복)
   currentMp: number;           // 현재 MP
   mpRegenPoint: number;        // MP 리젠 포인트 누적 (L1J: 64 도달 시 회복)
   // Skill tracking
