@@ -321,6 +321,13 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           if (huntMp < buff.consumeMp) continue;
           // 쿨다운 체크
           if ((skillCooldowns[buff.id] ?? 0) > 0) continue;
+          // 재료 소모 체크
+          if (buff.consumeItemId && buff.consumeAmount) {
+            const matKey = `e_${buff.consumeItemId}`;
+            const owned = newMaterials[matKey] ?? 0;
+            if (owned < buff.consumeAmount) continue;
+            newMaterials[matKey] = owned - buff.consumeAmount;
+          }
           huntMp -= buff.consumeMp;
           newActiveBuffs.push({
             potionId: `skill_${buff.id}`,
@@ -335,9 +342,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             fireDmgBonus: buff.buffEffect?.fireDmgBonus,
           });
           skillCooldowns[buff.id] = buff.reuseDelayTicks || 1;
+          const matLabel = buff.consumeItemId === 40319 ? '정령옥' : buff.consumeItemId === 40318 ? '마력의돌' : '';
+          const matText = matLabel && buff.consumeAmount ? ` (${matLabel} -${buff.consumeAmount})` : '';
           newLogs.push({
             id: genLogId(), type: 'skill',
-            text: `${buff.name} 시전! (${Math.floor(buff.buffDuration / 60)}분)`,
+            text: `${buff.name} 시전! (${Math.floor(buff.buffDuration / 60)}분)${matText}`,
             timestamp: now,
           });
         }
@@ -539,7 +548,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (monsterHp > 0 && huntMp > 0) {
           const classSkills = getAvailableSkills(state.playerClass, state.level)
             .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
-              && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id))
+              && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id)
+              && (!s.consumeItemId || (newMaterials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)))
             .sort((a, b) => {
               // 서클0(클래스 전용) 최우선
               if (a.skillCircle === 0 && b.skillCircle !== 0) return -1;
@@ -552,6 +562,13 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             const classSkill = classSkills[0];
             huntMp -= classSkill.consumeMp;
             skillCooldowns[classSkill.id] = classSkill.reuseDelayTicks || 1;
+            // 재료 소모
+            if (classSkill.consumeItemId && classSkill.consumeAmount) {
+              const matKey = `e_${classSkill.consumeItemId}`;
+              newMaterials[matKey] = (newMaterials[matKey] ?? 0) - classSkill.consumeAmount;
+            }
+            const sMLabel = classSkill.consumeItemId === 40319 ? '정령옥' : classSkill.consumeItemId === 40318 ? '마력의돌' : '';
+            const sMText = sMLabel && classSkill.consumeAmount ? ` (${sMLabel} -${classSkill.consumeAmount})` : '';
 
             if (classSkill.id === 132) {
               // 트리플 애로우: 3회 활 공격
@@ -564,7 +581,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               monsterHp = Math.max(0, monsterHp - tripleTotal);
               newLogs.push({
                 id: genLogId(), type: 'skill',
-                text: `${classSkill.name}! ${monster.name}에게 ${tripleTotal} 대미지 (3연발)`,
+                text: `${classSkill.name}! ${monster.name}에게 ${tripleTotal} 대미지 (3연발)${sMText}`,
                 timestamp: Date.now(),
               });
             } else if (classSkill.id === 167) {
@@ -572,7 +589,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               windShackleTicks = 3;
               newLogs.push({
                 id: genLogId(), type: 'skill',
-                text: `${classSkill.name}! ${monster.name}의 공격 속도 감소! (3턴)`,
+                text: `${classSkill.name}! ${monster.name}의 공격 속도 감소! (3턴)${sMText}`,
                 timestamp: Date.now(),
               });
             } else if (classSkill.skillCircle > 0 && classSkill.damageDiceCount > 0) {
@@ -587,7 +604,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               const mrPct = Math.round(magicReduction(monster.mr) * 100);
               newLogs.push({
                 id: genLogId(), type: 'skill',
-                text: `${classSkill.name}! ${monster.name}에게 ${skillFinalDmg} 마법 대미지${mrPct > 0 ? ` (MR ${mrPct}%)` : ''}`,
+                text: `${classSkill.name}! ${monster.name}에게 ${skillFinalDmg} 마법 대미지${mrPct > 0 ? ` (MR ${mrPct}%)` : ''}${sMText}`,
                 timestamp: Date.now(),
               });
             }

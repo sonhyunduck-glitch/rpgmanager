@@ -38,6 +38,8 @@ export interface PlayerSkill {
     dmgBonus?: number;           // 추가 대미지
     fireDmgBonus?: number;       // 화염 속성 대미지 추가
   };
+  consumeItemId?: number;        // 소모 아이템 ID (40318=마력의돌, 40319=정령옥)
+  consumeAmount?: number;        // 소모 수량 (기본 0)
   classes: PlayerClass[];        // 습득 가능 클래스
   requiredLevel: number;         // 최소 습득 레벨
   description: string;           // 한글 설명
@@ -659,6 +661,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '레지스트 매직',
     skillCircle: 0,
     consumeMp: 5,
+    consumeItemId: 40319, consumeAmount: 1, // 정령옥
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 1200, // 20분
     skillType: 'buff',
@@ -726,6 +729,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '클리어 마인드',
     skillCircle: 0,
     consumeMp: 10,
+    consumeItemId: 40319, consumeAmount: 1, // 정령옥
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 1200, // 20분
     skillType: 'buff',
@@ -742,6 +746,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '레지스트 엘리멘트',
     skillCircle: 0,
     consumeMp: 10,
+    consumeItemId: 40319, consumeAmount: 1, // 정령옥
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 1200, // 20분
     skillType: 'buff',
@@ -758,6 +763,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '프로텍션 프롬 엘리멘트',
     skillCircle: 0,
     consumeMp: 6,
+    consumeItemId: 40319, consumeAmount: 1, // 정령옥
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 64,
     skillType: 'buff',
@@ -843,6 +849,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '인탱글',
     skillCircle: 0,
     consumeMp: 20,
+    consumeItemId: 40319, consumeAmount: 1, // 정령옥
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 64,
     skillType: 'buff',
@@ -860,6 +867,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '이레이즈 매직',
     skillCircle: 0,
     consumeMp: 18,
+    consumeItemId: 40319, consumeAmount: 1, // 정령옥
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 32,
     skillType: 'buff',
@@ -1005,6 +1013,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '윈드 셰클',
     skillCircle: 0,
     consumeMp: 15,
+    consumeItemId: 40319, consumeAmount: 1, // 정령옥
     reuseDelayTicks: 7, // L1J reuse_delay: 20000ms
     buffDuration: 0,
     skillType: 'attack',
@@ -1038,6 +1047,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '스트라이커 게일',
     skillCircle: 0,
     consumeMp: 15,
+    consumeItemId: 40319, consumeAmount: 3, // 정령옥 ×3
     reuseDelayTicks: 0,
     buffDuration: 1200, // 20분
     skillType: 'buff',

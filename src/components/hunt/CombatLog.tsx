@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import type { LogEntry } from '../../types';
+import type { LogEntry, PlayerClass } from '../../types';
 
 /* ── 탭 정의 ── */
 type LogTab = 'combat' | 'skill' | 'loot';
@@ -106,9 +106,84 @@ function formatTime(ts: number): string {
   return `${h}:${m}:${s}`;
 }
 
+/* ── 재료 보유 바 (SKILL 탭 전용) ── */
+function MaterialBar({ playerClass }: { playerClass: PlayerClass }) {
+  const materials = useGameStore((s) => s.materials);
+
+  // 기사: 재료 바 없음
+  if (playerClass === 'knight') return null;
+
+  const spiritStone = materials['e_40319'] ?? 0; // 정령옥
+  const magicStone = materials['e_40318'] ?? 0;  // 마력의돌
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '6px 12px',
+        background: 'var(--bg-sunken)',
+        borderBottom: '1px solid var(--border-soft)',
+        flexShrink: 0,
+      }}
+    >
+      {/* 요정: 정령옥 + 마력의돌, 마법사: 마력의돌만 */}
+      {playerClass === 'elf' && (
+        <>
+          <MaterialItem name="정령옥" count={spiritStone} color="#81c784" />
+          <div style={{ width: 1, height: 14, background: 'var(--border-soft)' }} />
+        </>
+      )}
+      <MaterialItem name="마력의돌" count={magicStone} color="#9382dc" />
+    </div>
+  );
+}
+
+function MaterialItem({ name, count, color }: { name: string; count: number; color: string }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
+        fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--fs-xs)',
+      }}
+    >
+      <div
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: `${color}33`,
+          border: `1px solid ${color}66`,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: color,
+            boxShadow: `0 0 4px ${color}`,
+          }}
+        />
+      </div>
+      <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-2xs)' }}>{name}</span>
+      <span style={{ fontWeight: 800, fontSize: 'var(--fs-sm)', color }}>{count}</span>
+    </div>
+  );
+}
+
 /* ── 메인 컴포넌트 ── */
 export default function CombatLog() {
   const combatLog = useGameStore((s) => s.combatLog);
+  const playerClass = useGameStore((s) => s.playerClass);
   const [tab, setTab] = useState<LogTab>('combat');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -164,6 +239,9 @@ export default function CombatLog() {
           {filtered.length}
         </span>
       </div>
+
+      {/* 재료 보유 바 (SKILL 탭에서만 표시) */}
+      {tab === 'skill' && <MaterialBar playerClass={playerClass} />}
 
       {/* Scrollable log */}
       <div
