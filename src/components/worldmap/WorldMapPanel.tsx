@@ -16,7 +16,7 @@ import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
 
 // ── 상수 ──
 const NODE_SIZE = 52;
-const NODE_SIZE_MOBILE = 28;
+const NODE_SIZE_MOBILE = 17;
 const MOBILE_BREAKPOINT = 600;
 
 // 모바일에서 겹치는 노드 위치 보정
@@ -227,10 +227,10 @@ export default function WorldMapPanel() {
                 height: nodeSize,
                 borderRadius: '50%',
                 border: isSelected
-                  ? `${isMobile ? 2 : 3}px solid ${region.color}`
+                  ? `${isMobile ? 1.5 : 3}px solid ${region.color}`
                   : isCurrentRegion
-                    ? `${isMobile ? 2 : 3}px solid var(--accent)`
-                    : `${isMobile ? 1.5 : 2}px solid var(--border-soft)`,
+                    ? `${isMobile ? 1.5 : 3}px solid var(--accent)`
+                    : `${isMobile ? 1 : 2}px solid var(--border-soft)`,
                 background: isLocked
                   ? 'var(--bg-sunken)'
                   : isSelected
@@ -243,9 +243,9 @@ export default function WorldMapPanel() {
                 justifyContent: 'center',
                 transition: 'all 0.2s ease',
                 boxShadow: isSelected
-                  ? `0 0 ${isMobile ? 8 : 12}px color-mix(in oklch, ${region.color} 40%, transparent)`
+                  ? `0 0 ${isMobile ? 5 : 12}px color-mix(in oklch, ${region.color} 40%, transparent)`
                   : isCurrentRegion
-                    ? `0 0 ${isMobile ? 6 : 8}px color-mix(in oklch, var(--accent) 40%, transparent)`
+                    ? `0 0 ${isMobile ? 4 : 8}px color-mix(in oklch, var(--accent) 40%, transparent)`
                     : 'var(--shadow-sm)',
                 opacity: isLocked ? 0.4 : 1,
                 padding: 0,
@@ -253,7 +253,7 @@ export default function WorldMapPanel() {
                 color: 'var(--text)',
               }}
             >
-              <span style={{ fontSize: isMobile ? '14px' : '18px', lineHeight: 1 }}>
+              <span style={{ fontSize: isMobile ? '9px' : '18px', lineHeight: 1 }}>
                 {isLocked ? '🔒' : region.icon}
               </span>
             </button>
@@ -273,7 +273,7 @@ export default function WorldMapPanel() {
               style={{
                 position: 'absolute',
                 left: `${pos.x}%`,
-                top: `calc(${pos.y}% + ${nodeSize / 2 + 3}px)`,
+                top: `calc(${pos.y}% + ${nodeSize / 2 + (isMobile ? 1 : 3)}px)`,
                 transform: 'translateX(-50%)',
                 zIndex: 2,
                 fontSize: isMobile ? '8px' : '10px',

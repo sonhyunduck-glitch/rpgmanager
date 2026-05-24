@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.26.1 — 강제 가로모드 CSS transform 방향 수정 (translateX→translateY)
-export const APP_VERSION = '2.26.1';
+// v2.26.2 — 월드맵 모바일 노드 40% 축소 (28→17px)
+export const APP_VERSION = '2.26.2';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
