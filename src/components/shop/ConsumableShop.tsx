@@ -13,7 +13,6 @@ const CATEGORIES: { key: ShopItemCategory; label: string }[] = [
   { key: 'material', label: '재료' },
   { key: 'food', label: '음식' },
   { key: 'gem', label: '보석' },
-  { key: 'misc', label: '기타' },
 ];
 
 /** 가격 포맷 (1000 이상: 1,000G) */
