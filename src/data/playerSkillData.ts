@@ -60,7 +60,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '에너지 볼트',
     skillCircle: 1,
     consumeMp: 3,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 0, // L1J reuse_delay: 10ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 8,
@@ -76,7 +76,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '아이스 대거',
     skillCircle: 1,
     consumeMp: 4,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 0, // L1J reuse_delay: 10ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 10,
@@ -109,7 +109,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '힐',
     skillCircle: 1,
     consumeMp: 4,
-    reuseDelayTicks: 2,
+    reuseDelayTicks: 0, // L1J reuse_delay: 10ms
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 2,
@@ -179,7 +179,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '라이트닝',
     skillCircle: 3,
     consumeMp: 20,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -195,7 +195,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '프로즌 클라우드',
     skillCircle: 3,
     consumeMp: 20,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 300ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -212,7 +212,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '익스트라 힐',
     skillCircle: 3,
     consumeMp: 15,
-    reuseDelayTicks: 3,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 4,
@@ -230,7 +230,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '파이어볼',
     skillCircle: 4,
     consumeMp: 20,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -246,7 +246,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '뱀파이어릭 터치',
     skillCircle: 4,
     consumeMp: 12,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 0, // L1J reuse_delay: 100ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 15,
@@ -262,7 +262,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '어스 재일',
     skillCircle: 4,
     consumeMp: 24,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -280,7 +280,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '콜 라이트닝',
     skillCircle: 5,
     consumeMp: 18,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 400ms (콘 오브 콜드와 동일 서클)
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 40,
@@ -296,7 +296,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '콘 오브 콜드',
     skillCircle: 5,
     consumeMp: 18,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 40,
@@ -313,7 +313,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '그레이터 힐',
     skillCircle: 5,
     consumeMp: 20,
-    reuseDelayTicks: 3,
+    reuseDelayTicks: 0, // L1J reuse_delay: 200ms
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 10,
@@ -331,7 +331,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '이럽션',
     skillCircle: 6,
     consumeMp: 20,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 50,
@@ -347,7 +347,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '선 버스트',
     skillCircle: 6,
     consumeMp: 20,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 40,
@@ -383,7 +383,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '아이스 랜스',
     skillCircle: 7,
     consumeMp: 36,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 50,
@@ -402,7 +402,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '풀 힐',
     skillCircle: 8,
     consumeMp: 48,
-    reuseDelayTicks: 4,
+    reuseDelayTicks: 1, // L1J reuse_delay: 500ms → 1 tick
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 12,
@@ -420,7 +420,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '라이트닝 스톰',
     skillCircle: 9,
     consumeMp: 48,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 35,
@@ -438,7 +438,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '미티어 스트라이크',
     skillCircle: 10,
     consumeMp: 60,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 80,
@@ -454,7 +454,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '디스인티그레이트',
     skillCircle: 10,
     consumeMp: 70,
-    reuseDelayTicks: 0,
+    reuseDelayTicks: 5, // L1J reuse_delay: 5000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 125,
@@ -476,7 +476,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '트리플 애로우',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 2,
+    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -527,7 +527,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '윈드 셰클',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 3,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -566,7 +566,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '쇼크 스턴',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 4,
+    reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -582,7 +582,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '트루 타겟',
     skillCircle: 0,
     consumeMp: 1,
-    reuseDelayTicks: 5,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
     buffDuration: 10, // 10초간 지속
     skillType: 'buff',
     damageValue: 0,
@@ -675,9 +675,11 @@ export function getBestAttackSpell(
   playerClass: PlayerClass,
   level: number,
   currentMp: number,
+  cooldowns?: Record<number, number>,
 ): PlayerSkill | null {
   const available = getAvailableSkills(playerClass, level)
-    .filter(s => s.skillType === 'attack' && s.consumeMp <= currentMp && s.skillCircle > 0)
+    .filter(s => s.skillType === 'attack' && s.consumeMp <= currentMp && s.skillCircle > 0
+      && (cooldowns ? (cooldowns[s.id] ?? 0) <= 0 : true))
     .sort((a, b) => b.skillCircle - a.skillCircle); // 높은 서클 우선
   return available[0] ?? null;
 }

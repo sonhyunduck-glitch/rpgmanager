@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.7.0 — MP 풀충전 버그 수정 + 스킬 쿨다운 프로그레스 바
-export const APP_VERSION = '2.7.0';
+// v2.8.0 — 마법 공격 스킬 쿨다운 적용 + L1J 원본 reuse_delay 반영
+export const APP_VERSION = '2.8.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

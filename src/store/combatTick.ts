@@ -419,10 +419,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       if (combatStyle === 'ranged_magic') {
         // ── 마법사: 스킬 기반 마법 공격 (L1J skills.csv) ──
         playerAttackHit = true;
-        const spellRaw = getBestAttackSpell(state.playerClass, state.level, huntMp);
+        const spellRaw = getBestAttackSpell(state.playerClass, state.level, huntMp, skillCooldowns);
         const spell = spellRaw && equipped.includes(spellRaw.id) ? spellRaw : null;
         if (spell) {
           huntMp -= spell.consumeMp;
+          if (spell.reuseDelayTicks > 0) skillCooldowns[spell.id] = spell.reuseDelayTicks;
           const rawMagic = rollSpellDamage(
             spell.damageValue, spell.damageDice, spell.damageDiceCount,
             playerInt, equipBonusSp, state.level, state.playerClass,
