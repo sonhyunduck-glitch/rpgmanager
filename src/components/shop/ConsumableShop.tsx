@@ -10,7 +10,6 @@ import { LABEL, TAB_CONTAINER, tabStyle } from '../../styles/shared';
 const CATEGORIES: { key: ShopItemCategory; label: string }[] = [
   { key: 'potion', label: '물약' },
   { key: 'scroll', label: '주문서' },
-  { key: 'spellbook', label: '마법서' },
   { key: 'material', label: '재료' },
   { key: 'food', label: '음식' },
   { key: 'gem', label: '보석' },
