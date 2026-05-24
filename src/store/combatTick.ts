@@ -204,8 +204,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       // ── MP 관리 ──
       let huntMp = hunt.currentMp;
       const maxMp = state.getMaxMp();
-      // MP 0이면 최대 MP로 초기화 (첫 전투 등)
-      if (huntMp <= 0 && maxMp > 0) huntMp = maxMp;
+      // 사냥 시작 직후 첫 틱에만 최대 MP로 초기화 (이후에는 자연 회복으로만)
+      if (huntMp <= 0 && maxMp > 0 && hunt.currentFightTicks === 0 && !hunt.currentTargetId) {
+        huntMp = maxMp;
+      }
       // 틱당 MP 자연 회복
       const mpRegen = calcMpRegen(state.level, playerWis, state.playerClass);
       huntMp = Math.min(maxMp, huntMp + mpRegen);
