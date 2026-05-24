@@ -80,6 +80,15 @@ export default function WorldMapPanel() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerW, setContainerW] = useState(999);
 
+  // 터치 디바이스 + 화면 짧은 변 ≤500px → 폰 확정
+  // 강제 가로모드에서 컨테이너가 600px+ 되어도 폰은 폰
+  const [isPhone] = useState(() => {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    if (!isTouch) return false;
+    const shorter = Math.min(window.screen.width, window.screen.height);
+    return shorter <= 500;
+  });
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -91,7 +100,7 @@ export default function WorldMapPanel() {
     return () => ro.disconnect();
   }, []);
 
-  const isMobile = containerW < MOBILE_BREAKPOINT;
+  const isMobile = containerW < MOBILE_BREAKPOINT || isPhone;
   const nodeSize = isMobile ? NODE_SIZE_MOBILE : NODE_SIZE;
 
   // 지역 위치 (모바일 보정 적용)
