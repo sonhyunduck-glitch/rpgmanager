@@ -115,6 +115,7 @@ function MaterialBar({ playerClass }: { playerClass: PlayerClass }) {
 
   const spiritStone = materials['e_40319'] ?? 0; // 정령옥
   const magicStone = materials['e_40318'] ?? 0;  // 마력의돌
+  const silverArrow = materials['e_40744'] ?? 0; // 은 화살
 
   return (
     <div
@@ -128,9 +129,11 @@ function MaterialBar({ playerClass }: { playerClass: PlayerClass }) {
         flexShrink: 0,
       }}
     >
-      {/* 요정: 정령옥 + 마력의돌, 마법사: 마력의돌만 */}
+      {/* 요정: 은화살 + 정령옥 + 마력의돌, 마법사: 마력의돌만 */}
       {playerClass === 'elf' && (
         <>
+          <MaterialItem name="은화살" count={silverArrow} color="#c0c0c0" />
+          <div style={{ width: 1, height: 14, background: 'var(--border-soft)' }} />
           <MaterialItem name="정령옥" count={spiritStone} color="#81c784" />
           <div style={{ width: 1, height: 14, background: 'var(--border-soft)' }} />
         </>

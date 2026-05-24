@@ -26,6 +26,7 @@ export interface ShopEtcItem {
 export const SHOP_ETC_ITEMS: ShopEtcItem[] = [
   { id: 'e_40319', name: '정령옥', buyPrice: 300, sellPrice: 150, category: 'material' },
   { id: 'e_40318', name: '마력의 돌', buyPrice: 400, sellPrice: 200, category: 'material' },
+  { id: 'e_40744', name: '은 화살', buyPrice: 30, sellPrice: 1, category: 'material' },
 ];
 
 // ── 카테고리별 필터 ──
@@ -35,5 +36,5 @@ export function getShopItemsByCategory(category: ShopItemCategory): ShopEtcItem[
 
 // ── 카테고리별 아이템 수 ──
 export const SHOP_CATEGORY_COUNTS: Record<ShopItemCategory, number> = {
-  material: 2,
+  material: 3,
 };
