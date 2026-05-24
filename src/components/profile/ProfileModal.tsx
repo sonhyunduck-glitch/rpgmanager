@@ -196,9 +196,11 @@ export default function ProfileModal() {
               const maxMp = calcMaxMp(lv, wis, int, pc);
               const hpRange = hpGainRange(con);
               const hpRegenR = calcHpRegenRange(lv, con);
-              const hpRegenSec = calcHpRegenIntervalSec(lv, pc);
+              const equipHpr = eqList.reduce((s, eq) => s + (eq.bonuses?.hpr ?? 0), 0);
+              const equipMpr = eqList.reduce((s, eq) => s + (eq.bonuses?.mpr ?? 0), 0);
+              const hpRegenSec = calcHpRegenIntervalSec(lv, pc, equipHpr);
               const mpRegenAmt = calcMpRegenAmount(wis);
-              const mpRegenSec = calcMpRegenIntervalSec();
+              const mpRegenSec = calcMpRegenIntervalSec(equipMpr);
 
               return (<>
             <div style={{

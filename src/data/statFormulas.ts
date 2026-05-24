@@ -709,8 +709,20 @@ export function calcMaxMp(level: number, wis: number, int: number, playerClass: 
 // 우리 게임: 항상 전투 중 → 1틱(3초) = 3포인트 누적
 // ══════════════════════════════════════════════
 
-/** 틱당 HP/MP 리젠 포인트 누적 (전투 중: 1초당 1pt × 3초 = 3pt) */
-export const REGEN_POINT_PER_TICK = 3;
+/**
+ * 리젠 기본 속도 (L1J _curPoint)
+ * L1J: 평상시 4pt/sec, 전투 중 1pt/sec
+ * 아이들 게임이므로 평상시 속도(4) 적용 — 전투 중 페널티 없음
+ */
+export const REGEN_BASE_RATE = 4; // pt/sec
+
+/** 틱 시간 (초) */
+const TICK_SEC = 3;
+
+/** 리젠 포인트/틱 = (기본속도 + 장비보너스) × 틱시간 */
+export function calcRegenPointsPerTick(equipBonus: number = 0): number {
+  return (REGEN_BASE_RATE + equipBonus) * TICK_SEC;
+}
 
 // ── HP 리젠 (L1J HpRegeneration.java) ──
 
@@ -752,11 +764,11 @@ export function calcHpRegenRange(level: number, con: number): { min: number; max
   return { min: 1, max: maxBonus };
 }
 
-/** HP 리젠 주기 (초 단위, UI 표시용) — 전투 중 기준 */
-export function calcHpRegenIntervalSec(level: number, playerClass: PlayerClass): number {
+/** HP 리젠 주기 (초 단위, UI 표시용) */
+export function calcHpRegenIntervalSec(level: number, playerClass: PlayerClass, equipHpr: number = 0): number {
   const threshold = calcHpRegenThreshold(level, playerClass);
-  // 전투 중: 1pt/sec
-  return threshold; // threshold / 1pt = threshold 초
+  // threshold / (baseRate + equipHpr)
+  return Math.ceil(threshold / (REGEN_BASE_RATE + equipHpr));
 }
 
 // ── MP 리젠 (L1J MpRegeneration.java) ──
@@ -764,10 +776,10 @@ export function calcHpRegenIntervalSec(level: number, playerClass: PlayerClass):
 /** MP 리젠 임계값 (L1J 고정 64) */
 export const MP_REGEN_THRESHOLD = 64;
 
-/** MP 리젠 주기 (초 단위, UI 표시용) — 전투 중 기준 */
-export function calcMpRegenIntervalSec(): number {
-  // 전투 중: 1pt/sec, threshold=64 → 64초
-  return MP_REGEN_THRESHOLD;
+/** MP 리젠 주기 (초 단위, UI 표시용) */
+export function calcMpRegenIntervalSec(equipMpr: number = 0): number {
+  // threshold / (baseRate + equipMpr) = 64 / (4 + mpr)
+  return Math.ceil(MP_REGEN_THRESHOLD / (REGEN_BASE_RATE + equipMpr));
 }
 
 /** MP 회복량 (L1J MpRegeneration.regenMp 원본 WIS 기반) */

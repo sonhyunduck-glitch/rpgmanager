@@ -20,7 +20,7 @@ import {
   calcPcDefense, calcMonsterHitRate,
   rollBowDamage, rollMagicDamage, rollMagicCritical, consecutiveMagicDecay,
   calcHpRegenThreshold, calcHpRegenAmount,
-  calcMpRegenAmount, calcBluePotionMpBonus, REGEN_POINT_PER_TICK, MP_REGEN_THRESHOLD,
+  calcMpRegenAmount, calcBluePotionMpBonus, calcRegenPointsPerTick, MP_REGEN_THRESHOLD,
   rollSpellDamage,
 } from '../data/statFormulas';
 import {
@@ -178,6 +178,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       const equipBonusBowDmg = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.bowDmg ?? 0), 0) + state.getSetBonusBowDmg();
       const equipBonusSp = state.getSp();
       const equipBonusMagicDmg = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.magicDmg ?? 0), 0);
+      const equipHpr = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.hpr ?? 0), 0);
+      const equipMpr = allEquipSlots.reduce((s, eq) => s + (eq?.bonuses?.mpr ?? 0), 0);
 
       const newLogs: LogEntry[] = [];
       const newMaterials = { ...state.materials };
@@ -284,9 +286,9 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
 
       // ── MP 자연 회복 (L1J MpRegeneration.java 포인트 누적 방식) ──
-      // L1J: 1초마다 4pt 누적 → 64pt 도달 시 회복 (16초 주기)
-      // 우리: 1틱(3초)마다 12pt 누적 → ~5.3틱(≈16초)마다 회복
-      mpRegenPoint += REGEN_POINT_PER_TICK;
+      // L1J: 평상시 4pt/sec, 장비 MPR 가산 → 64pt 도달 시 회복
+      // 기본 16초 주기, MPR +3 → ~9초 주기
+      mpRegenPoint += calcRegenPointsPerTick(equipMpr);
       if (mpRegenPoint >= MP_REGEN_THRESHOLD && huntMp < maxMp) {
         mpRegenPoint -= MP_REGEN_THRESHOLD;
         let regenAmt = calcMpRegenAmount(playerWis);
@@ -975,10 +977,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
 
       // ── HP 자연 회복 (L1J HpRegeneration.java 포인트 누적 방식) ──
-      // 전투 중: 1pt/sec, 1틱=3초 → 3pt/tick
+      // L1J: 평상시 4pt/sec, 장비 HPR 가산
       let hpRegenPoint = hunt.hpRegenPoint ?? 0;
       if (newCurrentHp > 0 && newCurrentHp < newMaxHp + hpBonus) {
-        hpRegenPoint += REGEN_POINT_PER_TICK;
+        hpRegenPoint += calcRegenPointsPerTick(equipHpr);
         const hpThreshold = calcHpRegenThreshold(state.level, state.playerClass);
         if (hpRegenPoint >= hpThreshold) {
           hpRegenPoint -= hpThreshold;

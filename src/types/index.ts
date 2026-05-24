@@ -43,6 +43,9 @@ export interface EquipBonuses {
   mp?: number;           // MP 보너스
   haste?: boolean;       // 헤이스트 (공격속도 증가)
   doubleDmgChance?: number; // 이중 타격 확률 (%, L1J double_dmg_chance)
+  // 리젠 보너스 (L1J add_hpr / add_mpr — _curPoint에 가산)
+  hpr?: number;          // HP 리젠 보너스 (리젠 속도 증가)
+  mpr?: number;          // MP 리젠 보너스 (리젠 속도 증가)
 }
 
 export interface EquipmentTemplate {

@@ -175,14 +175,17 @@ function TabStats() {
   const activeBuffs = useGameStore(s => s.activeBuffs);
   const hasBlueBuff = activeBuffs.some(b => b.potionId === 'blue_potion' && b.expiresAt > Date.now());
 
+  // 장비 HPR/MPR 보너스
+  const equipHpr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hpr ?? 0), 0);
+  const equipMpr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.mpr ?? 0), 0);
   // HP 리젠 (L1J HpRegeneration.java)
   const hpRegenRange = calcHpRegenRange(level, con);
-  const hpRegenSec = calcHpRegenIntervalSec(level, playerClass);
+  const hpRegenSec = calcHpRegenIntervalSec(level, playerClass, equipHpr);
   // MP 리젠 (L1J MpRegeneration.java)
   const mpRegenBase = calcMpRegenAmount(wis);
   const mpRegenBlueBonus = hasBlueBuff ? calcBluePotionMpBonus(wis) : 0;
   const mpRegenTotal = mpRegenBase + mpRegenBlueBonus;
-  const mpRegenSec = calcMpRegenIntervalSec();
+  const mpRegenSec = calcMpRegenIntervalSec(equipMpr);
 
   return (
     <>
