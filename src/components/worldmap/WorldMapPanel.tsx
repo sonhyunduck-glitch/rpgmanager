@@ -19,31 +19,8 @@ const NODE_SIZE = 52;
 const NODE_SIZE_MOBILE = 17;
 const MOBILE_BREAKPOINT = 600;
 
-// ── 모바일 전용 노드 위치 (14개 전체 재배치) ──
-// 데스크톱 좌표는 넓은 맵에 최적화되어 모바일에서 노드가 겹침.
-// 모바일에서는 모든 노드를 균일 간격으로 재배치하여 겹침 방지.
-// 최소 노드간 거리 ~14% 이상 확보.
-const MOBILE_POS: Record<string, { x: number; y: number }> = {
-  // 최남단 (시작 지역)
-  jade_island:    { x: 8,  y: 92 },
-  talking_island: { x: 35, y: 90 },
-  // 하단 (초반)
-  gludio:         { x: 15, y: 75 },
-  silver_knight:  { x: 45, y: 72 },
-  lastabad:       { x: 80, y: 72 },
-  // 중단 (중반)
-  orc_forest:     { x: 8,  y: 55 },
-  dark_forest:    { x: 28, y: 55 },
-  mutant_forest:  { x: 58, y: 50 },
-  underwater:     { x: 88, y: 55 },
-  // 상단 (중핵)
-  desert:         { x: 12, y: 38 },
-  giran:          { x: 42, y: 35 },
-  heine:          { x: 75, y: 35 },
-  // 최상단 (고레벨)
-  dragon_valley:  { x: 30, y: 18 },
-  fertia:         { x: 48, y: 5  },
-};
+// 모바일에서도 mapData.ts 원본 좌표 그대로 사용 (노드 크기만 축소)
+const MOBILE_POS: Record<string, { x: number; y: number }> = {};
 
 export default function WorldMapPanel() {
   const level = useGameStore(s => s.level);
