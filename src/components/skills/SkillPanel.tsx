@@ -75,7 +75,6 @@ export default function SkillPanel() {
 
   const handleEquip = (skill: PlayerSkill) => {
     if (isEquipped(skill.id)) {
-      // 이미 장착 → 해제
       const idx = slots.indexOf(skill.id);
       if (idx !== -1) unequipSkill(idx);
     } else {
@@ -103,25 +102,28 @@ export default function SkillPanel() {
 
   return (
     <div style={{
-      display: 'flex', gap: 'var(--s-3)', height: '100%', overflow: 'hidden',
+      display: 'flex', gap: 'var(--s-4)', height: '100%', overflow: 'hidden',
     }}>
       {/* ── 좌측: 스킬 목록 ── */}
       <div style={{ ...PANEL_FULL, flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         {/* 헤더 */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: 'var(--s-2)', flexShrink: 0,
+          marginBottom: 'var(--s-3)', flexShrink: 0,
         }}>
-          <div style={{ fontWeight: 700, fontSize: 'var(--fs-md)' }}>
+          <div style={{ fontWeight: 700, fontSize: 'var(--fs-lg)' }}>
             스킬 목록
-            <span style={{ ...LABEL, marginLeft: 8, color: 'var(--text-dim)' }}>
+            <span style={{
+              ...LABEL, marginLeft: 12, color: 'var(--text-dim)',
+              fontSize: 'var(--fs-sm)',
+            }}>
               {unlockedSkills.length}개 해금 · 마법 서클 {mlvl}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
             {maxMp > 0 && (
               <span style={{
-                fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--fs-sm)', fontFamily: 'var(--font-mono)',
                 fontWeight: 700, color: '#6BA3FF',
               }}>
                 MP {hunt.currentMp}/{maxMp}
@@ -131,7 +133,7 @@ export default function SkillPanel() {
         </div>
 
         {/* 필터 탭 */}
-        <div style={{ display: 'flex', gap: 'var(--s-1)', marginBottom: 'var(--s-2)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 'var(--s-2)', marginBottom: 'var(--s-3)', flexShrink: 0 }}>
           {(['all', 'attack', 'heal', 'buff'] as FilterTab[]).map(tab => {
             const labels: Record<FilterTab, string> = { all: '전체', attack: '공격', heal: '힐', buff: '버프' };
             const isActive = filterTab === tab;
@@ -140,12 +142,12 @@ export default function SkillPanel() {
                 key={tab}
                 onClick={() => setFilterTab(tab)}
                 style={{
-                  padding: '4px 12px',
+                  padding: '6px 16px',
                   border: isActive ? '1px solid var(--accent)' : '1px solid var(--border-soft)',
                   borderRadius: 'var(--r-sm)',
                   background: isActive ? 'var(--bg-elevated)' : 'transparent',
                   color: isActive ? 'var(--accent)' : 'var(--text-dim)',
-                  fontFamily: 'var(--font-ui)', fontSize: 'var(--fs-sm)',
+                  fontFamily: 'var(--font-ui)', fontSize: 'var(--fs-base)',
                   fontWeight: isActive ? 700 : 500,
                   cursor: 'pointer', transition: 'all 0.15s ease',
                 }}
@@ -169,8 +171,8 @@ export default function SkillPanel() {
                 onDragStart={() => handleDragStart(skill.id)}
                 onClick={() => setSelectedSkill(skill)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--s-2)',
-                  padding: '6px 8px', marginBottom: 2,
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 12px', marginBottom: 3,
                   borderRadius: 'var(--r-sm)',
                   background: selectedSkill?.id === skill.id
                     ? 'color-mix(in oklch, var(--accent) 15%, transparent)'
@@ -181,32 +183,23 @@ export default function SkillPanel() {
                 }}
               >
                 {/* 타입 아이콘 */}
-                <span style={{ fontSize: 'var(--fs-sm)', flexShrink: 0 }}>{meta.icon}</span>
+                <span style={{ fontSize: 'var(--fs-base)', flexShrink: 0 }}>{meta.icon}</span>
 
                 {/* 서클 뱃지 */}
-                {skill.skillCircle > 0 && (
-                  <span style={{
-                    fontSize: '9px', fontWeight: 800, fontFamily: 'var(--font-mono)',
-                    color: 'var(--text-mute)', background: 'var(--bg-sunken)',
-                    padding: '1px 4px', borderRadius: 3, flexShrink: 0,
-                  }}>
-                    C{skill.skillCircle}
-                  </span>
-                )}
-                {skill.skillCircle === 0 && (
-                  <span style={{
-                    fontSize: '9px', fontWeight: 800, fontFamily: 'var(--font-mono)',
-                    color: meta.color, background: 'var(--bg-sunken)',
-                    padding: '1px 4px', borderRadius: 3, flexShrink: 0,
-                  }}>
-                    EX
-                  </span>
-                )}
+                <span style={{
+                  fontSize: 'var(--fs-xs)', fontWeight: 800, fontFamily: 'var(--font-mono)',
+                  color: skill.skillCircle === 0 ? meta.color : 'var(--text-mute)',
+                  background: 'var(--bg-sunken)',
+                  padding: '2px 6px', borderRadius: 4, flexShrink: 0,
+                  minWidth: 28, textAlign: 'center',
+                }}>
+                  {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
+                </span>
 
                 {/* 이름 */}
                 <span style={{
                   flex: 1, minWidth: 0,
-                  fontSize: 'var(--fs-sm)', fontWeight: 600,
+                  fontSize: 'var(--fs-base)', fontWeight: 600,
                   color: equipped ? 'var(--info)' : 'var(--text)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
@@ -216,7 +209,7 @@ export default function SkillPanel() {
                 {/* 속성 */}
                 {skill.attr > 0 && (
                   <span style={{
-                    fontSize: '9px', color: 'var(--text-mute)',
+                    fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
                     fontFamily: 'var(--font-mono)',
                   }}>
                     {ATTR_NAMES[skill.attr]}
@@ -225,9 +218,9 @@ export default function SkillPanel() {
 
                 {/* MP */}
                 <span style={{
-                  fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                  fontSize: 'var(--fs-sm)', fontWeight: 700,
                   fontFamily: 'var(--font-mono)', color: '#6BA3FF',
-                  flexShrink: 0,
+                  flexShrink: 0, minWidth: 30, textAlign: 'right',
                 }}>
                   {skill.consumeMp}
                 </span>
@@ -236,12 +229,12 @@ export default function SkillPanel() {
                 <button
                   onClick={(e) => { e.stopPropagation(); handleEquip(skill); }}
                   style={{
-                    width: 22, height: 22,
+                    width: 28, height: 28,
                     borderRadius: 'var(--r-sm)',
-                    border: equipped ? '1px solid var(--info)' : '1px solid var(--border-soft)',
+                    border: equipped ? '1.5px solid var(--info)' : '1.5px solid var(--border-soft)',
                     background: equipped ? 'color-mix(in oklch, var(--info) 20%, transparent)' : 'transparent',
                     color: equipped ? 'var(--info)' : 'var(--text-mute)',
-                    fontSize: '10px', fontWeight: 800,
+                    fontSize: 'var(--fs-sm)', fontWeight: 800,
                     cursor: 'pointer', transition: 'all 0.12s ease',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: 0, flexShrink: 0,
@@ -258,8 +251,8 @@ export default function SkillPanel() {
           {filterTab === 'all' && lockedSkills.length > 0 && (
             <>
               <div style={{
-                ...LABEL, fontSize: 'var(--fs-xs)', marginTop: 'var(--s-3)',
-                marginBottom: 'var(--s-1)', color: 'var(--text-mute)',
+                ...LABEL, fontSize: 'var(--fs-sm)', marginTop: 'var(--s-4)',
+                marginBottom: 'var(--s-2)', color: 'var(--text-mute)',
               }}>
                 미해금 ({lockedSkills.length})
               </div>
@@ -271,8 +264,8 @@ export default function SkillPanel() {
                     key={skill.id}
                     onClick={() => setSelectedSkill(skill)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 'var(--s-2)',
-                      padding: '5px 8px', marginBottom: 2,
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '8px 12px', marginBottom: 3,
                       borderRadius: 'var(--r-sm)',
                       background: selectedSkill?.id === skill.id
                         ? 'color-mix(in oklch, var(--text-mute) 10%, transparent)' : 'transparent',
@@ -280,19 +273,23 @@ export default function SkillPanel() {
                       cursor: 'pointer', opacity: 0.45,
                     }}
                   >
-                    <span style={{ fontSize: 'var(--fs-sm)' }}>{meta.icon}</span>
-                    <span style={{ fontSize: '9px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-mute)' }}>
+                    <span style={{ fontSize: 'var(--fs-base)' }}>{meta.icon}</span>
+                    <span style={{
+                      fontSize: 'var(--fs-xs)', fontWeight: 800, fontFamily: 'var(--font-mono)',
+                      color: 'var(--text-mute)', background: 'var(--bg-sunken)',
+                      padding: '2px 6px', borderRadius: 4, minWidth: 28, textAlign: 'center',
+                    }}>
                       {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
                     </span>
                     <span style={{
-                      flex: 1, minWidth: 0, fontSize: 'var(--fs-sm)',
+                      flex: 1, minWidth: 0, fontSize: 'var(--fs-base)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       color: 'var(--text-mute)',
                     }}>
                       {skill.name}
                     </span>
                     <span style={{
-                      fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--warning)',
+                      fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)', color: 'var(--warning)',
                     }}>
                       {needCircle ? `서클 ${skill.skillCircle} 필요` : `Lv.${skill.requiredLevel}`}
                     </span>
@@ -301,8 +298,8 @@ export default function SkillPanel() {
               })}
               {lockedSkills.length > 10 && (
                 <div style={{
-                  fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
-                  textAlign: 'center', padding: 'var(--s-2)',
+                  fontSize: 'var(--fs-sm)', color: 'var(--text-mute)',
+                  textAlign: 'center', padding: 'var(--s-3)',
                 }}>
                   +{lockedSkills.length - 10}개 더...
                 </div>
@@ -314,8 +311,8 @@ export default function SkillPanel() {
 
       {/* ── 우측: 스킬 상세 + 슬롯 ── */}
       <div style={{
-        ...PANEL_FULL, width: 280, flexShrink: 0,
-        display: 'flex', flexDirection: 'column', gap: 'var(--s-3)',
+        ...PANEL_FULL, width: 320, flexShrink: 0,
+        display: 'flex', flexDirection: 'column', gap: 'var(--s-4)',
       }}>
         {/* 스킬 상세 */}
         {selectedSkill ? (
@@ -323,7 +320,7 @@ export default function SkillPanel() {
         ) : (
           <div style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-mute)', fontSize: 'var(--fs-sm)',
+            color: 'var(--text-mute)', fontSize: 'var(--fs-base)',
           }}>
             스킬을 선택하세요
           </div>
@@ -335,18 +332,18 @@ export default function SkillPanel() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             marginBottom: 'var(--s-2)',
           }}>
-            <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>
+            <span style={{ ...LABEL, fontSize: 'var(--fs-sm)' }}>
               스킬 슬롯 ({maxSlots}/{MAX_SKILL_SLOTS})
             </span>
             <button
               onClick={autoEquipSkills}
               style={{
-                padding: '3px 10px',
+                padding: '5px 14px',
                 border: '1px solid var(--border-soft)',
                 borderRadius: 'var(--r-sm)',
                 background: 'transparent',
                 color: 'var(--accent)',
-                fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                fontSize: 'var(--fs-sm)', fontWeight: 700,
                 cursor: 'pointer', transition: 'all 0.15s ease',
               }}
               title="추천 스킬을 자동으로 슬롯에 배치"
@@ -357,7 +354,7 @@ export default function SkillPanel() {
 
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: 4,
+            gap: 6,
           }}>
             {slots.map((skillId, idx) => {
               const locked = idx >= maxSlots;
@@ -374,9 +371,9 @@ export default function SkillPanel() {
                     border: locked
                       ? '1px dashed var(--border-soft)'
                       : skill
-                        ? `1px solid ${meta?.color ?? 'var(--border-soft)'}`
+                        ? `1.5px solid ${meta?.color ?? 'var(--border-soft)'}`
                         : '1px solid var(--border-soft)',
-                    borderRadius: 'var(--r-sm)',
+                    borderRadius: 'var(--r-md)',
                     background: locked
                       ? 'var(--bg-sunken)'
                       : skill
@@ -384,6 +381,7 @@ export default function SkillPanel() {
                         : 'var(--bg-panel)',
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', justifyContent: 'center',
+                    gap: 2,
                     cursor: locked ? 'not-allowed' : 'pointer',
                     opacity: locked ? 0.3 : 1,
                     transition: 'all 0.12s ease',
@@ -396,30 +394,31 @@ export default function SkillPanel() {
                 >
                   {/* 슬롯 번호 */}
                   <span style={{
-                    position: 'absolute', top: 1, left: 3,
-                    fontSize: '8px', fontWeight: 700, fontFamily: 'var(--font-mono)',
+                    position: 'absolute', top: 2, left: 4,
+                    fontSize: 'var(--fs-2xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
                     color: 'var(--text-mute)', opacity: 0.5,
                   }}>
                     {idx + 1}
                   </span>
 
                   {locked ? (
-                    <span style={{ fontSize: '10px', color: 'var(--text-mute)' }}>🔒</span>
+                    <span style={{ fontSize: 'var(--fs-base)', color: 'var(--text-mute)' }}>🔒</span>
                   ) : skill ? (
                     <>
-                      <span style={{ fontSize: '14px' }}>{meta?.icon}</span>
+                      <span style={{ fontSize: '18px' }}>{meta?.icon}</span>
                       <span style={{
-                        fontSize: '8px', fontWeight: 700,
+                        fontSize: 'var(--fs-2xs)', fontWeight: 700,
                         color: meta?.color ?? 'var(--text)',
                         maxWidth: '100%', overflow: 'hidden',
                         textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        padding: '0 2px', textAlign: 'center',
+                        padding: '0 3px', textAlign: 'center',
+                        lineHeight: 1.2,
                       }}>
-                        {skill.name.length > 4 ? skill.name.slice(0, 4) + '..' : skill.name}
+                        {skill.name.length > 5 ? skill.name.slice(0, 5) + '..' : skill.name}
                       </span>
                     </>
                   ) : (
-                    <span style={{ fontSize: '10px', color: 'var(--text-mute)', opacity: 0.4 }}>+</span>
+                    <span style={{ fontSize: 'var(--fs-base)', color: 'var(--text-mute)', opacity: 0.4 }}>+</span>
                   )}
                 </div>
               );
@@ -428,8 +427,8 @@ export default function SkillPanel() {
 
           {nextSlotLevel && (
             <div style={{
-              fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
-              textAlign: 'center', marginTop: 'var(--s-1)',
+              fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
+              textAlign: 'center', marginTop: 'var(--s-2)',
             }}>
               Lv.{nextSlotLevel}에 슬롯 +1 해금
             </div>
@@ -451,20 +450,21 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', gap: 'var(--s-2)',
+      display: 'flex', flexDirection: 'column', gap: 'var(--s-3)',
     }}>
       {/* 이름 + 타입 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
-        <span style={{ fontSize: 'var(--fs-lg)' }}>{meta.icon}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)' }}>
+        <span style={{ fontSize: '24px' }}>{meta.icon}</span>
         <div>
           <div style={{
-            fontWeight: 700, fontSize: 'var(--fs-md)',
+            fontWeight: 700, fontSize: 'var(--fs-lg)',
             color: isUnlocked ? 'var(--text)' : 'var(--text-mute)',
           }}>
             {skill.name}
           </div>
           <div style={{
-            fontSize: 'var(--fs-2xs)', color: meta.color, fontWeight: 600,
+            fontSize: 'var(--fs-sm)', color: meta.color, fontWeight: 600,
+            marginTop: 2,
           }}>
             {meta.label}
             {skill.skillCircle > 0 && ` · 서클 ${skill.skillCircle}`}
@@ -476,8 +476,8 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
 
       {/* 설명 */}
       <div style={{
-        fontSize: 'var(--fs-sm)', color: 'var(--text-dim)',
-        lineHeight: 1.5, padding: 'var(--s-1) 0',
+        fontSize: 'var(--fs-base)', color: 'var(--text-dim)',
+        lineHeight: 1.6, padding: 'var(--s-1) 0',
       }}>
         {skill.description}
       </div>
@@ -485,10 +485,10 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
       {/* 스탯 그리드 */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr',
-        gap: 'var(--s-1)',
+        gap: 'var(--s-2)',
         background: 'var(--bg-sunken)',
-        borderRadius: 'var(--r-sm)',
-        padding: 'var(--s-2)',
+        borderRadius: 'var(--r-md)',
+        padding: 'var(--s-3)',
       }}>
         <DetailStat label="MP 소모" value={skill.consumeMp} color="#6BA3FF" />
         <DetailStat label="쿨타운" value={skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks}턴` : '-'} color="var(--text-dim)" />
@@ -518,8 +518,8 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
           background: 'color-mix(in oklch, var(--warning) 10%, transparent)',
           border: '1px solid color-mix(in oklch, var(--warning) 30%, transparent)',
           borderRadius: 'var(--r-sm)',
-          padding: 'var(--s-2)',
-          fontSize: 'var(--fs-2xs)', color: 'var(--warning)',
+          padding: 'var(--s-3)',
+          fontSize: 'var(--fs-sm)', color: 'var(--warning)',
           textAlign: 'center',
         }}>
           {skill.requiredLevel > level
@@ -534,8 +534,8 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
 function DetailStat({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)' }}>{label}</span>
-      <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-sm)', color }}>{value}</span>
+      <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>{label}</span>
+      <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color }}>{value}</span>
     </div>
   );
 }
