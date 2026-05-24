@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.6.0 — 파란 물약(MP 회복) + 소모품 탭 자동구매 제거 + UI 개선
-export const APP_VERSION = '2.6.0';
+// v2.7.0 — MP 풀충전 버그 수정 + 스킬 쿨다운 프로그레스 바
+export const APP_VERSION = '2.7.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
