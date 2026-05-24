@@ -249,7 +249,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       startedAt: 0, currentTargetId: null, monsterCurrentHp: 0,
       joinedMonsters: [], approachingMonsters: [],
       mobSkillCooldowns: {}, lastMagicHitAt: 0, consecutiveMagicHits: 0,
-      currentMp: 0, skillCooldowns: {}, monsterStunnedTicks: 0, windShackleTicks: 0,
+      currentMp: 0, mpRegenPoint: 0, skillCooldowns: {}, monsterStunnedTicks: 0, windShackleTicks: 0,
     } as HuntSession;
     return {
       ...h,
@@ -279,9 +279,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   potionAutoThreshold: (saved?.potionAutoThreshold as number) ?? 50,
   potionAutoBuy: (saved?.potionAutoBuy as boolean) ?? true,
   lastPotionUsedAt: 0,
-  mpPotionAutoUse: (saved?.mpPotionAutoUse as boolean) ?? true,
-  mpPotionAutoThreshold: (saved?.mpPotionAutoThreshold as number) ?? 30,
-  lastMpPotionUsedAt: 0,
+  bluePotionEnabled: (saved?.bluePotionEnabled as boolean) ?? true,
 
   // ── Skills ──
   equippedSkills: (saved?.equippedSkills as number[]) ?? [],

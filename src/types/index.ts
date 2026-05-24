@@ -195,6 +195,7 @@ export interface HuntSession {
   consecutiveMagicHits: number; // 연속 마법 피격 횟수
   // MP system
   currentMp: number;           // 현재 MP
+  mpRegenPoint: number;        // MP 리젠 포인트 누적 (L1J: 64 도달 시 회복)
   // Skill tracking
   skillCooldowns: Record<number, number>;  // skillId → remaining cooldown ticks
   monsterStunnedTicks: number; // 몬스터 스턴 남은 틱
@@ -226,8 +227,6 @@ export interface Potion {
   buyPrice: number;
   requiredLevel: number;
   // MP 회복 물약 전용
-  mpHealMin?: number;         // MP 회복 최소
-  mpHealMax?: number;         // MP 회복 최대
   // 버프 물약 전용 (buffDuration이 있으면 버프 물약)
   buffDuration?: number;      // 초
   atkSpeedMult?: number;      // 공격속도 배율

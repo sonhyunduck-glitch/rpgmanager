@@ -142,9 +142,8 @@ export function saveState(state: {
   potionAutoUse: boolean;
   potionAutoThreshold: number;
   potionAutoBuy: boolean;
-  mpPotionAutoUse: boolean;
-  mpPotionAutoThreshold: number;
   activeBuffs: ActiveBuff[];
+  bluePotionEnabled?: boolean;
   greenPotionEnabled?: boolean;
   couragePotionEnabled?: boolean;
   transformScrollEnabled?: boolean;
@@ -161,9 +160,8 @@ export function saveState(state: {
       hunt, queue, queueCapacity,
       statAllocation, maxHp,
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
-      mpPotionAutoUse, mpPotionAutoThreshold,
       activeBuffs,
-      greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
+      bluePotionEnabled, greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
       equippedSkills,
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -177,9 +175,8 @@ export function saveState(state: {
       queue, queueCapacity,
       statAllocation, maxHp,
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
-      mpPotionAutoUse, mpPotionAutoThreshold,
       activeBuffs,
-      greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
+      bluePotionEnabled, greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
       equippedSkills,
     }));
   } catch {

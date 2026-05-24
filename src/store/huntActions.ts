@@ -96,6 +96,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           lastMagicHitAt: 0,
           consecutiveMagicHits: 0,
           currentMp: 0,
+          mpRegenPoint: 0,
           skillCooldowns: {},
           monsterStunnedTicks: 0,
           windShackleTicks: 0,

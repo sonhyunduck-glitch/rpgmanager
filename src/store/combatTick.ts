@@ -19,7 +19,8 @@ import {
   calcPlayerHitRate, rollD20PcNpcHit, rollD20NpcPcHit,
   calcPcDefense, calcMonsterHitRate,
   rollBowDamage, rollMagicDamage, rollMagicCritical, consecutiveMagicDecay,
-  calcMpRegen, rollSpellDamage,
+  calcMpRegenAmount, calcBluePotionMpBonus, MP_REGEN_POINT_PER_TICK, MP_REGEN_THRESHOLD,
+  rollSpellDamage,
 } from '../data/statFormulas';
 import {
   getAvailableSkills, getBestAttackSpell, getBestHealSpell, getAvailableBuffs,
@@ -196,21 +197,18 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       let shouldAdvanceFloor = false;
       let killed = false;
       let newLastPotionUsedAt = state.lastPotionUsedAt;
-      let newLastMpPotionUsedAt = state.lastMpPotionUsedAt;
       const fightTicks = isNewTarget ? 1 : hunt.currentFightTicks + 1;
       let currentJoined = [...(hunt.joinedMonsters ?? [])];
       let currentApproaching = [...(hunt.approachingMonsters ?? [])];
 
-      // ── MP 관리 ──
+      // ── MP 초기화 (사냥 시작 시) ──
       let huntMp = hunt.currentMp;
       const maxMp = state.getMaxMp();
-      // 사냥 시작 직후 첫 틱에만 최대 MP로 초기화 (이후에는 자연 회복으로만)
+      let mpRegenPoint = hunt.mpRegenPoint ?? 0;
       if (huntMp <= 0 && maxMp > 0 && hunt.currentFightTicks === 0 && !hunt.currentTargetId) {
         huntMp = maxMp;
+        mpRegenPoint = 0;
       }
-      // 틱당 MP 자연 회복
-      const mpRegen = calcMpRegen(state.level, playerWis, state.playerClass);
-      huntMp = Math.min(maxMp, huntMp + mpRegen);
 
       // ── 스킬 쿨다운 감소 ──
       const skillCooldowns: Record<number, number> = { ...(hunt.skillCooldowns ?? {}) };
@@ -228,6 +226,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       for (const pid of POTION_ORDER) {
         const p = POTIONS[pid];
         if (!p.buffDuration) continue;
+        if (pid === 'blue_potion' && !state.bluePotionEnabled) continue;
         if (pid === 'green_potion' && !state.greenPotionEnabled) continue;
         if (pid === 'courage_potion' && !state.couragePotionEnabled) continue;
         const alreadyActive = newActiveBuffs.some(b => b.potionId === pid);
@@ -243,7 +242,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         });
         newLogs.push({
           id: genLogId(), type: 'potion',
-          text: `${p.name} 사용! (${p.buffDuration}초)`,
+          text: `${p.name} 사용! (${p.buffDuration >= 60 ? `${Math.floor(p.buffDuration / 60)}분` : `${p.buffDuration}초`})`,
           timestamp: now,
         });
       }
@@ -281,6 +280,21 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             });
           }
         }
+      }
+
+      // ── MP 자연 회복 (L1J MpRegeneration.java 포인트 누적 방식) ──
+      // L1J: 1초마다 4pt 누적 → 64pt 도달 시 회복 (16초 주기)
+      // 우리: 1틱(3초)마다 12pt 누적 → ~5.3틱(≈16초)마다 회복
+      mpRegenPoint += MP_REGEN_POINT_PER_TICK;
+      if (mpRegenPoint >= MP_REGEN_THRESHOLD && huntMp < maxMp) {
+        mpRegenPoint -= MP_REGEN_THRESHOLD;
+        let regenAmt = calcMpRegenAmount(playerWis);
+        // 파란 물약 버프 활성 시 추가 (L1J STATUS_BLUE_POTION: + max(1, WIS-10))
+        const hasBlueBuff = newActiveBuffs.some(b => b.potionId === 'blue_potion');
+        if (hasBlueBuff) {
+          regenAmt += calcBluePotionMpBonus(playerWis);
+        }
+        huntMp = Math.min(maxMp, huntMp + regenAmt);
       }
 
       // ── 스킬 버프 자동 시전 (MP 충분 시, 슬롯 장착 스킬만) ──
@@ -985,28 +999,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         }
       }
 
-      // ── 파란 물약 자동 사용 (MP 회복, 쿨타임: 1틱 = 3초) ──
-      const mpPotionCooldownReady = now - state.lastMpPotionUsedAt >= POTION_COOLDOWN_MS;
-      if (newCurrentHp > 0 && maxMp > 0 && state.mpPotionAutoUse && mpPotionCooldownReady) {
-        const mpPct = (huntMp / maxMp) * 100;
-        if (mpPct <= state.mpPotionAutoThreshold) {
-          const bpCount = newPotions['blue_potion'] ?? 0;
-          if (bpCount > 0) {
-            const bp = POTIONS['blue_potion'];
-            if (bp && bp.mpHealMin != null && bp.mpHealMax != null) {
-              const mpHeal = bp.mpHealMin + secureRandomInt(0, bp.mpHealMax - bp.mpHealMin);
-              huntMp = Math.min(maxMp, huntMp + mpHeal);
-              newPotions['blue_potion'] = bpCount - 1;
-              newLastMpPotionUsedAt = now;
-              newLogs.push({
-                id: genLogId(), type: 'potion',
-                text: `${bp.name} 사용! MP +${mpHeal} (MP: ${huntMp}/${maxMp})`,
-                timestamp: Date.now(),
-              });
-            }
-          }
-        }
-      }
+
 
       // ── 다음 타겟 선택 ──
       let nextTargetId: string | null = killed ? null : monster.id;
@@ -1056,7 +1049,6 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         inventory: newInventory, materials: newMaterials,
         potions: newPotions, activeBuffs: newActiveBuffs,
         lastPotionUsedAt: newLastPotionUsedAt,
-        lastMpPotionUsedAt: newLastMpPotionUsedAt,
         combatLog: [...state.combatLog, ...newLogs].slice(-80),
         hunt: {
           ...hunt,
@@ -1070,6 +1062,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           lastMagicHitAt: newLastMagicHitAt,
           consecutiveMagicHits: newConsecutiveMagicHits,
           currentMp: huntMp,
+          mpRegenPoint,
           skillCooldowns,
           monsterStunnedTicks,
           windShackleTicks,

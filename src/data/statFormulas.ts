@@ -685,21 +685,40 @@ export function calcMaxMp(level: number, wis: number, int: number, playerClass: 
 }
 
 /**
- * MP 자연 회복량 (틱당, 1틱 ≈ 3초)
+ * MP 자연 회복 — L1J MpRegeneration.java 원본
  *
- * 기본: 1 + floor(WIS/10)
- * Wizard 추가: +floor(level/10)
- * Elf 추가: +1
- * Knight: 기본만
+ * L1J 구조:
+ *   1초마다 _curPoint(기본 4) 누적 → _regenPoint ≥ 64 → MP 회복
+ *   → 64/4 = 16초마다 1회 회복
+ *
+ * 우리 게임 적용 (1틱 = 3초):
+ *   매 틱 _curPoint(=4)×3 = 12 포인트 누적
+ *   64/12 ≈ 5.33틱(≈16초)마다 1회 회복
+ *
+ * 회복량 (L1J MpRegeneration.regenMp 원본):
+ *   WIS 1-14:  1 MP
+ *   WIS 15-16: 2 MP
+ *   WIS 17+:   3 MP
  */
-export function calcMpRegen(level: number, wis: number, playerClass: PlayerClass): number {
-  let regen = 1 + Math.floor(wis / 10);
-  switch (playerClass) {
-    case 'wizard': regen += Math.floor(level / 10); break;
-    case 'elf':    regen += 1; break;
-    case 'knight': break;
-  }
-  return regen;
+
+/** 틱당 리젠 포인트 누적 (L1J: 1초당 4포인트, 우리 1틱=3초 → 12) */
+export const MP_REGEN_POINT_PER_TICK = 12;
+/** 회복 발동 임계값 (L1J 원본 64) */
+export const MP_REGEN_THRESHOLD = 64;
+
+/** MP 회복량 (L1J MpRegeneration.regenMp 원본 WIS 기반) */
+export function calcMpRegenAmount(wis: number): number {
+  if (wis >= 17) return 3;
+  if (wis >= 15) return 2;
+  return 1;
+}
+
+/**
+ * 파란 물약 버프 시 추가 MP 회복량 (L1J 원본)
+ * STATUS_BLUE_POTION 활성 시: + max(1, WIS - 10)
+ */
+export function calcBluePotionMpBonus(wis: number): number {
+  return Math.max(1, wis - 10);
 }
 
 /**

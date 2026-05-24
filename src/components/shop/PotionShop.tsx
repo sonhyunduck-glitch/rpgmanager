@@ -63,12 +63,11 @@ export default function PotionShop({
               <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 2 }}>
                 {p.buffDuration ? (
                   <>
+                    {p.id === 'blue_potion' ? 'MP 리젠 증가' : ''}
                     {p.atkSpeedMult && p.atkSpeedMult > 1 && `공속 ×${p.atkSpeedMult}`}
                     {p.moveSpeedMult && p.moveSpeedMult > 1 && ` 이속 ×${p.moveSpeedMult}`}
-                    {` (${p.buffDuration}초)`}
+                    {` (${p.buffDuration >= 60 ? `${Math.floor(p.buffDuration / 60)}분` : `${p.buffDuration}초`})`}
                   </>
-                ) : p.mpHealMin != null ? (
-                  <>MP {p.mpHealMin}~{p.mpHealMax} 회복</>
                 ) : (
                   <>HP {p.healMin}~{p.healMax} 회복</>
                 )}
