@@ -198,9 +198,9 @@ export default function ProfileModal() {
               const hpRegenR = calcHpRegenRange(lv, con);
               const equipHpr = eqList.reduce((s, eq) => s + (eq.bonuses?.hpr ?? 0), 0);
               const equipMpr = eqList.reduce((s, eq) => s + (eq.bonuses?.mpr ?? 0), 0);
-              const hpRegenSec = calcHpRegenIntervalSec(lv, pc, equipHpr);
-              const mpRegenAmt = calcMpRegenAmount(wis);
-              const mpRegenSec = calcMpRegenIntervalSec(equipMpr);
+              const hpRegenSec = calcHpRegenIntervalSec(lv, pc);
+              const mpRegenAmt = calcMpRegenAmount(wis) + equipMpr;
+              const mpRegenSec = calcMpRegenIntervalSec();
 
               return (<>
             <div style={{
@@ -228,7 +228,7 @@ export default function ProfileModal() {
                     <ProfileCombatCell label="DMG(대)" value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
                     <ProfileCombatCell label="MR" value={`${mr}`} color="var(--info)" />
                     <ProfileCombatCell label="LV HP" value={`${hpRange.min}~${hpRange.max}`} color="var(--text-dim)" />
-                    <ProfileCombatCell label="HPR" value={`${hpRegenR.min}~${hpRegenR.max}/${hpRegenSec}s`} color="var(--text-dim)" />
+                    <ProfileCombatCell label="HPR" value={`${hpRegenR.min + equipHpr}~${hpRegenR.max + equipHpr}/${hpRegenSec}s`} color="var(--text-dim)" />
                     <ProfileCombatCell label="MPR" value={`${mpRegenAmt}/${mpRegenSec}s`} color="var(--text-dim)" />
                   </div>
                 </div>

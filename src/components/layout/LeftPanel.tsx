@@ -178,14 +178,14 @@ function TabStats() {
   // 장비 HPR/MPR 보너스
   const equipHpr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hpr ?? 0), 0);
   const equipMpr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.mpr ?? 0), 0);
-  // HP 리젠 (L1J HpRegeneration.java)
+  // HP 리젠 (L1J: 장비 HPR은 회복량에 가산, 주기는 고정)
   const hpRegenRange = calcHpRegenRange(level, con);
-  const hpRegenSec = calcHpRegenIntervalSec(level, playerClass, equipHpr);
-  // MP 리젠 (L1J MpRegeneration.java)
+  const hpRegenSec = calcHpRegenIntervalSec(level, playerClass);
+  // MP 리젠 (L1J: 장비 MPR은 회복량에 가산, 주기 고정 16초)
   const mpRegenBase = calcMpRegenAmount(wis);
   const mpRegenBlueBonus = hasBlueBuff ? calcBluePotionMpBonus(wis) : 0;
-  const mpRegenTotal = mpRegenBase + mpRegenBlueBonus;
-  const mpRegenSec = calcMpRegenIntervalSec(equipMpr);
+  const mpRegenTotal = mpRegenBase + equipMpr + mpRegenBlueBonus;
+  const mpRegenSec = calcMpRegenIntervalSec();
 
   return (
     <>
@@ -245,7 +245,7 @@ function TabStats() {
         <CombatCell label="DMG(대)" value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
         <CombatCell label="MR" value={mr} color="var(--info)" />
         <CombatCell label="LV HP" value={`${hpRange.min}~${hpRange.max}`} color="var(--text-dim)" />
-        <CombatCell label="HPR" value={`${hpRegenRange.min}~${hpRegenRange.max}/${hpRegenSec}s`} color="var(--text-dim)" />
+        <CombatCell label="HPR" value={`${hpRegenRange.min + equipHpr}~${hpRegenRange.max + equipHpr}/${hpRegenSec}s`} color="var(--text-dim)" />
         <CombatCell label="MPR" value={`${mpRegenTotal}/${mpRegenSec}s${hasBlueBuff ? ' ★' : ''}`} color="var(--text-dim)" />
       </div>
     </>

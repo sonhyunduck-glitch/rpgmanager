@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.22.0 — UI 정리: SkillBar 제거, StatusBar 2줄 레이아웃, 기사 스킬 정리
-export const APP_VERSION = '2.22.0';
+// v2.23.0 — HPR/MPR 로직 수정: 장비 보너스를 주기가 아닌 회복량에 가산 (L1J 원본)
+export const APP_VERSION = '2.23.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

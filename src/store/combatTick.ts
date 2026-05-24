@@ -294,12 +294,12 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
 
       // ── MP 자연 회복 (L1J MpRegeneration.java 포인트 누적 방식) ──
-      // L1J: 평상시 4pt/sec, 장비 MPR 가산 → 64pt 도달 시 회복
-      // 기본 16초 주기, MPR +3 → ~9초 주기
-      mpRegenPoint += calcRegenPointsPerTick(equipMpr);
+      // L1J: 누적 속도 고정(4pt/sec), 장비 MPR은 회복량에 가산
+      // 고정 16초 주기 (64/4=16), 회복량 = WIS기반 + equipMpr + 블루포션
+      mpRegenPoint += calcRegenPointsPerTick();
       if (mpRegenPoint >= MP_REGEN_THRESHOLD && huntMp < maxMp) {
         mpRegenPoint -= MP_REGEN_THRESHOLD;
-        let regenAmt = calcMpRegenAmount(playerWis);
+        let regenAmt = calcMpRegenAmount(playerWis) + equipMpr;
         // 파란 물약 버프 활성 시 추가 (L1J STATUS_BLUE_POTION: + max(1, WIS-10))
         const hasBlueBuff = newActiveBuffs.some(b => b.potionId === 'blue_potion');
         if (hasBlueBuff) {
@@ -1000,14 +1000,14 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
 
       // ── HP 자연 회복 (L1J HpRegeneration.java 포인트 누적 방식) ──
-      // L1J: 평상시 4pt/sec, 장비 HPR 가산
+      // L1J: 누적 속도 고정(4pt/sec), 장비 HPR은 회복량에 가산
       let hpRegenPoint = hunt.hpRegenPoint ?? 0;
       if (newCurrentHp > 0 && newCurrentHp < newMaxHp + hpBonus) {
-        hpRegenPoint += calcRegenPointsPerTick(equipHpr);
+        hpRegenPoint += calcRegenPointsPerTick();
         const hpThreshold = calcHpRegenThreshold(state.level, state.playerClass);
         if (hpRegenPoint >= hpThreshold) {
           hpRegenPoint -= hpThreshold;
-          const hpRegen = calcHpRegenAmount(state.level, playerCon);
+          const hpRegen = calcHpRegenAmount(state.level, playerCon) + equipHpr;
           newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + hpRegen);
         }
       }
