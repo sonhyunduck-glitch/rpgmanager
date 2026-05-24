@@ -203,17 +203,21 @@ function convertWeapons(rows) {
       effects.push('언데드 추타');
     }
 
-    // 클래스 제한
+    // 클래스 제한 (L1J CSV use_knight/use_elf/use_wizard 기반)
+    const allCanUse = useKnight && useElf && useWizard;
     let classRestriction;
-    if (gameType === 'bow') {
-      classRestriction = ['elf'];
-    } else if (gameType === 'staff') {
-      classRestriction = ['wizard'];
-    } else {
-      // weapon (sword/dagger/etc) — 기사만 사용 가능
-      // 요정/마법사는 활/지팡이 전용이므로 일반 무기 사용 불가
-      classRestriction = ['knight'];
+    if (!allCanUse) {
+      const classes = [];
+      if (useKnight) classes.push('knight');
+      if (useElf) classes.push('elf');
+      if (useWizard) classes.push('wizard');
+      if (classes.length > 0 && classes.length < 3) {
+        classRestriction = classes;
+      }
     }
+
+    // 양손 무기 (L1J is_twohanded)
+    const isTwoHanded = toInt(row.is_twohanded) === 1;
 
     const tpl = {
       id, name, type: gameType,
@@ -221,6 +225,7 @@ function convertWeapons(rows) {
       baseDef: 0, safeEnchant: Math.max(0, safeEnchant), maxEnhance, sellPrice,
       weight,
     };
+    if (isTwoHanded) tpl.isTwoHanded = true;
     if (Object.keys(bonuses).length > 0) tpl.bonuses = bonuses;
     if (effects.length > 0) tpl.bonusEffects = effects;
     if (classRestriction) tpl.classRestriction = classRestriction;
@@ -302,7 +307,8 @@ function convertArmors(rows) {
     if (mpr) { bonuses.mpr = mpr; effects.push(fmtBonus('MPR', mpr)); }
     if (isHaste) { bonuses.haste = true; effects.push('헤이스트'); }
 
-    // 클래스 제한 (방어구는 다양한 조합 가능)
+    // 클래스 제한 (L1J CSV use_knight/use_elf/use_wizard 기반)
+    // ⚠️ 방패 포함 — L1J 원본에서 방패도 클래스별 사용 가능 여부가 다름
     const allCanUse = useKnight && useElf && useWizard;
     let classRestriction;
     if (!allCanUse) {
@@ -313,10 +319,6 @@ function convertArmors(rows) {
       if (classes.length > 0 && classes.length < 3) {
         classRestriction = classes;
       }
-    }
-    // 방패는 기사만
-    if (gameType === 'shield') {
-      classRestriction = ['knight'];
     }
 
     const tpl = {
@@ -329,6 +331,7 @@ function convertArmors(rows) {
     if (effects.length > 0) tpl.bonusEffects = effects;
     if (classRestriction) tpl.classRestriction = classRestriction;
     if (minLevel > 0) tpl.minLevel = minLevel;
+    // 방어구에는 isTwoHanded 없음
 
     templates.push(tpl);
   }
@@ -363,6 +366,7 @@ function generateTs(weapons, armors) {
     parts.push(`maxEnhance:${tpl.maxEnhance}`);
     parts.push(`sellPrice:${tpl.sellPrice}`);
     parts.push(`weight:${tpl.weight}`);
+    if (tpl.isTwoHanded) parts.push(`isTwoHanded:true`);
     if (tpl.bonuses) parts.push(`bonuses:${JSON.stringify(tpl.bonuses)}`);
     if (tpl.bonusEffects) parts.push(`bonusEffects:${JSON.stringify(tpl.bonusEffects)}`);
     if (tpl.classRestriction) parts.push(`classRestriction:${JSON.stringify(tpl.classRestriction)}`);

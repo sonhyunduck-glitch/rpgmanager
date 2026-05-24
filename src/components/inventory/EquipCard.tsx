@@ -15,7 +15,7 @@ export default function EquipCard({
   actionLabel: string;
   actionStyle: 'success' | 'ghost';
 }) {
-  const isWpn = eq.type === 'weapon';
+  const isWpn = eq.type === 'weapon' || eq.type === 'bow' || eq.type === 'staff';
   const enh = eq.enhanceLevel;
 
   return (
@@ -75,7 +75,7 @@ export default function EquipCard({
         color: 'var(--text-dim)',
       }}>
         {isWpn
-          ? <>타격 {eq.baseAtk}/{eq.baseAtkLarge}{enh > 0 && <span style={{ color: 'var(--success)' }}> (+{enh})</span>}</>
+          ? <>타격 {eq.baseAtk}/{eq.baseAtkLarge}{enh > 0 && <span style={{ color: 'var(--success)' }}> (+{enh})</span>}{eq.isTwoHanded && <span style={{ color: 'var(--accent)', marginLeft: 4 }}>양손</span>}</>
           : <>AC {eq.baseDef}<span style={{ color: enh > 0 ? 'var(--success)' : 'var(--text-mute)' }}>+{enh}</span></>
         }
       </div>

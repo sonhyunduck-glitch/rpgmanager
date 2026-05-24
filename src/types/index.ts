@@ -59,6 +59,7 @@ export interface EquipmentTemplate {
   maxEnhance: number;
   sellPrice: number;
   weight: number;            // 무게 (L1J 1/10 단위 그대로)
+  isTwoHanded?: boolean;     // 양손 무기 여부 (L1J is_twohanded) — 방패 동시 장착 불가
   bonuses?: EquipBonuses;
   bonusEffects?: string[];  // UI 표시용 텍스트
   classRestriction?: PlayerClass[];  // 장착 가능 클래스 (없으면 전체)
@@ -80,6 +81,7 @@ export interface Equipment {
   bonusEffects: string[];   // UI 표시용 텍스트
   sellPrice: number;
   weight: number;            // 무게 (L1J 1/10 단위 그대로)
+  isTwoHanded?: boolean;     // 양손 무기 여부 (L1J is_twohanded)
 }
 
 // ── Hunting ──

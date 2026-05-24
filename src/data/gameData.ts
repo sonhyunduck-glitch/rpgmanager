@@ -191,17 +191,17 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   oriharukon_sword:    { id: 'oriharukon_sword',    name: '싸울아비 장검',       type: 'weapon', baseAtk: 16, baseAtkLarge: 10, baseDef: 0, maxEnhance: 10,  sellPrice: 17500,  weight: 120000,  bonuses: { hit: 2 }, bonusEffects: ['명중+2'] },
   dk_flame_sword:      { id: 'dk_flame_sword',      name: '데스나이트의 불검',   type: 'weapon', baseAtk: 16, baseAtkLarge: 10, baseDef: 0, maxEnhance: 10,  sellPrice: 800,  weight: 40000,  bonuses: { hit: 5, extraDmg: 2, unbreakable: true }, bonusEffects: ['손상되지 않음', '명중+5', '추타+2'] },
 
-  // ── 양손검 (4종) ──
-  ancient_sword:       { id: 'ancient_sword',       name: '고대의 검',          type: 'weapon', baseAtk: 35, baseAtkLarge: 20, baseDef: 0, maxEnhance: 0,  sellPrice: 1500, weight: 30000,  bonuses: { hit: 5 }, bonusEffects: ['명중+5', '강화 불가'] },
-  duke_two_hand:       { id: 'duke_two_hand',       name: '무관의 양손검',       type: 'weapon', baseAtk: 14, baseAtkLarge: 18, baseDef: 0, maxEnhance: 10,  sellPrice: 500,  weight: 150000,  bonuses: { hit: 1, extraDmg: 2 }, bonusEffects: ['명중+1', '추타+2'] },
-  dragon_slayer:       { id: 'dragon_slayer',       name: '드래곤 슬레이어',     type: 'weapon', baseAtk: 17, baseAtkLarge: 14, baseDef: 0, maxEnhance: 10,  sellPrice: 1000, weight: 180000,  bonuses: { extraDmg: 3, unbreakable: true }, bonusEffects: ['손상되지 않음', '추타+3'] },
-  ancient_great_sword: { id: 'ancient_great_sword', name: '고대의 대검',        type: 'weapon', baseAtk: 24, baseAtkLarge: 42, baseDef: 0, maxEnhance: 0,  sellPrice: 2500, weight: 70000,  bonuses: { hit: 3 }, bonusEffects: ['명중+3', '강화 불가'] },
+  // ── 양손검 (4종, isTwoHanded — 방패 동시 장착 불가) ──
+  ancient_sword:       { id: 'ancient_sword',       name: '고대의 검',          type: 'weapon', baseAtk: 35, baseAtkLarge: 20, baseDef: 0, maxEnhance: 0,  sellPrice: 1500, weight: 30000,  isTwoHanded: true, bonuses: { hit: 5 }, bonusEffects: ['명중+5', '강화 불가'] },
+  duke_two_hand:       { id: 'duke_two_hand',       name: '무관의 양손검',       type: 'weapon', baseAtk: 14, baseAtkLarge: 18, baseDef: 0, maxEnhance: 10,  sellPrice: 500,  weight: 150000,  isTwoHanded: true, bonuses: { hit: 1, extraDmg: 2 }, bonusEffects: ['명중+1', '추타+2'] },
+  dragon_slayer:       { id: 'dragon_slayer',       name: '드래곤 슬레이어',     type: 'weapon', baseAtk: 17, baseAtkLarge: 14, baseDef: 0, maxEnhance: 10,  sellPrice: 1000, weight: 180000,  isTwoHanded: true, bonuses: { extraDmg: 3, unbreakable: true }, bonusEffects: ['손상되지 않음', '추타+3'] },
+  ancient_great_sword: { id: 'ancient_great_sword', name: '고대의 대검',        type: 'weapon', baseAtk: 24, baseAtkLarge: 42, baseDef: 0, maxEnhance: 0,  sellPrice: 2500, weight: 70000,  isTwoHanded: true, bonuses: { hit: 3 }, bonusEffects: ['명중+3', '강화 불가'] },
 
-  // ── 활 (요정 전용, type: bow) ──
-  wooden_bow:            { id: 'wooden_bow',            name: '나무 활',             type: 'bow',   baseAtk: 6,  baseAtkLarge: 8,  baseDef: 0, maxEnhance: 10, sellPrice: 50,   weight: 30000,  classRestriction: ['elf'] },
-  long_bow:              { id: 'long_bow',              name: '롱 보우',             type: 'bow',   baseAtk: 8,  baseAtkLarge: 10, baseDef: 0, maxEnhance: 10, sellPrice: 500,  weight: 40000,  classRestriction: ['elf'] },
-  elven_bow:             { id: 'elven_bow',             name: '요정 활',             type: 'bow',   baseAtk: 12, baseAtkLarge: 14, baseDef: 0, maxEnhance: 10, sellPrice: 5000, weight: 30000,  classRestriction: ['elf'], bonuses: { bowHit: 2 }, bonusEffects: ['활 명중+2'] },
-  ancient_elven_bow:     { id: 'ancient_elven_bow',     name: '고대 정령의 활',       type: 'bow',   baseAtk: 15, baseAtkLarge: 18, baseDef: 0, maxEnhance: 10, sellPrice: 20000, weight: 30000,  classRestriction: ['elf'], bonuses: { bowHit: 3, bowDmg: 2 }, bonusEffects: ['활 명중+3', '활 추타+2'] },
+  // ── 활 (요정 전용, type: bow, L1J: is_twohanded=1) ──
+  wooden_bow:            { id: 'wooden_bow',            name: '나무 활',             type: 'bow',   baseAtk: 6,  baseAtkLarge: 8,  baseDef: 0, maxEnhance: 10, sellPrice: 50,   weight: 30000,  isTwoHanded: true, classRestriction: ['elf'] },
+  long_bow:              { id: 'long_bow',              name: '롱 보우',             type: 'bow',   baseAtk: 8,  baseAtkLarge: 10, baseDef: 0, maxEnhance: 10, sellPrice: 500,  weight: 40000,  isTwoHanded: true, classRestriction: ['elf'] },
+  elven_bow:             { id: 'elven_bow',             name: '요정 활',             type: 'bow',   baseAtk: 12, baseAtkLarge: 14, baseDef: 0, maxEnhance: 10, sellPrice: 5000, weight: 30000,  isTwoHanded: true, classRestriction: ['elf'], bonuses: { bowHit: 2 }, bonusEffects: ['활 명중+2'] },
+  ancient_elven_bow:     { id: 'ancient_elven_bow',     name: '고대 정령의 활',       type: 'bow',   baseAtk: 15, baseAtkLarge: 18, baseDef: 0, maxEnhance: 10, sellPrice: 20000, weight: 30000,  isTwoHanded: true, classRestriction: ['elf'], bonuses: { bowHit: 3, bowDmg: 2 }, bonusEffects: ['활 명중+3', '활 추타+2'] },
 
   // ── 지팡이 (마법사 전용, type: staff) ──
   oak_staff:             { id: 'oak_staff',             name: '참나무 지팡이',        type: 'staff', baseAtk: 4,  baseAtkLarge: 4,  baseDef: 0, maxEnhance: 10, sellPrice: 50,   weight: 15000,  classRestriction: ['wizard'], bonuses: { mr: 2, sp: 1 }, bonusEffects: ['MR+2', 'SP+1'] },

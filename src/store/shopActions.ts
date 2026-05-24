@@ -28,9 +28,8 @@ export function createShopActions(set: SetState, get: GetState, save: SaveFn) {
       const state = get();
       const tmpl = EQUIPMENT_TEMPLATES[templateId];
       if (!tmpl) return;
-      // 클래스 제한 체크
-      if (!canClassEquip(state.playerClass, tmpl.type as EquipType)) return;
-      if (tmpl.classRestriction && !tmpl.classRestriction.includes(state.playerClass)) return;
+      // 클래스 제한 체크 (L1J: 아이템별 classRestriction)
+      if (!canClassEquip(state.playerClass, tmpl.type as EquipType, tmpl.classRestriction)) return;
       const shopPrice = tmpl.sellPrice * 2;
       if (state.gold < shopPrice) return;
       if (state.inventory.length >= state.inventoryCapacity) return;

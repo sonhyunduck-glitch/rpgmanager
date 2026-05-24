@@ -78,21 +78,38 @@ export function createEquipActions(set: SetState, get: GetState, save: SaveFn) {
         // 클래스/레벨 제한 체크 — 불가 시 인벤토리에 보관
         const eqTpl = EQUIPMENT_TEMPLATES[eq.templateId];
         const levelBlocked = eqTpl?.minLevel ? state.level < eqTpl.minLevel : false;
-        if (!canClassEquip(state.playerClass, eq.type as EquipType) || levelBlocked) {
+        // 양손 무기 ↔ 방패 체크
+        const isTwoHanded = eq.isTwoHanded || eqTpl?.isTwoHanded;
+        const twoHandBlocked = eq.type === 'shield' && state.equippedWeapon
+          && (state.equippedWeapon.isTwoHanded || EQUIPMENT_TEMPLATES[state.equippedWeapon.templateId]?.isTwoHanded);
+
+        if (!canClassEquip(state.playerClass, eq.type as EquipType, eqTpl?.classRestriction) || levelBlocked || twoHandBlocked) {
           if (state.inventory.length < state.inventoryCapacity) {
             updates.inventory = [...(updates.inventory ?? state.inventory), eq];
           }
           // 장착 불가 + 인벤토리 가득 → 드랍 (아무 처리 안 함)
         } else {
+          // 양손 무기 장착 시 방패 자동 해제
+          if (isTwoHanded && state.equippedShield) {
+            const inv = updates.inventory ?? [...state.inventory];
+            if (inv.length < state.inventoryCapacity) {
+              inv.push(state.equippedShield);
+              updates.inventory = inv;
+            } else {
+              updates.gold = (updates.gold ?? state.gold) + state.equippedShield.sellPrice;
+            }
+            (updates as unknown as Record<string, unknown>).equippedShield = null;
+          }
+
           let slotKey = EQUIP_TYPE_TO_SLOT[eq.type];
           if (eq.type === 'ring' && state.equippedRing) slotKey = 'equippedRing2';
           if (slotKey) {
             const old = (state as unknown as Record<string, unknown>)[slotKey] as Equipment | null;
             (updates as unknown as Record<string, unknown>)[slotKey] = eq;
             if (old && state.inventory.length < state.inventoryCapacity) {
-              updates.inventory = [...state.inventory, old];
+              updates.inventory = [...(updates.inventory ?? state.inventory), old];
             } else if (old) {
-              updates.gold = state.gold + old.sellPrice;
+              updates.gold = (updates.gold ?? state.gold) + old.sellPrice;
             }
           }
         }
@@ -349,14 +366,35 @@ export function createEquipActions(set: SetState, get: GetState, save: SaveFn) {
       const state = get();
       const eq = state.inventory.find(e => e.uid === uid);
       if (!eq) return;
-      // 클래스 장비 제한 체크
-      if (!canClassEquip(state.playerClass, eq.type as EquipType)) return;
-      // 레벨 제한 체크
+      // 클래스 장비 제한 체크 (L1J: 아이템별 classRestriction)
       const tpl = EQUIPMENT_TEMPLATES[eq.templateId];
+      if (!canClassEquip(state.playerClass, eq.type as EquipType, tpl?.classRestriction)) return;
+      // 레벨 제한 체크
       if (tpl?.minLevel && state.level < tpl.minLevel) return;
 
       const newInventory = state.inventory.filter(e => e.uid !== uid);
       const updates: Partial<GameState> = { inventory: newInventory };
+
+      // ── 양손 무기 ↔ 방패 상호 배제 (L1J is_twohanded) ──
+      const isTwoHanded = eq.isTwoHanded || tpl?.isTwoHanded;
+
+      if (eq.type === 'shield') {
+        // 방패 장착 시: 현재 무기가 양손이면 장착 불가
+        const curWeapon = state.equippedWeapon;
+        if (curWeapon) {
+          const wTpl = EQUIPMENT_TEMPLATES[curWeapon.templateId];
+          if (curWeapon.isTwoHanded || wTpl?.isTwoHanded) return; // 양손 무기 사용 중 → 방패 장착 불가
+        }
+      }
+
+      if (isTwoHanded) {
+        // 양손 무기 장착 시: 방패 자동 해제 → 인벤토리로
+        const curShield = state.equippedShield;
+        if (curShield) {
+          newInventory.push(curShield);
+          (updates as unknown as Record<string, unknown>).equippedShield = null;
+        }
+      }
 
       let slotKey = EQUIP_TYPE_TO_SLOT[eq.type];
       if (eq.type === 'ring' && state.equippedRing) slotKey = 'equippedRing2';

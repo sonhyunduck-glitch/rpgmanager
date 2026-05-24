@@ -109,14 +109,16 @@ export function getStatCap(pc: PlayerClass, stat: StatKey): number {
   return 18;
 }
 
-/** 클래스가 해당 장비 타입을 장착할 수 있는지 확인 */
-export function canClassEquip(pc: PlayerClass, eqType: EquipType): boolean {
-  // 공용 방어구: 모든 클래스 장착 가능
-  if (['tshirt', 'armor', 'helmet', 'cloak', 'gloves', 'boots', 'necklace', 'ring', 'belt', 'earring'].includes(eqType)) {
-    return true;
-  }
-  // 방패: 기사만
-  if (eqType === 'shield') return CLASS_CONFIGS[pc].canUseShield;
-  // 무기류: 클래스별 허용 타입
-  return CLASS_CONFIGS[pc].allowedWeaponTypes.includes(eqType);
+/**
+ * 클래스가 해당 장비를 장착할 수 있는지 확인
+ *
+ * L1J 원본: 개별 아이템의 use_knight/use_elf/use_wizard 플래그가
+ * 장착 가능 여부를 결정 (classRestriction).
+ * 타입 기반 일괄 제한은 L1J에 없음.
+ *
+ * @param classRestriction 아이템별 장착 가능 클래스 (없으면 전체 허용)
+ */
+export function canClassEquip(pc: PlayerClass, _eqType: EquipType, classRestriction?: PlayerClass[]): boolean {
+  if (classRestriction && !classRestriction.includes(pc)) return false;
+  return true;
 }

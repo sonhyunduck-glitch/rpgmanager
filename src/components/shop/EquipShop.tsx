@@ -2,8 +2,7 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { EQUIPMENT_TEMPLATES } from '../../data/gameData';
-import { canClassEquip } from '../../data/classData';
-import type { ShopTab, EquipmentTemplate, EquipType } from '../../types';
+import type { ShopTab, EquipmentTemplate } from '../../types';
 // shared styles not needed — sub-tabs use inline styles
 
 /** 공격 타입 장비인지 (무기/활/지팡이) */
@@ -63,6 +62,7 @@ function EquipRow({ tmpl, canBuy, buyEquip }: {
           fontFamily: 'var(--font-mono)',
         }}>
           <span>{isAtkType(tmpl.type) ? `타격 ${tmpl.baseAtk}/${tmpl.baseAtkLarge}` : `AC ${tmpl.baseDef}`}</span>
+          {tmpl.isTwoHanded && <span style={{ color: 'var(--accent)' }}>양손</span>}
         </div>
         {tmpl.bonusEffects && tmpl.bonusEffects.length > 0 && (
           <div style={{
@@ -141,8 +141,7 @@ export default function EquipShop({
 
   const items = all
     .filter(t => t.type === activeGroup.type)
-    .filter(t => canClassEquip(playerClass, t.type as EquipType)
-      && (!t.classRestriction || t.classRestriction.includes(playerClass)))
+    .filter(t => !t.classRestriction || t.classRestriction.includes(playerClass))
     .sort((a, b) => a.sellPrice - b.sellPrice);
 
   return (

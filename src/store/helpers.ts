@@ -25,7 +25,7 @@ export function genLogId(): string {
 /** Create a new Equipment instance from a template ID. */
 export function createEquipment(templateId: string): Equipment {
   const t = EQUIPMENT_TEMPLATES[templateId];
-  return {
+  const eq: Equipment = {
     uid: genUid(),
     templateId: t.id,
     name: t.name,
@@ -41,6 +41,8 @@ export function createEquipment(templateId: string): Equipment {
     sellPrice: t.sellPrice,
     weight: t.weight,
   };
+  if (t.isTwoHanded) eq.isTwoHanded = true;
+  return eq;
 }
 
 /**

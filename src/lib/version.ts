@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.13.0 — L1J 스킬 36종 추가 + 장비 무게 시스템 + 소지 제한
-export const APP_VERSION = '2.13.0';
+// v2.14.0 — 상점 전체 무기/방패 표시 + L1J 양손무기 시스템 + classRestriction CSV 기반
+export const APP_VERSION = '2.14.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
