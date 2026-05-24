@@ -179,9 +179,12 @@ export default function Minimap() {
   const hunt = useGameStore(s => s.hunt);
   const combatLog = useGameStore(s => s.combatLog);
   const level = useGameStore(s => s.level);
+  const currentHp = useGameStore(s => s.currentHp);
   const setPlayerMoving = useGameStore(s => s.setPlayerMoving);
   const getMoveSpeedMult = useGameStore(s => s.getMoveSpeedMult);
   const startApproach = useGameStore(s => s.startApproach);
+  const resumeHunt = useGameStore(s => s.resumeHunt);
+  const revive = useGameStore(s => s.revive);
   const zonePlayerCount = useGameStore(s => s.zonePlayerCount);
   const playerClass = useGameStore(s => s.playerClass);
   const combatStyle: CombatStyle = getClassCombatStyle(playerClass);
@@ -1152,6 +1155,65 @@ export default function Minimap() {
         <span style={{ position: 'absolute', top: 8, right: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
           {VISIBLE_MONSTERS}m
         </span>
+
+        {/* ── 전투 중지 / 사망 오버레이 ── */}
+        {(() => {
+          const isDead = currentHp <= 0;
+          const isPaused = hunt.status === 'paused';
+          if (!isDead && !isPaused) return null;
+          return (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: isDead
+                  ? 'radial-gradient(ellipse at center, rgba(180,30,30,0.45) 0%, rgba(0,0,0,0.65) 100%)'
+                  : 'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 100%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                zIndex: 50,
+              }}
+            >
+              <span style={{
+                fontSize: 'var(--fs-sm)',
+                fontWeight: 700,
+                fontFamily: 'var(--font-mono)',
+                color: isDead ? '#ff6b6b' : 'var(--warning)',
+                textShadow: `0 0 8px ${isDead ? 'rgba(255,60,60,0.6)' : 'rgba(255,180,0,0.4)'}`,
+                letterSpacing: 1,
+              }}>
+                {isDead ? '💀 사망' : '⏸ 일시정지'}
+              </span>
+              <button
+                onClick={() => { isDead ? revive() : resumeHunt(); }}
+                style={{
+                  padding: '8px 24px',
+                  borderRadius: 'var(--r-md)',
+                  border: 'none',
+                  background: isDead
+                    ? 'linear-gradient(135deg, #e53935, #c62828)'
+                    : 'linear-gradient(135deg, var(--success), oklch(0.66 0.16 135))',
+                  color: '#fff',
+                  fontSize: 'var(--fs-sm)',
+                  fontWeight: 800,
+                  fontFamily: 'var(--font-ui)',
+                  cursor: 'pointer',
+                  boxShadow: isDead
+                    ? '0 0 16px rgba(229,57,53,0.5)'
+                    : '0 0 16px rgba(76,175,80,0.4)',
+                  transition: 'transform 0.1s ease',
+                }}
+                onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.95)')}
+                onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+              >
+                {isDead ? '부활하기' : '▶ 사냥 시작'}
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
 
