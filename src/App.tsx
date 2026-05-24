@@ -12,6 +12,7 @@ import TradePanel from './components/trade/TradePanel';
 import SkillPanel from './components/skills/SkillPanel';
 import ChatPanel from './components/chat/ChatPanel';
 import RightPanel from './components/layout/RightPanel';
+import ProfilePanel from './components/profile/ProfileModal';
 import Leaderboard from './components/guild/Leaderboard';
 import GuildPanel from './components/guild/GuildPanel';
 import OfflineRewardModal from './components/offline/OfflineRewardModal';
@@ -80,7 +81,11 @@ export default function App({ userId }: AppProps) {
     };
   }, [huntStatus, tickHunt, getAtkSpeedMult]);
 
-  const isWideCenter = viewMode === 'inventory' || viewMode === 'zones' || viewMode === 'shop' || viewMode === 'trade' || viewMode === 'skills' || viewMode === 'ranking' || viewMode === 'guild';
+  const viewingProfileId = useGameStore(s => s.viewingProfileId);
+
+  // 프로필 조회 중이면 우측 패널이 필요하므로 3컬럼
+  const hasRightPanel = viewMode === 'main' || !!viewingProfileId;
+  const isWideCenter = !hasRightPanel;
 
   return (
     <div style={{
@@ -138,8 +143,14 @@ export default function App({ userId }: AppProps) {
         {viewMode === 'ranking' && <Leaderboard />}
         {viewMode === 'guild' && <GuildPanel />}
 
-        {/* 우측: 사냥터 카드 + 전투 로그 */}
-        {viewMode === 'main' && <RightPanel />}
+        {/* 우측 패널: 프로필 조회 중이면 프로필, 아니면 기본(사냥터+로그) */}
+        {viewingProfileId ? (
+          <div style={{ height: '100%', minHeight: 0, overflow: 'hidden' }}>
+            <ProfilePanel />
+          </div>
+        ) : viewMode === 'main' ? (
+          <RightPanel />
+        ) : null}
       </div>
 
       {/* 전역 모달 오버레이 */}
