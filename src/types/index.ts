@@ -225,6 +225,9 @@ export interface Potion {
   healMax: number;
   buyPrice: number;
   requiredLevel: number;
+  // MP 회복 물약 전용
+  mpHealMin?: number;         // MP 회복 최소
+  mpHealMax?: number;         // MP 회복 최대
   // 버프 물약 전용 (buffDuration이 있으면 버프 물약)
   buffDuration?: number;      // 초
   atkSpeedMult?: number;      // 공격속도 배율

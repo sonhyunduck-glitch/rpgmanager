@@ -78,6 +78,16 @@ export function createShopActions(set: SetState, get: GetState, save: SaveFn) {
       save(get());
     },
 
+    toggleMpPotionAutoUse: () => {
+      set(s => ({ mpPotionAutoUse: !s.mpPotionAutoUse }));
+      save(get());
+    },
+
+    setMpPotionAutoThreshold: (pct: number) => {
+      set({ mpPotionAutoThreshold: Math.max(10, Math.min(90, pct)) });
+      save(get());
+    },
+
     toggleGreenPotion: () => {
       set(s => ({ greenPotionEnabled: !s.greenPotionEnabled }));
       save(get());

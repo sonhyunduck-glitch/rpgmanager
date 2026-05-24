@@ -196,6 +196,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       let shouldAdvanceFloor = false;
       let killed = false;
       let newLastPotionUsedAt = state.lastPotionUsedAt;
+      let newLastMpPotionUsedAt = state.lastMpPotionUsedAt;
       const fightTicks = isNewTarget ? 1 : hunt.currentFightTicks + 1;
       let currentJoined = [...(hunt.joinedMonsters ?? [])];
       let currentApproaching = [...(hunt.approachingMonsters ?? [])];
@@ -981,6 +982,29 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         }
       }
 
+      // ── 파란 물약 자동 사용 (MP 회복, 쿨타임: 1틱 = 3초) ──
+      const mpPotionCooldownReady = now - state.lastMpPotionUsedAt >= POTION_COOLDOWN_MS;
+      if (newCurrentHp > 0 && maxMp > 0 && state.mpPotionAutoUse && mpPotionCooldownReady) {
+        const mpPct = (huntMp / maxMp) * 100;
+        if (mpPct <= state.mpPotionAutoThreshold) {
+          const bpCount = newPotions['blue_potion'] ?? 0;
+          if (bpCount > 0) {
+            const bp = POTIONS['blue_potion'];
+            if (bp && bp.mpHealMin != null && bp.mpHealMax != null) {
+              const mpHeal = bp.mpHealMin + secureRandomInt(0, bp.mpHealMax - bp.mpHealMin);
+              huntMp = Math.min(maxMp, huntMp + mpHeal);
+              newPotions['blue_potion'] = bpCount - 1;
+              newLastMpPotionUsedAt = now;
+              newLogs.push({
+                id: genLogId(), type: 'potion',
+                text: `${bp.name} 사용! MP +${mpHeal} (MP: ${huntMp}/${maxMp})`,
+                timestamp: Date.now(),
+              });
+            }
+          }
+        }
+      }
+
       // ── 다음 타겟 선택 ──
       let nextTargetId: string | null = killed ? null : monster.id;
       let nextMonsterHp = killed ? 0 : monsterHp;
@@ -1029,6 +1053,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         inventory: newInventory, materials: newMaterials,
         potions: newPotions, activeBuffs: newActiveBuffs,
         lastPotionUsedAt: newLastPotionUsedAt,
+        lastMpPotionUsedAt: newLastMpPotionUsedAt,
         combatLog: [...state.combatLog, ...newLogs].slice(-80),
         hunt: {
           ...hunt,

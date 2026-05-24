@@ -108,6 +108,10 @@ export interface GameState {
   potionAutoThreshold: number;
   lastPotionUsedAt: number;    // 물약 쿨타임 (timestamp)
   potionAutoBuy: boolean;
+  // MP 물약
+  mpPotionAutoUse: boolean;
+  mpPotionAutoThreshold: number;  // MP% 이하일 때 자동 사용
+  lastMpPotionUsedAt: number;
 
   // Skills
   equippedSkills: number[];  // 슬롯에 장착된 스킬 ID 목록 (최대 8)
@@ -189,6 +193,8 @@ export interface GameState {
   togglePotionAutoUse: () => void;
   setPotionAutoThreshold: (pct: number) => void;
   togglePotionAutoBuy: () => void;
+  toggleMpPotionAutoUse: () => void;
+  setMpPotionAutoThreshold: (pct: number) => void;
   toggleGreenPotion: () => void;
   toggleCouragePotion: () => void;
   toggleTransformScroll: () => void;

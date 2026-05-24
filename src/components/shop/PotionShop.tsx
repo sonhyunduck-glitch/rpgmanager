@@ -5,7 +5,8 @@ import { LABEL } from '../../styles/shared';
 const POTION_COLOR: Record<string, string> = {
   red_potion: '#ef5350',
   crimson_potion: '#ff7043',
-  clear_potion: '#42a5f5',
+  clear_potion: '#80cbc4',
+  blue_potion: '#42a5f5',
   green_potion: '#66bb6a',
   courage_potion: '#ab47bc',
 };
@@ -66,6 +67,8 @@ export default function PotionShop({
                     {p.moveSpeedMult && p.moveSpeedMult > 1 && ` 이속 ×${p.moveSpeedMult}`}
                     {` (${p.buffDuration}초)`}
                   </>
+                ) : p.mpHealMin != null ? (
+                  <>MP {p.mpHealMin}~{p.mpHealMax} 회복</>
                 ) : (
                   <>HP {p.healMin}~{p.healMax} 회복</>
                 )}

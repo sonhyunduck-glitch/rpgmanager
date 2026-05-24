@@ -422,8 +422,8 @@ function TabBuffs() {
    Tab: 소모품 (물약 + 자동설정 + 변신주문서)
    ═══════════════════════════════ */
 const POTION_COLORS: Record<string, string> = {
-  red_potion: '#ef5350', crimson_potion: '#ff7043', clear_potion: '#42a5f5',
-  green_potion: '#66bb6a', courage_potion: '#ab47bc',
+  red_potion: '#ef5350', crimson_potion: '#ff7043', clear_potion: '#80cbc4',
+  blue_potion: '#42a5f5', green_potion: '#66bb6a', courage_potion: '#ab47bc',
 };
 const THRESHOLDS = [30, 50, 70];
 
@@ -433,6 +433,8 @@ function TabConsumables() {
   const selectedPotionId = useGameStore(s => s.selectedPotionId);
   const potionAutoUse = useGameStore(s => s.potionAutoUse);
   const potionAutoThreshold = useGameStore(s => s.potionAutoThreshold);
+  const mpPotionAutoUse = useGameStore(s => s.mpPotionAutoUse);
+  const mpPotionAutoThreshold = useGameStore(s => s.mpPotionAutoThreshold);
 
   const greenPotionEnabled = useGameStore(s => s.greenPotionEnabled);
   const couragePotionEnabled = useGameStore(s => s.couragePotionEnabled);
@@ -444,6 +446,8 @@ function TabConsumables() {
   const setSelectedPotion = useGameStore(s => s.setSelectedPotion);
   const togglePotionAutoUse = useGameStore(s => s.togglePotionAutoUse);
   const setPotionAutoThreshold = useGameStore(s => s.setPotionAutoThreshold);
+  const toggleMpPotionAutoUse = useGameStore(s => s.toggleMpPotionAutoUse);
+  const setMpPotionAutoThreshold = useGameStore(s => s.setMpPotionAutoThreshold);
 
   const toggleGreenPotion = useGameStore(s => s.toggleGreenPotion);
   const toggleCouragePotion = useGameStore(s => s.toggleCouragePotion);
@@ -509,6 +513,44 @@ function TabConsumables() {
               border: potionAutoThreshold === t ? '1px solid var(--warning)' : '1px solid var(--border-soft)',
               background: potionAutoThreshold === t ? 'color-mix(in oklch, var(--warning) 15%, transparent)' : 'var(--bg-sunken)',
               color: potionAutoThreshold === t ? 'var(--warning)' : 'var(--text-mute)',
+              fontSize: F.tiny, fontWeight: 700, fontFamily: 'var(--font-mono)', cursor: 'pointer',
+            }}>{t}%</button>
+          ))}
+        </div>
+      )}
+
+      {/* ── 마력 물약 ── */}
+      <SectionTitle>마력 물약</SectionTitle>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '4px',
+        padding: '3px 6px', background: 'var(--bg-panel)',
+        border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)',
+      }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#42a5f5', flexShrink: 0 }} />
+        <span style={{ fontSize: F.value, fontWeight: 600, color: 'var(--text-dim)', flex: 1 }}>
+          {POTIONS['blue_potion'].name}
+        </span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: F.tiny, color: 'var(--text-faint)' }}>
+          MP {POTIONS['blue_potion'].mpHealMin}~{POTIONS['blue_potion'].mpHealMax}
+        </span>
+        <span style={{ ...STAT_VALUE, fontSize: F.tiny, color: (potions['blue_potion'] ?? 0) > 0 ? 'var(--accent)' : 'var(--danger)' }}>
+          x{potions['blue_potion'] ?? 0}
+        </span>
+      </div>
+      <ToggleRow label="자동 사용" active={mpPotionAutoUse} onToggle={toggleMpPotionAutoUse} />
+      {mpPotionAutoUse && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '3px',
+          padding: '3px 6px', background: 'var(--bg-panel)',
+          border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)',
+        }}>
+          <span style={{ fontSize: F.value, fontWeight: 600, color: 'var(--text-dim)', flex: 1 }}>MP 임계값</span>
+          {THRESHOLDS.map(t => (
+            <button key={t} onClick={() => setMpPotionAutoThreshold(t)} style={{
+              padding: '2px 6px', borderRadius: 'var(--r-xs)',
+              border: mpPotionAutoThreshold === t ? '1px solid #42a5f5' : '1px solid var(--border-soft)',
+              background: mpPotionAutoThreshold === t ? 'color-mix(in oklch, #42a5f5 15%, transparent)' : 'var(--bg-sunken)',
+              color: mpPotionAutoThreshold === t ? '#42a5f5' : 'var(--text-mute)',
               fontSize: F.tiny, fontWeight: 700, fontFamily: 'var(--font-mono)', cursor: 'pointer',
             }}>{t}%</button>
           ))}

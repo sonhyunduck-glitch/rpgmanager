@@ -273,12 +273,15 @@ export const useGameStore = create<GameState>((set, get) => ({
   queueCapacity: (saved?.queueCapacity as number) ?? 6,
 
   // ── Potions ──
-  potions: (saved?.potions as Record<string, number>) ?? { red_potion: 300, green_potion: 50 },
+  potions: (saved?.potions as Record<string, number>) ?? { red_potion: 300, green_potion: 50, blue_potion: 50 },
   selectedPotionId: (saved?.selectedPotionId as string) ?? 'red_potion',
   potionAutoUse: (saved?.potionAutoUse as boolean) ?? true,
   potionAutoThreshold: (saved?.potionAutoThreshold as number) ?? 50,
   potionAutoBuy: (saved?.potionAutoBuy as boolean) ?? true,
   lastPotionUsedAt: 0,
+  mpPotionAutoUse: (saved?.mpPotionAutoUse as boolean) ?? true,
+  mpPotionAutoThreshold: (saved?.mpPotionAutoThreshold as number) ?? 30,
+  lastMpPotionUsedAt: 0,
 
   // ── Skills ──
   equippedSkills: (saved?.equippedSkills as number[]) ?? [],

@@ -111,12 +111,16 @@ export const POTIONS: Record<string, Potion> = {
   red_potion:     { id: 'red_potion',     name: '빨간 물약', healMin: 6,  healMax: 27,  buyPrice: 37,  requiredLevel: 1 },
   crimson_potion: { id: 'crimson_potion', name: '주홍 물약', healMin: 26, healMax: 68,  buyPrice: 200, requiredLevel: 1 },
   clear_potion:   { id: 'clear_potion',   name: '맑은 물약', healMin: 44, healMax: 107, buyPrice: 600, requiredLevel: 1 },
+  blue_potion:    { id: 'blue_potion',    name: '파란 물약', healMin: 0,  healMax: 0,   buyPrice: 700, requiredLevel: 1,
+                    mpHealMin: 8, mpHealMax: 30 },
   green_potion:   { id: 'green_potion',   name: '초록 물약', healMin: 0,  healMax: 0,   buyPrice: 200, requiredLevel: 1,
                     buffDuration: 300, atkSpeedMult: 1.33, moveSpeedMult: 1.33 },
   courage_potion: { id: 'courage_potion', name: '용기의 물약', healMin: 0, healMax: 0,  buyPrice: 800, requiredLevel: 1,
                     buffDuration: 300, atkSpeedMult: 1.33 },
 };
-export const POTION_ORDER = ['red_potion', 'crimson_potion', 'clear_potion', 'green_potion', 'courage_potion'];
+export const POTION_ORDER = ['red_potion', 'crimson_potion', 'clear_potion', 'blue_potion', 'green_potion', 'courage_potion'];
+/** MP 물약만 (자동사용 순환용) */
+export const MP_POTION_ORDER = ['blue_potion'];
 /** 힐 물약만 (자동사용 순환용) */
 export const HEAL_POTION_ORDER = ['red_potion', 'crimson_potion', 'clear_potion'];
 

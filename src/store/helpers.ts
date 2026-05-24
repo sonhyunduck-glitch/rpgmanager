@@ -142,6 +142,8 @@ export function saveState(state: {
   potionAutoUse: boolean;
   potionAutoThreshold: number;
   potionAutoBuy: boolean;
+  mpPotionAutoUse: boolean;
+  mpPotionAutoThreshold: number;
   activeBuffs: ActiveBuff[];
   greenPotionEnabled?: boolean;
   couragePotionEnabled?: boolean;
@@ -159,6 +161,7 @@ export function saveState(state: {
       hunt, queue, queueCapacity,
       statAllocation, maxHp,
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
+      mpPotionAutoUse, mpPotionAutoThreshold,
       activeBuffs,
       greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
       equippedSkills,
@@ -174,6 +177,7 @@ export function saveState(state: {
       queue, queueCapacity,
       statAllocation, maxHp,
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
+      mpPotionAutoUse, mpPotionAutoThreshold,
       activeBuffs,
       greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
       equippedSkills,
