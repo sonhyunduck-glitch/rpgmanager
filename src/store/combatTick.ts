@@ -224,8 +224,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       const now = Date.now();
       let newActiveBuffs = [...state.activeBuffs].filter(b => b.expiresAt > now);
 
-      // 장비 헤이스트 체크 (초록물약 중복 방지용)
+      // 헤이스트 그룹 중복 체크 (장비/스킬 헤이스트 있으면 초록물약 스킵)
       const hasEquipHaste = getAllEquipped(state).some(eq => eq?.bonuses?.haste);
+      const HASTE_SKILL_IDS = new Set([43, 87, 149, 150]);
+      const hasSkillHaste = newActiveBuffs.some(b => b.skillId && HASTE_SKILL_IDS.has(b.skillId) && b.expiresAt > now);
+      const hasAnyHaste = hasEquipHaste || hasSkillHaste;
 
       for (const pid of POTION_ORDER) {
         const p = POTIONS[pid];
@@ -234,8 +237,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (p.classRestriction && !p.classRestriction.includes(state.playerClass)) continue;
         if (pid === 'blue_potion' && !state.bluePotionEnabled) continue;
         if (pid === 'green_potion' && !state.greenPotionEnabled) continue;
-        // 장비 헤이스트와 초록물약 중복 불가 (L1J: 동일 haste 그룹)
-        if (pid === 'green_potion' && hasEquipHaste) continue;
+        // 장비/스킬 헤이스트와 초록물약 중복 불가 (L1J: 동일 haste 그룹)
+        if (pid === 'green_potion' && hasAnyHaste) continue;
         // brave 계열 (용기/와퍼/지혜) — 동일 토글 사용
         if ((pid === 'courage_potion' || pid === 'elven_wafer' || pid === 'wisdom_potion') && !state.couragePotionEnabled) continue;
         const alreadyActive = newActiveBuffs.some(b => b.potionId === pid);
@@ -321,10 +324,14 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           .map(b => b.skillId!);
         const buffSkills = getAvailableBuffs(state.playerClass, state.level, huntMp, activeSkillBuffIds)
           .filter(s => equipped.includes(s.id) && !disabled.includes(s.id));
+        // 초록물약 활성 여부 (헤이스트 스킬 중복 방지용)
+        const hasGreenBuff = newActiveBuffs.some(b => b.potionId === 'green_potion' && b.expiresAt > now);
         for (const buff of buffSkills) {
           if (huntMp < buff.consumeMp) continue;
           // 쿨다운 체크
           if ((skillCooldowns[buff.id] ?? 0) > 0) continue;
+          // 헤이스트 스킬은 장비/초록물약 헤이스트와 중복 불가
+          if (HASTE_SKILL_IDS.has(buff.id) && (hasEquipHaste || hasGreenBuff)) continue;
           // 재료 소모 체크
           if (buff.consumeItemId && buff.consumeAmount) {
             const matKey = `e_${buff.consumeItemId}`;
