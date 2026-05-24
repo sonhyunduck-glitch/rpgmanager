@@ -385,8 +385,8 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
 // ── Styles ──
 
 const containerStyle: React.CSSProperties = {
-  width: '100vw',
-  height: '100vh',
+  width: '100%',
+  height: '100%',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
