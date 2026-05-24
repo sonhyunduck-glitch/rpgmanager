@@ -299,7 +299,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   // ── UI ──
   viewMode: 'main',
-  forgeTab: 'enhance',
   enhanceResult: null,
   enhanceTargetUid: null,
   enhanceAnim: null,
@@ -308,7 +307,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   offlineReward: null,
 
   setViewMode: (mode) => set({ viewMode: mode }),
-  setForgeTab: (tab) => set({ forgeTab: tab }),
 
   // ── Profile ──
   openProfile: (userId) => set({ viewingProfileId: userId }),

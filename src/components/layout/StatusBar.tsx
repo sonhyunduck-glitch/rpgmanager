@@ -18,7 +18,6 @@ const NAV_ITEMS: { mode: ViewMode; label: string }[] = [
   { mode: 'zones', label: '사냥터' },
   { mode: 'shop', label: '상점' },
   { mode: 'trade', label: '거래소' },
-  { mode: 'craft', label: '제작' },
   { mode: 'ranking', label: '랭킹' },
   { mode: 'guild', label: '클랜' },
 ];

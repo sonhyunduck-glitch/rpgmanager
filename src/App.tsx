@@ -3,11 +3,8 @@ import { useGameStore } from './store/gameStore';
 import { saveState as saveStateToLS } from './store/helpers';
 import StatusBar from './components/layout/StatusBar';
 import LeftPanel from './components/layout/LeftPanel';
-import CombatLog from './components/hunt/CombatLog';
-import CombatSummary from './components/hunt/CombatSummary';
 import CombatStatus from './components/hunt/CombatStatus';
 import Minimap from './components/hunt/Minimap';
-import ForgePanel from './components/forge/ForgePanel';
 import InventoryPanel from './components/inventory/InventoryPanel';
 import ZoneSelectPanel from './components/zones/ZoneSelectPanel';
 import ShopPanel from './components/shop/ShopPanel';
@@ -142,24 +139,8 @@ export default function App({ userId }: AppProps) {
         {viewMode === 'ranking' && <Leaderboard />}
         {viewMode === 'guild' && <GuildPanel />}
 
-        {viewMode === 'craft' && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--layout-gap)',
-            minHeight: 0,
-            overflow: 'hidden',
-          }}>
-            <CombatSummary />
-            <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              <CombatLog />
-            </div>
-          </div>
-        )}
-
         {/* 우측: 사냥터 카드 + 전투 로그 */}
         {viewMode === 'main' && <RightPanel />}
-        {viewMode === 'craft' && <ForgePanel />}
       </div>
 
       {/* 전역 모달 오버레이 */}

@@ -2,7 +2,7 @@
    STATIC GAME DATA — 몬스터, 사냥터, 장비 템플릿, 재료, 레시피
    ========================================================= */
 
-import type { EquipmentTemplate, Material, HuntZone, Recipe, Potion, PlayerClass } from '../types';
+import type { EquipmentTemplate, Material, HuntZone, Potion, PlayerClass } from '../types';
 import { generateHuntZones, getMonstersForTier, getMonstersForRoom, roomToTier } from './monsterData';
 import { CSV_EQUIPMENT } from './csvEquipData';
 import { ETC_ITEMS } from './dropData';
@@ -14,7 +14,7 @@ export { SHOP_ETC_ITEMS } from './shopItemData';
 export type { ShopEtcItem, ShopItemCategory } from './shopItemData';
 
 // Re-export types for backward compatibility
-export type { EquipmentTemplate, Material, Monster, HuntZone, Recipe, EquipType, ZoneTier, Potion } from '../types';
+export type { EquipmentTemplate, Material, Monster, HuntZone, EquipType, ZoneTier, Potion } from '../types';
 
 // ── Level Speed & Color ──
 /** (레거시) 레벨별 공격속도 패시브 — 변신주문서 시스템으로 이전됨
@@ -138,17 +138,8 @@ export function getBravePotionId(playerClass: PlayerClass): string {
   }
 }
 
-// ── Materials ──
+// ── Materials (주문서 + L1J 드롭 아이템) ──
 export const MATERIALS: Record<string, Material> = {
-  iron_ore:       { id: 'iron_ore',       name: '철광석',       sellPrice: 2 },
-  old_leather:    { id: 'old_leather',    name: '낡은 가죽',   sellPrice: 1 },
-  mithril_shard:  { id: 'mithril_shard',  name: '미스릴 파편', sellPrice: 5 },
-  orc_seal:       { id: 'orc_seal',       name: '오크의 인장', sellPrice: 15 },
-  soul_stone:     { id: 'soul_stone',     name: '영혼석',       sellPrice: 10 },
-  cursed_iron:    { id: 'cursed_iron',    name: '저주받은 철', sellPrice: 8 },
-  slime_gel:      { id: 'slime_gel',      name: '점액질',       sellPrice: 1 },
-  wood_piece:     { id: 'wood_piece',     name: '나무 조각',   sellPrice: 1 },
-
   // ── 변신주문서 ──
   transform_scroll:       { id: 'transform_scroll',       name: '변신주문서',                 sellPrice: 250 },
   event_transform_scroll: { id: 'event_transform_scroll', name: '이벤트 변신주문서',           sellPrice: 500 },
@@ -496,52 +487,6 @@ export const EQUIPMENT_TEMPLATES: Record<string, EquipmentTemplate> = merged;
 
 // ── Hunt Zones (monsterData.ts 에서 생성) ──
 export const HUNT_ZONES: HuntZone[] = generateHuntZones();
-
-// ── Recipes ──
-export const RECIPES: Recipe[] = [
-  {
-    id: 'recipe_katana',
-    resultTemplateId: 'katana',
-    materials: [{ materialId: 'iron_ore', quantity: 20 }, { materialId: 'old_leather', quantity: 5 }],
-    goldCost: 300,
-    requiredLevel: 8,
-  },
-  {
-    id: 'recipe_chain_armor',
-    resultTemplateId: 'chain_armor',
-    materials: [{ materialId: 'iron_ore', quantity: 30 }],
-    goldCost: 500,
-    requiredLevel: 10,
-  },
-  {
-    id: 'recipe_dragon_slayer',
-    resultTemplateId: 'dragon_slayer',
-    materials: [{ materialId: 'mithril_shard', quantity: 15 }, { materialId: 'iron_ore', quantity: 20 }],
-    goldCost: 1000,
-    requiredLevel: 15,
-  },
-  {
-    id: 'recipe_plate_armor',
-    resultTemplateId: 'plate_armor',
-    materials: [{ materialId: 'mithril_shard', quantity: 15 }, { materialId: 'old_leather', quantity: 10 }],
-    goldCost: 800,
-    requiredLevel: 18,
-  },
-  {
-    id: 'recipe_ancient_great_sword',
-    resultTemplateId: 'ancient_great_sword',
-    materials: [{ materialId: 'mithril_shard', quantity: 25 }, { materialId: 'orc_seal', quantity: 5 }, { materialId: 'soul_stone', quantity: 10 }],
-    goldCost: 2000,
-    requiredLevel: 28,
-  },
-  {
-    id: 'recipe_dk_flame_sword',
-    resultTemplateId: 'dk_flame_sword',
-    materials: [{ materialId: 'soul_stone', quantity: 30 }, { materialId: 'cursed_iron', quantity: 20 }, { materialId: 'orc_seal', quantity: 10 }],
-    goldCost: 5000,
-    requiredLevel: 35,
-  },
-];
 
 // ══════════════════════════════════════════════
 // Enhance Config — L1J L1EnchantScroll.java 원본

@@ -258,15 +258,6 @@ export interface ActiveBuff {
   fireDmgBonus?: number;       // Fire element damage added to attacks
 }
 
-// ── Crafting ──
-export interface Recipe {
-  id: string;
-  resultTemplateId: string;
-  materials: { materialId: string; quantity: number }[];
-  goldCost: number;
-  requiredLevel: number;
-}
-
 // ── Enhance ──
 export type ScrollType = 'normal' | 'blessed' | 'cursed';
 
@@ -318,6 +309,5 @@ export interface TradeListing {
 }
 
 // ── UI State ──
-export type ViewMode = 'main' | 'inventory' | 'zones' | 'craft' | 'shop' | 'trade' | 'skills' | 'ranking' | 'guild';
+export type ViewMode = 'main' | 'inventory' | 'zones' | 'shop' | 'trade' | 'skills' | 'ranking' | 'guild';
 export type ShopTab = 'potion' | 'weapon' | 'armor' | 'accessory' | 'scroll' | 'consumable';
-export type ForgeTab = 'enhance' | 'craft';

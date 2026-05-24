@@ -1,13 +1,13 @@
 /* =========================================================
-   EQUIP ACTIONS — 장비 관리, 강화, 제작, 큐 처리
+   EQUIP ACTIONS — 장비 관리, 강화, 큐 처리
    ========================================================= */
 import {
-  RECIPES, MATERIALS, EQUIPMENT_TEMPLATES,
+  MATERIALS, EQUIPMENT_TEMPLATES,
   getScrollId, getEnhanceRate, isEnhanceSafe,
 } from '../data/gameData';
 import { canClassEquip } from '../data/classData';
 import { secureRandomInt } from '../lib/random';
-import { createEquipment, equipStat } from './helpers';
+import { equipStat } from './helpers';
 import { ALL_EQUIP_SLOT_KEYS, EQUIP_TYPE_TO_SLOT } from './storeTypes';
 import type { Equipment, ScrollType, EquipType } from '../types';
 import type { GameState, SetState, GetState } from './storeTypes';
@@ -323,31 +323,6 @@ export function createEquipActions(set: SetState, get: GetState, save: SaveFn) {
       }
 
       set(updates as GameState);
-      save(get());
-    },
-
-    tryCraft: (recipeId: string) => {
-      const state = get();
-      const recipe = RECIPES.find(r => r.id === recipeId);
-      if (!recipe) return;
-      if (state.gold < recipe.goldCost) return;
-      if (state.inventory.length >= state.inventoryCapacity) return;
-
-      for (const req of recipe.materials) {
-        if ((state.materials[req.materialId] ?? 0) < req.quantity) return;
-      }
-
-      const newMaterials = { ...state.materials };
-      for (const req of recipe.materials) {
-        newMaterials[req.materialId] -= req.quantity;
-      }
-
-      const newEquip = createEquipment(recipe.resultTemplateId);
-      set({
-        gold: state.gold - recipe.goldCost,
-        materials: newMaterials,
-        inventory: [...state.inventory, newEquip],
-      });
       save(get());
     },
 

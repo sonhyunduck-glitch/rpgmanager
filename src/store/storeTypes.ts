@@ -3,7 +3,7 @@
    ========================================================= */
 import type {
   Equipment, QueueItem, LogEntry, HuntSession,
-  EnhanceResult, ViewMode, ForgeTab, ScrollType,
+  EnhanceResult, ViewMode, ScrollType,
   StatAllocation, StatKey, ActiveBuff, PlayerClass,
 } from '../types';
 import type { OfflineReward } from '../lib/db';
@@ -129,7 +129,6 @@ export interface GameState {
 
   // UI State
   viewMode: ViewMode;
-  forgeTab: ForgeTab;
   enhanceResult: EnhanceResult | null;
   enhanceTargetUid: string | null;
   enhanceAnim: { uid: string; fromLevel: number; toLevel: number; destroyed?: boolean; scrollType?: ScrollType } | null;
@@ -158,7 +157,6 @@ export interface GameState {
 
   // ── Actions ──
   setViewMode: (mode: ViewMode) => void;
-  setForgeTab: (tab: ForgeTab) => void;
   allocateStat: (stat: StatKey) => void;
   moveToRoom: (room: number) => void;
   startHunt: (zoneId: string) => void;
@@ -175,7 +173,6 @@ export interface GameState {
   setEnhanceTarget: (uid: string | null) => void;
   clearEnhanceAnim: () => void;
   enhanceScrollType: ScrollType;
-  tryCraft: (recipeId: string) => void;
   sellFromInventory: (uid: string) => void;
   equipFromInventory: (uid: string) => void;
   unequipToInventory: (uid: string) => void;
