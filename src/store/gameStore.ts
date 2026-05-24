@@ -306,7 +306,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   viewingProfileId: null,
   offlineReward: null,
 
-  setViewMode: (mode) => set({ viewMode: mode }),
+  setViewMode: (mode) => set({ viewMode: mode, viewingProfileId: null }),
 
   // ── Profile ──
   openProfile: (userId) => set({ viewingProfileId: userId }),
