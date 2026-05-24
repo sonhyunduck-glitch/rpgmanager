@@ -1053,24 +1053,26 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
 
   // =========================================================================
   // 기사 전투 스킬 (클래스 전용, skillCircle=0)
+  // L1J: 기사는 버프(방어/공속/추타)로 싸우는 물리 클래스
+  //       Lv.50부터 마법사 1서클 마법 사용 가능 (magicLevel=1)
   // =========================================================================
 
-  /** 특수 처리: 기절 — 몬스터 1틱간 공격 불가 */
   {
     id: 87,
     name: '쇼크 스턴',
     skillCircle: 0,
     consumeMp: 15,
     reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
-    buffDuration: 0,
-    skillType: 'attack',
+    buffDuration: 64,
+    skillType: 'buff',
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
     attr: 0,
+    buffEffect: { atkSpeedMult: 1.33 },
     classes: ['knight'],
     requiredLevel: 20,
-    description: '충격으로 적을 기절시킴 (1틱 공격 불가)',
+    description: '전투 집중으로 공격 속도 증가 (×1.33)',
   },
   {
     id: 88,
@@ -1087,7 +1089,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     buffEffect: { acBonus: -3 },
     classes: ['knight'],
     requiredLevel: 15,
-    description: '대미지 경감 방어 (HP 50 소모)',
+    description: '대미지 경감 방어 (AC -3)',
   },
   {
     id: 89,
@@ -1104,7 +1106,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     buffEffect: { dmgBonus: 5 },
     classes: ['knight'],
     requiredLevel: 20,
-    description: '반격 태세로 추가 대미지 (HP 60 소모)',
+    description: '반격 태세로 추가 대미지 (+5)',
   },
   {
     id: 90,
@@ -1121,7 +1123,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     buffEffect: { acBonus: -2 },
     classes: ['knight'],
     requiredLevel: 25,
-    description: '견고한 자세로 방어력 증가 (HP 100 소모)',
+    description: '견고한 자세로 방어력 증가 (AC -2)',
   },
   {
     id: 91,
@@ -1138,92 +1140,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     buffEffect: { acBonus: -1 },
     classes: ['knight'],
     requiredLevel: 30,
-    description: '반격 방어막 (HP 100 소모)',
-  },
-  {
-    id: 113,
-    name: '트루 타겟',
-    skillCircle: 0,
-    consumeMp: 1,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 10, // 10초간 지속
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    buffEffect: { hitBonus: 10 },
-    classes: ['knight'],
-    requiredLevel: 30,
-    description: '다음 공격 반드시 명중 (1회)',
-  },
-  {
-    id: 117,
-    name: '브레이브 오라',
-    skillCircle: 0,
-    consumeMp: 25,
-    reuseDelayTicks: 0,
-    buffDuration: 1200, // 20분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    buffEffect: { dmgBonus: 5, hitBonus: 3 },
-    classes: ['knight'],
-    requiredLevel: 40,
-    description: '용맹의 기운 (+5 추타, +3 명중)',
-  },
-  {
-    id: 115,
-    name: '샤이닝 오라',
-    skillCircle: 0,
-    consumeMp: 25,
-    reuseDelayTicks: 0,
-    buffDuration: 1200, // 20분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    buffEffect: { acBonus: -3 },
-    classes: ['knight'],
-    requiredLevel: 40,
-    description: '빛나는 기운으로 AC -3',
-  },
-  {
-    id: 114,
-    name: '글로잉 오라',
-    skillCircle: 0,
-    consumeMp: 25,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 640,
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    buffEffect: { hitBonus: 5, dmgBonus: 2 },
-    classes: ['knight'],
-    requiredLevel: 35,
-    description: '빛나는 오라로 명중 +5, 추타 +2',
-  },
-  /** 특수 처리: HP를 소모하여 파티원 치유 */
-  {
-    id: 119,
-    name: '디바인 희생',
-    skillCircle: 0,
-    consumeMp: 50,
-    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
-    buffDuration: 0,
-    skillType: 'heal',
-    damageValue: 10,
-    damageDice: 8,
-    damageDiceCount: 0, // 동적
-    attr: 4, // 물
-    classes: ['knight'],
-    requiredLevel: 45,
-    description: '자신의 HP를 희생하여 파티원 치유 (HP 30 소모)',
+    description: '반격 방어막 (AC -1)',
   },
 ];
 

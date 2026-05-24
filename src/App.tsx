@@ -7,7 +7,6 @@ import CombatLog from './components/hunt/CombatLog';
 import CombatSummary from './components/hunt/CombatSummary';
 import CombatStatus from './components/hunt/CombatStatus';
 import Minimap from './components/hunt/Minimap';
-import SkillBar from './components/hunt/SkillBar';
 import ForgePanel from './components/forge/ForgePanel';
 import InventoryPanel from './components/inventory/InventoryPanel';
 import ZoneSelectPanel from './components/zones/ZoneSelectPanel';
@@ -119,20 +118,13 @@ export default function App({ userId }: AppProps) {
           }}>
             <CombatStatus />
 
-            {/* 미니맵 + 스킬바 — 확장 */}
+            {/* 미니맵 */}
             <div style={{
               flex: 3,
               minHeight: 0,
               overflow: 'hidden',
-              display: 'flex',
-              gap: 'var(--layout-gap)',
             }}>
-              <div style={{ flex: 9, minWidth: 0, overflow: 'hidden' }}>
-                <Minimap />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <SkillBar />
-              </div>
+              <Minimap />
             </div>
 
             {/* 하단 채팅 — 확장 */}

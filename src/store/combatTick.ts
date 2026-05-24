@@ -567,14 +567,6 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
                 text: `${classSkill.name}! ${monster.name}에게 ${tripleTotal} 대미지 (3연발)`,
                 timestamp: Date.now(),
               });
-            } else if (classSkill.id === 87) {
-              // 쇼크 스턴: 몬스터 1틱 기절
-              monsterStunnedTicks = 1;
-              newLogs.push({
-                id: genLogId(), type: 'skill',
-                text: `${classSkill.name}! ${monster.name} 기절! (1턴 공격 불가)`,
-                timestamp: Date.now(),
-              });
             } else if (classSkill.id === 167) {
               // 윈드 셰클: 몬스터 공격/이동 속도 감소 3틱
               windShackleTicks = 3;

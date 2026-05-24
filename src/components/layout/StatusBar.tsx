@@ -2,7 +2,7 @@ import { useGameStore } from '../../store/gameStore';
 import { xpForLevel } from '../../data/gameData';
 import { CLASS_CONFIGS } from '../../data/classData';
 import { signOut } from '../../lib/auth';
-import { LABEL, STAT_VALUE, CHIP } from '../../styles/shared';
+import { STAT_VALUE, CHIP } from '../../styles/shared';
 import type { ViewMode } from '../../types';
 
 const CLASS_ICONS: Record<string, string> = {
@@ -28,7 +28,6 @@ export default function StatusBar() {
   const playerClass = useGameStore((s) => s.playerClass);
   const level = useGameStore((s) => s.level);
   const exp = useGameStore((s) => s.exp);
-  const title = useGameStore((s) => s.title);
   const gold = useGameStore((s) => s.gold);
   const viewMode = useGameStore((s) => s.viewMode);
   const setViewMode = useGameStore((s) => s.setViewMode);
@@ -57,71 +56,48 @@ export default function StatusBar() {
         flexShrink: 0,
       }}
     >
-      {/* Player identity */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)' }}>
-        <span style={{ fontSize: 'var(--fs-sm)' }} title={CLASS_CONFIGS[playerClass].nameKo}>
-          {CLASS_ICONS[playerClass] ?? ''}
-        </span>
-        <span
-          style={{
-            fontFamily: "'Space Grotesk', var(--font-display)",
-            fontWeight: 700,
-            fontSize: 'var(--fs-base)',
-            color: 'var(--info)',
-          }}
-        >
-          {playerName}
-        </span>
-        <span style={{ ...LABEL, color: 'var(--text-dim)' }}>
-          Lv.{level}
-        </span>
-        {title && (
-          <span style={{ ...LABEL, fontSize: 'calc(var(--fs-xs) - 1px)', color: 'var(--accent)' }}>
-            {title}
-          </span>
-        )}
-      </div>
-
-      {/* EXP bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--s-2)',
-          minWidth: 80,
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            height: 5,
-            borderRadius: 3,
-            background: 'color-mix(in oklch, var(--text-mute) 15%, transparent)',
-            overflow: 'hidden',
-            minWidth: 50,
-          }}
-        >
-          <div
-            style={{
-              height: '100%',
-              width: `${expPct}%`,
-              background: 'var(--info)',
-              borderRadius: 3,
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
-        <span
-          style={{
-            fontSize: 'calc(var(--fs-xs) - 2px)',
-            fontFamily: 'var(--font-mono)',
-            fontWeight: 700,
-            color: 'var(--info)',
+      {/* Player identity — 2줄: 레벨+경험치 / 닉네임 */}
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 1, minWidth: 0 }}>
+        {/* 1줄: 레벨 + EXP 바 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontWeight: 800,
+            fontSize: 'var(--fs-xs)', color: 'var(--text-dim)',
             flexShrink: 0,
-          }}
-        >
-          {expPct.toFixed(1)}%
-        </span>
+          }}>
+            Lv.{level}
+          </span>
+          <div style={{
+            flex: 1, height: 4, borderRadius: 2,
+            background: 'color-mix(in oklch, var(--text-mute) 15%, transparent)',
+            overflow: 'hidden', minWidth: 40,
+          }}>
+            <div style={{
+              height: '100%', width: `${expPct}%`,
+              background: 'var(--info)', borderRadius: 2,
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+          <span style={{
+            fontSize: 'calc(var(--fs-2xs))', fontFamily: 'var(--font-mono)',
+            fontWeight: 700, color: 'var(--info)', flexShrink: 0,
+          }}>
+            {expPct.toFixed(1)}%
+          </span>
+        </div>
+        {/* 2줄: 닉네임 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
+          <span style={{ fontSize: 'var(--fs-2xs)' }} title={CLASS_CONFIGS[playerClass].nameKo}>
+            {CLASS_ICONS[playerClass] ?? ''}
+          </span>
+          <span style={{
+            fontFamily: "'Space Grotesk', var(--font-display)",
+            fontWeight: 700, fontSize: 'var(--fs-xs)', color: 'var(--info)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {playerName}
+          </span>
+        </div>
       </div>
 
       {/* Gold chip */}
