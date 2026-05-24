@@ -727,12 +727,15 @@ export function calcMaxMp(level: number, wis: number, int: number, playerClass: 
  */
 export const REGEN_BASE_RATE = 4; // pt/sec
 
-/** 틱 시간 (초) */
-const TICK_SEC = 3;
-
-/** 리젠 포인트/틱 = 기본속도 × 틱시간 (L1J: 장비 HPR/MPR은 회복량에 가산, 속도 아님) */
-export function calcRegenPointsPerTick(): number {
-  return REGEN_BASE_RATE * TICK_SEC;
+/**
+ * 리젠 포인트/틱 = 기본속도 × 실제 경과 시간 (L1J: 4pt/sec 고정)
+ *
+ * ⚠️ 공격속도 버프가 틱 간격을 줄여도 리젠 포인트는 실시간 기반으로 정확히 누적.
+ *    (기존: TICK_SEC=3 하드코딩 → 버프로 틱 간격이 1.5초가 되면 리젠 2배속 버그)
+ * @param elapsedSec 이전 틱 이후 실제 경과 시간 (초)
+ */
+export function calcRegenPointsPerTick(elapsedSec: number): number {
+  return Math.round(REGEN_BASE_RATE * elapsedSec);
 }
 
 // ── HP 리젠 (L1J HpRegeneration.java) ──

@@ -224,6 +224,9 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
       // ── 버프 물약 자동 사용 ──
       const now = Date.now();
+      // 리젠 포인트 실시간 계산용 경과 시간 (L1J: 4pt/sec 고정)
+      const lastTickAt = hunt.lastTickAt ?? now;
+      const elapsedSec = Math.min(10, (now - lastTickAt) / 1000); // 최대 10초 캡 (탭 복귀 과보정 방지)
       let newActiveBuffs = [...state.activeBuffs].filter(b => b.expiresAt > now);
 
       for (const pid of POTION_ORDER) {
@@ -295,8 +298,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
       // ── MP 자연 회복 (L1J MpRegeneration.java 포인트 누적 방식) ──
       // L1J: 누적 속도 고정(4pt/sec), 장비 MPR은 회복량에 가산
-      // 고정 16초 주기 (64/4=16), 회복량 = WIS기반 + equipMpr + 블루포션
-      mpRegenPoint += calcRegenPointsPerTick();
+      // 실시간 기반 포인트 누적 (공격속도 버프로 틱 간격이 바뀌어도 정확)
+      mpRegenPoint += calcRegenPointsPerTick(elapsedSec);
       if (mpRegenPoint >= MP_REGEN_THRESHOLD && huntMp < maxMp) {
         mpRegenPoint -= MP_REGEN_THRESHOLD;
         let regenAmt = calcMpRegenAmount(playerWis) + equipMpr;
@@ -778,6 +781,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       // ── 주 타겟 반격 (L1J D20 NPC→PC) ──
       let newLastMagicHitAt = hunt.lastMagicHitAt;
       let newConsecutiveMagicHits = hunt.consecutiveMagicHits;
+      let evasionCount = 0; // 회피 로그 배칭 (AC 높을 때 로그 폭주 방지)
 
       // 몬스터 스턴 체크 (쇼크 스턴 등)
       const monsterCanAttack = monsterStunnedTicks <= 0;
@@ -829,11 +833,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               timestamp: Date.now(),
             });
           } else {
-            newLogs.push({
-              id: genLogId(), type: 'miss',
-              text: `${monster.name}의 공격을 회피!`,
-              timestamp: Date.now(),
-            });
+            evasionCount++;
           }
         }
       }
@@ -968,14 +968,21 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
                 timestamp: Date.now(),
               });
             } else {
-              newLogs.push({
-                id: genLogId(), type: 'miss',
-                text: `[합류] ${jm.name}의 공격을 회피!`,
-                timestamp: Date.now(),
-              });
+              evasionCount++;
             }
           }
         }
+      }
+
+      // ── 회피 로그 배칭 (AC 높을 때 로그 폭주 방지) ──
+      if (evasionCount > 0) {
+        newLogs.push({
+          id: genLogId(), type: 'miss',
+          text: evasionCount === 1
+            ? `적의 공격을 회피!`
+            : `적의 공격을 ${evasionCount}회 회피!`,
+          timestamp: Date.now(),
+        });
       }
 
       // ── 사망 처리 ──
@@ -1033,7 +1040,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       // L1J: 누적 속도 고정(4pt/sec), 장비 HPR은 회복량에 가산
       let hpRegenPoint = hunt.hpRegenPoint ?? 0;
       if (newCurrentHp > 0 && newCurrentHp < newMaxHp + hpBonus) {
-        hpRegenPoint += calcRegenPointsPerTick();
+        hpRegenPoint += calcRegenPointsPerTick(elapsedSec);
         const hpThreshold = calcHpRegenThreshold(state.level, state.playerClass);
         if (hpRegenPoint >= hpThreshold) {
           hpRegenPoint -= hpThreshold;
@@ -1133,6 +1140,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           hpRegenPoint,
           currentMp: huntMp,
           mpRegenPoint,
+          lastTickAt: now,
           skillCooldowns,
           monsterStunnedTicks,
           windShackleTicks,

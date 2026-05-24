@@ -204,6 +204,7 @@ export interface HuntSession {
   hpRegenPoint: number;        // HP 리젠 포인트 누적 (L1J: 레벨별 임계값 도달 시 회복)
   currentMp: number;           // 현재 MP
   mpRegenPoint: number;        // MP 리젠 포인트 누적 (L1J: 64 도달 시 회복)
+  lastTickAt: number;          // 마지막 틱 시각 (리젠 포인트 실시간 계산용)
   // Skill tracking
   skillCooldowns: Record<number, number>;  // skillId → remaining cooldown ticks
   monsterStunnedTicks: number; // 몬스터 스턴 남은 틱

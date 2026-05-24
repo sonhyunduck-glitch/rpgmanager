@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.28.0 — 드롭 전용 아이템 삭제 + 은화살 재료 추가 (요정 활 추가 데미지)
-export const APP_VERSION = '2.28.0';
+// v2.28.1 — MP/HP 리젠 실시간 보정 + 회피 로그 배칭
+export const APP_VERSION = '2.28.1';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
