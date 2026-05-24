@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.15.0 — 스킬 슬롯 16칸 확장 + 레벨 제한 삭제 + 스킬 ON/OFF 토글
-export const APP_VERSION = '2.15.0';
+// v2.16.0 — 공격스킬 자동시전 버그 수정 + L1J 전체 아이템 로드 (1176종)
+export const APP_VERSION = '2.16.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

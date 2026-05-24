@@ -1260,31 +1260,42 @@ export function getAvailableSkills(
 
 /**
  * 사용 가능한 가장 강력한 공격 마법 반환 (MP 충분한 것 중 최고 서클)
+ * ⚠️ equippedIds/disabledIds를 전달하면 장착+활성 스킬만 후보에 포함
+ *    → "장착 안 된 최강 스킬" 반환 후 fallback 되는 버그 방지
  */
 export function getBestAttackSpell(
   playerClass: PlayerClass,
   level: number,
   currentMp: number,
   cooldowns?: Record<number, number>,
+  equippedIds?: number[],
+  disabledIds?: number[],
 ): PlayerSkill | null {
-  const available = getAvailableSkills(playerClass, level)
+  let available = getAvailableSkills(playerClass, level)
     .filter(s => s.skillType === 'attack' && s.consumeMp <= currentMp && s.skillCircle > 0
-      && (cooldowns ? (cooldowns[s.id] ?? 0) <= 0 : true))
-    .sort((a, b) => b.skillCircle - a.skillCircle); // 높은 서클 우선
+      && (cooldowns ? (cooldowns[s.id] ?? 0) <= 0 : true));
+  if (equippedIds) available = available.filter(s => equippedIds.includes(s.id));
+  if (disabledIds) available = available.filter(s => !disabledIds.includes(s.id));
+  available.sort((a, b) => b.skillCircle - a.skillCircle); // 높은 서클 우선
   return available[0] ?? null;
 }
 
 /**
  * 사용 가능한 가장 강력한 힐 마법 반환
+ * ⚠️ equippedIds/disabledIds를 전달하면 장착+활성 스킬만 후보에 포함
  */
 export function getBestHealSpell(
   playerClass: PlayerClass,
   level: number,
   currentMp: number,
+  equippedIds?: number[],
+  disabledIds?: number[],
 ): PlayerSkill | null {
-  const available = getAvailableSkills(playerClass, level)
-    .filter(s => s.skillType === 'heal' && s.consumeMp <= currentMp)
-    .sort((a, b) => b.skillCircle - a.skillCircle); // 높은 서클 우선
+  let available = getAvailableSkills(playerClass, level)
+    .filter(s => s.skillType === 'heal' && s.consumeMp <= currentMp);
+  if (equippedIds) available = available.filter(s => equippedIds.includes(s.id));
+  if (disabledIds) available = available.filter(s => !disabledIds.includes(s.id));
+  available.sort((a, b) => b.skillCircle - a.skillCircle); // 높은 서클 우선
   return available[0] ?? null;
 }
 

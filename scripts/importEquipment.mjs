@@ -40,8 +40,7 @@ function toInt(val) {
   return isNaN(n) ? 0 : n;
 }
 
-// ── 무기 타입 매핑 ──
-// 우리 게임의 3클래스가 사용할 수 있는 타입만
+// ── 무기 타입 매핑 (L1J 전체) ──
 const WEAPON_TYPE_MAP = {
   sword: 'weapon',
   twohandsword: 'weapon',
@@ -50,9 +49,14 @@ const WEAPON_TYPE_MAP = {
   blunt: 'weapon',
   bow: 'bow',
   staff: 'staff',
+  claw: 'weapon',        // 격투 무기 (다크엘프)
+  dualsword: 'weapon',   // 이도류 (다크엘프)
+  chainsword: 'weapon',  // 체인소드 (다크엘프)
+  kiringku: 'weapon',    // 기린쿠 (특수)
+  gauntlet: 'weapon',    // 건틀릿
 };
 
-// ── 방어구 타입 매핑 ──
+// ── 방어구 타입 매핑 (L1J 전체) ──
 const ARMOR_TYPE_MAP = {
   armor: 'armor',
   helm: 'helmet',
@@ -65,62 +69,21 @@ const ARMOR_TYPE_MAP = {
   amulet: 'necklace',
   t_shirt: 'tshirt',
   earring: 'earring',
-  // pattern_*, guarder, talisman_* → 스킵
+  guarder: 'gloves',          // 가더 → 장갑 슬롯
+  pattern_left: 'ring',       // 문양(좌) → 반지 슬롯
+  pattern_right: 'ring',      // 문양(우) → 반지 슬롯
+  pattern_back: 'cloak',      // 문양(등) → 망토 슬롯
+  talisman_left: 'necklace',  // 부적(좌) → 목걸이 슬롯
+  talisman_right: 'necklace', // 부적(우) → 목걸이 슬롯
 };
 
-// ── 기존 한글 이름 → 기존 ID 매핑 (중복 방지) ──
-// gameData.ts에 이미 있는 이름들 → CSV에서 스킵
-const EXISTING_NAMES = new Set([
-  '메일 브레이커', '은검', '은장검', '다마스커스 검', '일본도', '레이피어',
-  '싸울아비 장검', '데스나이트의 불검', '고대의 검', '무관의 양손검',
-  '드래곤 슬레이어', '고대의 대검',
-  '나무 활', '롱 보우', '요정 활', '고대 정령의 활',
-  '참나무 지팡이', '미스릴 지팡이', '고대의 지팡이',
-  '티셔츠',
-  '가죽조끼', '가죽 갑옷', '오크족 고리 갑옷', '징박은 가죽조끼',
-  '무명 로브', '고리 갑옷', '징박힌 가죽 갑옷', '벨트달린 가죽조끼',
-  '나무 갑옷', '라스타바드 레더 아머', '비늘 갑옷', '오크족 사슬 갑옷',
-  '다크 포레스터의 갑옷', '라스타바드 징박힌 레더 아머', '요정족 흉갑',
-  '사슬 갑옷', '마법 방어 사슬 갑옷', '뼈갑옷', '푸른 해적 가죽갑옷',
-  '요정족 사슬 갑옷', '띠 갑옷', '데몬의 갑옷', '중 비늘 갑옷',
-  '청동 판금 갑옷', '요정족 판금 갑옷', '데스나이트의 갑옷',
-  '강철 판금 갑옷', '판금 갑옷', '커츠의 갑옷', '환상의 갑옷',
-  '마령군왕의 로브', '수정 갑옷', '수룡 비늘 갑옷', '지룡 비늘 갑옷',
-  '풍룡 비늘 갑옷', '화룡 비늘 갑옷',
-  '가죽모자', '가죽투구', '강철 면갑', '난쟁이족 철 투구', '데몬의 투구',
-  '데스나이트의 투구', '마법 방어 투구', '무관의 투구', '바란카의 투구',
-  '붉은 기사의 두건', '오크족 투구', '징박은 가죽모자', '커츠의 투구',
-  '투구', '푸른 해적 두건', '해골투구',
-  '오크족 망토', '난쟁이족 망토', '뱀파이어의 망토', '기름 망토',
-  '요정족 망토', '마법 망토', '늑대가죽 망토', '아덴 기사단의 망토',
-  '블랙 티거 가죽 망토', '대지의 망토', '물결의 망토', '바람의 망토',
-  '열화의 망토', '혼돈의 망토', '보호 망토',
-  '거대 여왕 개미의 금빛 날개', '명법군왕의 망토', '발록의 핏빛 망토',
-  '장갑', '가죽 장갑', '빙령의 장갑', '암령의 장갑', '염령의 장갑',
-  '풍령의 장갑', '파워 글로브', '강철 장갑', '설인 장갑', '푸른 해적 장갑',
-  '데몬의 장갑', '데스나이트의 장갑', '커츠의 장갑', '죽음의 비늘',
-  '혼돈의 손길', '암살군왕의 장갑',
-  '가죽샌달', '징박은 가죽샌달', '짧은 부츠', '부츠', '가죽부츠',
-  '라스타바드 부츠', '푸른 해적 부츠', '강철 부츠', '데몬의 부츠',
-  '데스나이트의 부츠', '바란카의 부츠', '커츠의 부츠', '마수군왕의 부츠',
-  '작은 방패', '가죽방패', '나무방패', '우럭하이 방패', '난쟁이족 둥근 방패',
-  '징박은 가죽방패', '큰 방패', '메두사 방패', '강철 방패', '골각방패',
-  '에바의 방패',
-  '낡은 완력의 목걸이', '낡은 민첩의 목걸이', '낡은 지혜의 목걸이',
-  '낡은 체력의 목걸이', '완력의 목걸이', '민첩의 목걸이', '지혜의 목걸이',
-  '체력의 목걸이', '오크 투사의 목걸이', '장로의 목걸이', '항마의 목걸이',
-  '수호의 목걸이',
-  '장로의 반지', '항마의 반지', '수령의 반지', '멸마의 반지', '수호의 반지',
-  '낡은 영혼의 벨트', '낡은 신체의 벨트', '영혼의 벨트', '신체의 벨트',
-  '용기의 벨트', '빛나는 영혼의 벨트', '빛나는 신체의 벨트',
-  '에이션트 자이언트의 반지',
-]);
+// ── 기존 EXISTING_NAMES 삭제 — 모든 L1J 아이템 로드 ──
+// gameData.ts 수작업 템플릿은 고유 ID를 사용하므로 CSV와 충돌 없음
 
 // ── 무기 변환 ──
 function convertWeapons(rows) {
   const templates = [];
   let skipped = 0;
-  let classFiltered = 0;
 
   for (const row of rows) {
     const csvType = row.type;
@@ -131,12 +94,7 @@ function convertWeapons(rows) {
     const useElf = toInt(row.use_elf);
     const useWizard = toInt(row.use_wizard);
 
-    // 우리 3클래스 중 아무도 못 쓰면 스킵
-    if (!useKnight && !useElf && !useWizard) { classFiltered++; continue; }
-
     const name = row.name;
-    if (EXISTING_NAMES.has(name)) continue; // 기존 수작업 템플릿 우선
-
     const csvId = toInt(row.id);
     const id = `w_${csvId}`;
     const dmgSmall = toInt(row.dmg_small);
@@ -234,7 +192,7 @@ function convertWeapons(rows) {
     templates.push(tpl);
   }
 
-  console.log(`[Weapons] 변환: ${templates.length}, 타입 스킵: ${skipped}, 클래스 필터: ${classFiltered}, 기존 중복: ${rows.length - templates.length - skipped - classFiltered}`);
+  console.log(`[Weapons] 변환: ${templates.length}, 타입 스킵: ${skipped}`);
   return templates;
 }
 
@@ -242,7 +200,6 @@ function convertWeapons(rows) {
 function convertArmors(rows) {
   const templates = [];
   let skipped = 0;
-  let classFiltered = 0;
 
   for (const row of rows) {
     const csvType = row.type;
@@ -253,11 +210,7 @@ function convertArmors(rows) {
     const useElf = toInt(row.use_elf);
     const useWizard = toInt(row.use_wizard);
 
-    if (!useKnight && !useElf && !useWizard) { classFiltered++; continue; }
-
     const name = row.name;
-    if (EXISTING_NAMES.has(name)) continue;
-
     const csvId = toInt(row.id);
     const id = `a_${csvId}`;
     const ac = toInt(row.ac);
@@ -336,7 +289,7 @@ function convertArmors(rows) {
     templates.push(tpl);
   }
 
-  console.log(`[Armors] 변환: ${templates.length}, 타입 스킵: ${skipped}, 클래스 필터: ${classFiltered}, 기존 중복: ${rows.length - templates.length - skipped - classFiltered}`);
+  console.log(`[Armors] 변환: ${templates.length}, 타입 스킵: ${skipped}`);
   return templates;
 }
 

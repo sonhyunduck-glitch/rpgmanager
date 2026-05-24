@@ -437,8 +437,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       if (combatStyle === 'ranged_magic') {
         // ── 마법사: 스킬 기반 마법 공격 (L1J skills.csv) ──
         playerAttackHit = true;
-        const spellRaw = getBestAttackSpell(state.playerClass, state.level, huntMp, skillCooldowns);
-        const spell = spellRaw && equipped.includes(spellRaw.id) && !disabled.includes(spellRaw.id) ? spellRaw : null;
+        const spell = getBestAttackSpell(state.playerClass, state.level, huntMp, skillCooldowns, equipped, disabled);
         if (spell) {
           huntMp -= spell.consumeMp;
           if (spell.reuseDelayTicks > 0) skillCooldowns[spell.id] = spell.reuseDelayTicks;
@@ -527,11 +526,19 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           }
         }
 
-        // ── 클래스 스킬 사용 (트리플 애로우, 쇼크 스턴 등 — 슬롯 장착 스킬만) ──
+        // ── 클래스 스킬 사용 (트리플 애로우, 쇼크 스턴, 서클 마법 등 — 슬롯 장착 스킬만) ──
+        // 우선순위: 서클0(클래스 전용) > 서클 마법(높은 서클 우선)
         if (monsterHp > 0 && huntMp > 0) {
           const classSkills = getAvailableSkills(state.playerClass, state.level)
-            .filter(s => s.skillCircle === 0 && s.skillType === 'attack' && s.consumeMp <= huntMp
-              && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id));
+            .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
+              && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id))
+            .sort((a, b) => {
+              // 서클0(클래스 전용) 최우선
+              if (a.skillCircle === 0 && b.skillCircle !== 0) return -1;
+              if (a.skillCircle !== 0 && b.skillCircle === 0) return 1;
+              // 같은 종류면 높은 서클 우선
+              return b.skillCircle - a.skillCircle;
+            });
 
           if (classSkills.length > 0) {
             const classSkill = classSkills[0];
@@ -566,6 +573,21 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               newLogs.push({
                 id: genLogId(), type: 'skill',
                 text: `${classSkill.name}! ${monster.name}의 공격 속도 감소! (3턴)`,
+                timestamp: Date.now(),
+              });
+            } else if (classSkill.skillCircle > 0 && classSkill.damageDiceCount > 0) {
+              // 서클 마법 공격 (기사/요정이 장착한 공격 마법 자동 시전)
+              const spellDmg = rollSpellDamage(
+                classSkill.damageValue, classSkill.damageDice, classSkill.damageDiceCount,
+                playerInt, equipBonusSp, state.level, state.playerClass,
+              );
+              const afterMr = applyMagicReduction(spellDmg, monster.mr);
+              const skillFinalDmg = Math.max(1, afterMr);
+              monsterHp = Math.max(0, monsterHp - skillFinalDmg);
+              const mrPct = Math.round(magicReduction(monster.mr) * 100);
+              newLogs.push({
+                id: genLogId(), type: 'skill',
+                text: `${classSkill.name}! ${monster.name}에게 ${skillFinalDmg} 마법 대미지${mrPct > 0 ? ` (MR ${mrPct}%)` : ''}`,
                 timestamp: Date.now(),
               });
             }
@@ -958,8 +980,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       if (newCurrentHp > 0 && huntMp > 0) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= 30) {
-          const healRaw = getBestHealSpell(state.playerClass, state.level, huntMp);
-          const healSpell = healRaw && equipped.includes(healRaw.id) && !disabled.includes(healRaw.id) ? healRaw : null;
+          const healSpell = getBestHealSpell(state.playerClass, state.level, huntMp, equipped, disabled);
           if (healSpell && (skillCooldowns[healSpell.id] ?? 0) <= 0) {
             huntMp -= healSpell.consumeMp;
             const healAmt = rollSpellDamage(
