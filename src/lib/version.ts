@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.28.1 — MP/HP 리젠 실시간 보정 + 회피 로그 배칭
-export const APP_VERSION = '2.28.1';
+// v2.28.2 — MP/HP 리젠 벽시계 고정 주기 (MP 16초, HP 레벨별)
+export const APP_VERSION = '2.28.2';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

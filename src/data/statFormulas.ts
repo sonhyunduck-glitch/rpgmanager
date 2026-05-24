@@ -713,51 +713,25 @@ export function calcMaxMp(level: number, wis: number, int: number, playerClass: 
  */
 
 // ══════════════════════════════════════════════
-// HP/MP 자연 회복 (L1J HpRegeneration.java + MpRegeneration.java 원본)
+// HP/MP 자연 회복 (벽시계 기준 고정 주기)
 //
-// 공통 구조: 1초마다 _curPoint 누적 → _regenMax 도달 시 회복
-// 전투 중(REGENSTATE_ATTACK): _curPoint = 1 (평상시 4의 1/4)
-// 우리 게임: 항상 전투 중 → 1틱(3초) = 3포인트 누적
+// L1J 포인트 누적 방식 대신 단순화:
+// 00:00:00 기준 N초마다 회복 (공격속도 버프 영향 없음)
+//
+// MP: 고정 16초 주기
+// HP: 레벨/클래스별 가변 주기 (L1J lvlTable 기반)
 // ══════════════════════════════════════════════
-
-/**
- * 리젠 기본 속도 (L1J _curPoint)
- * L1J: 평상시 4pt/sec, 전투 중 1pt/sec
- * 아이들 게임이므로 평상시 속도(4) 적용 — 전투 중 페널티 없음
- */
-export const REGEN_BASE_RATE = 4; // pt/sec
-
-/**
- * 리젠 포인트/틱 = 기본속도 × 실제 경과 시간 (L1J: 4pt/sec 고정)
- *
- * ⚠️ 공격속도 버프가 틱 간격을 줄여도 리젠 포인트는 실시간 기반으로 정확히 누적.
- *    (기존: TICK_SEC=3 하드코딩 → 버프로 틱 간격이 1.5초가 되면 리젠 2배속 버그)
- * @param elapsedSec 이전 틱 이후 실제 경과 시간 (초)
- */
-export function calcRegenPointsPerTick(elapsedSec: number): number {
-  return Math.round(REGEN_BASE_RATE * elapsedSec);
-}
 
 // ── HP 리젠 (L1J HpRegeneration.java) ──
 
 /**
- * HP 리젠 임계값 (L1J lvlTable × 4)
- * 레벨이 높을수록 빨리 회복.
- * L1J: lvlTable[min(10, level)-1] × 4, Knight Lv.30+는 index 11(value 2)
+ * HP 리젠 주기 테이블 (초) — L1J lvlTable 원본
+ * 레벨이 높을수록 짧은 주기 (빠른 회복)
  *
- * lvlTable = { 30, 25, 20, 16, 14, 12, 11, 10, 9, 3, 2 }
+ * L1J: lvlTable = { 30, 25, 20, 16, 14, 12, 11, 10, 9, 3, 2 }
+ * L1J 원본은 이 값 × 4 = _regenMax, 그리고 4pt/sec → 결국 lvlTable초 주기
  */
 const HP_REGEN_LVL_TABLE = [30, 25, 20, 16, 14, 12, 11, 10, 9, 3, 2];
-
-export function calcHpRegenThreshold(level: number, playerClass: PlayerClass): number {
-  let idx: number;
-  if (playerClass === 'knight' && level >= 30) {
-    idx = 10; // Knight Lv.30+: value 2
-  } else {
-    idx = Math.min(9, Math.max(0, level - 1)); // 0~9 (Lv.1~10+)
-  }
-  return HP_REGEN_LVL_TABLE[idx] * 4;
-}
 
 /**
  * HP 회복량 (L1J HpRegeneration.regenHp 원본, CON 기반)
@@ -778,20 +752,33 @@ export function calcHpRegenRange(level: number, con: number): { min: number; max
   return { min: 1, max: maxBonus };
 }
 
-/** HP 리젠 주기 (초 단위, UI 표시용) — L1J: 장비 HPR은 주기가 아닌 회복량에 가산 */
+/**
+ * HP 리젠 주기 (초) — L1J lvlTable 기반
+ * 장비 HPR은 주기가 아닌 회복량에 가산
+ */
 export function calcHpRegenIntervalSec(level: number, playerClass: PlayerClass): number {
-  const threshold = calcHpRegenThreshold(level, playerClass);
-  return Math.ceil(threshold / REGEN_BASE_RATE);
+  let idx: number;
+  if (playerClass === 'knight' && level >= 30) {
+    idx = 10; // Knight Lv.30+: value 2
+  } else {
+    idx = Math.min(9, Math.max(0, level - 1)); // 0~9 (Lv.1~10+)
+  }
+  return HP_REGEN_LVL_TABLE[idx];
+}
+
+/** HP 리젠 주기 (ms) */
+export function calcHpRegenIntervalMs(level: number, playerClass: PlayerClass): number {
+  return calcHpRegenIntervalSec(level, playerClass) * 1000;
 }
 
 // ── MP 리젠 (L1J MpRegeneration.java) ──
 
-/** MP 리젠 임계값 (L1J 고정 64) */
-export const MP_REGEN_THRESHOLD = 64;
+/** MP 리젠 고정 주기 (ms) — 16초 */
+export const MP_REGEN_INTERVAL_MS = 16_000;
 
-/** MP 리젠 주기 (초 단위, UI 표시용) — L1J: 장비 MPR은 주기가 아닌 회복량에 가산 */
+/** MP 리젠 주기 (초 단위, UI 표시용) */
 export function calcMpRegenIntervalSec(): number {
-  return Math.ceil(MP_REGEN_THRESHOLD / REGEN_BASE_RATE); // 64/4 = 16초 (고정)
+  return MP_REGEN_INTERVAL_MS / 1000; // 16
 }
 
 /** MP 회복량 (L1J MpRegeneration.regenMp 원본 WIS 기반) */

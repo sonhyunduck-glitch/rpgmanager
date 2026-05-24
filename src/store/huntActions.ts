@@ -95,10 +95,9 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           mobSkillCooldowns: {},
           lastMagicHitAt: 0,
           consecutiveMagicHits: 0,
-          hpRegenPoint: 0,
           currentMp: 0,
-          mpRegenPoint: 0,
-          lastTickAt: Date.now(),
+          lastHpRegenAt: 0,
+          lastMpRegenAt: 0,
           skillCooldowns: {},
           monsterStunnedTicks: 0,
           windShackleTicks: 0,
@@ -169,7 +168,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
     resumeHunt: () => {
       const state = get();
       if (state.currentHp <= 0) return;
-      set({ hunt: { ...state.hunt, status: 'hunting', lastTickAt: Date.now() } });
+      set({ hunt: { ...state.hunt, status: 'hunting' } });
       save(get());
     },
 

@@ -19,8 +19,8 @@ import {
   calcPlayerHitRate, rollD20PcNpcHit, rollD20NpcPcHit,
   calcPcDefense, calcMonsterHitRate,
   rollBowDamage, rollMagicDamage, rollMagicCritical, consecutiveMagicDecay,
-  calcHpRegenThreshold, calcHpRegenAmount,
-  calcMpRegenAmount, calcBluePotionMpBonus, calcRegenPointsPerTick, MP_REGEN_THRESHOLD,
+  calcHpRegenIntervalMs, calcHpRegenAmount,
+  calcMpRegenAmount, calcBluePotionMpBonus, MP_REGEN_INTERVAL_MS,
   rollSpellDamage,
 } from '../data/statFormulas';
 import {
@@ -207,10 +207,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       // ── MP 초기화 (사냥 시작 시) ──
       let huntMp = hunt.currentMp;
       const maxMp = state.getMaxMp();
-      let mpRegenPoint = hunt.mpRegenPoint ?? 0;
       if (huntMp <= 0 && maxMp > 0 && hunt.currentFightTicks === 0 && !hunt.currentTargetId) {
         huntMp = maxMp;
-        mpRegenPoint = 0;
       }
 
       // ── 스킬 쿨다운 감소 ──
@@ -224,9 +222,6 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
       // ── 버프 물약 자동 사용 ──
       const now = Date.now();
-      // 리젠 포인트 실시간 계산용 경과 시간 (L1J: 4pt/sec 고정)
-      const lastTickAt = hunt.lastTickAt ?? now;
-      const elapsedSec = Math.min(10, (now - lastTickAt) / 1000); // 최대 10초 캡 (탭 복귀 과보정 방지)
       let newActiveBuffs = [...state.activeBuffs].filter(b => b.expiresAt > now);
 
       for (const pid of POTION_ORDER) {
@@ -296,12 +291,12 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         }
       }
 
-      // ── MP 자연 회복 (L1J MpRegeneration.java 포인트 누적 방식) ──
-      // L1J: 누적 속도 고정(4pt/sec), 장비 MPR은 회복량에 가산
-      // 실시간 기반 포인트 누적 (공격속도 버프로 틱 간격이 바뀌어도 정확)
-      mpRegenPoint += calcRegenPointsPerTick(elapsedSec);
-      if (mpRegenPoint >= MP_REGEN_THRESHOLD && huntMp < maxMp) {
-        mpRegenPoint -= MP_REGEN_THRESHOLD;
+      // ── MP 자연 회복 (벽시계 기준 16초 고정 주기) ──
+      // 00:00:00 기준 16초마다 회복. 공격속도 버프와 무관.
+      let lastMpRegenAt = hunt.lastMpRegenAt ?? 0;
+      const mpWindow = Math.floor(now / MP_REGEN_INTERVAL_MS);
+      const lastMpWindow = Math.floor(lastMpRegenAt / MP_REGEN_INTERVAL_MS);
+      if (mpWindow > lastMpWindow && huntMp < maxMp) {
         let regenAmt = calcMpRegenAmount(playerWis) + equipMpr;
         // 파란 물약 버프 활성 시 추가 (L1J STATUS_BLUE_POTION: + max(1, WIS-10))
         const hasBlueBuff = newActiveBuffs.some(b => b.potionId === 'blue_potion');
@@ -309,6 +304,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           regenAmt += calcBluePotionMpBonus(playerWis);
         }
         huntMp = Math.min(maxMp, huntMp + regenAmt);
+        lastMpRegenAt = now;
       }
 
       // ── 스킬 버프 자동 시전 (MP 충분 시, 슬롯 장착 스킬만, OFF 제외) ──
@@ -1036,16 +1032,16 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         }
       }
 
-      // ── HP 자연 회복 (L1J HpRegeneration.java 포인트 누적 방식) ──
-      // L1J: 누적 속도 고정(4pt/sec), 장비 HPR은 회복량에 가산
-      let hpRegenPoint = hunt.hpRegenPoint ?? 0;
+      // ── HP 자연 회복 (벽시계 기준 레벨별 고정 주기) ──
+      let lastHpRegenAt = hunt.lastHpRegenAt ?? 0;
       if (newCurrentHp > 0 && newCurrentHp < newMaxHp + hpBonus) {
-        hpRegenPoint += calcRegenPointsPerTick(elapsedSec);
-        const hpThreshold = calcHpRegenThreshold(state.level, state.playerClass);
-        if (hpRegenPoint >= hpThreshold) {
-          hpRegenPoint -= hpThreshold;
+        const hpIntervalMs = calcHpRegenIntervalMs(state.level, state.playerClass);
+        const hpWindow = Math.floor(now / hpIntervalMs);
+        const lastHpWindow = Math.floor(lastHpRegenAt / hpIntervalMs);
+        if (hpWindow > lastHpWindow) {
           const hpRegen = calcHpRegenAmount(state.level, playerCon) + equipHpr;
           newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + hpRegen);
+          lastHpRegenAt = now;
         }
       }
 
@@ -1137,10 +1133,9 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           mobSkillCooldowns,
           lastMagicHitAt: newLastMagicHitAt,
           consecutiveMagicHits: newConsecutiveMagicHits,
-          hpRegenPoint,
           currentMp: huntMp,
-          mpRegenPoint,
-          lastTickAt: now,
+          lastHpRegenAt,
+          lastMpRegenAt,
           skillCooldowns,
           monsterStunnedTicks,
           windShackleTicks,
