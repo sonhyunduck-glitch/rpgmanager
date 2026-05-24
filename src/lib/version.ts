@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.28.2 — MP/HP 리젠 벽시계 고정 주기 (MP 16초, HP 레벨별)
-export const APP_VERSION = '2.28.2';
+// v2.28.3 — 장비 헤이스트 + 초록물약 중복 불가 (L1J 동일 haste 그룹)
+export const APP_VERSION = '2.28.3';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

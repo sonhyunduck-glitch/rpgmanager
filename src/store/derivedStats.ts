@@ -112,21 +112,31 @@ export function createDerivedStats(get: GetState) {
     getAtkSpeedMult: () => {
       const s = get();
       const now = Date.now();
-      // 장비 헤이스트: 무기에 haste 보너스가 있으면 1.33배 (L1J is_haste)
-      const equipHaste = s.equippedWeapon?.bonuses?.haste ? 1.33 : 1;
-      // 버프 헤이스트: 변신주문서/스킬 버프
+      // 장비 헤이스트: 전체 장비 슬롯 체크 (L1J is_haste — 무기/방패/망토/헬멧 등)
+      const hasEquipHaste = getAllEquipped(s).some(eq => eq?.bonuses?.haste);
+      const equipHaste = hasEquipHaste ? 1.33 : 1;
+      // 버프 공속: 초록물약은 장비 헤이스트와 중복 불가 (L1J 동일 그룹)
       const buffMult = s.activeBuffs
         .filter(b => b.expiresAt > now)
-        .reduce((mult, b) => mult * b.atkSpeedMult, 1);
+        .reduce((mult, b) => {
+          // 장비 헤이스트 있으면 초록물약 공속 무시 (중복 불가)
+          if (hasEquipHaste && b.potionId === 'green_potion') return mult;
+          return mult * b.atkSpeedMult;
+        }, 1);
       return equipHaste * buffMult;
     },
 
     getMoveSpeedMult: () => {
+      const s = get();
       const now = Date.now();
-      // MAX → 곱연산 변경: 변신주문서 이속 × 초록물약 이속 동시 적용
-      return get().activeBuffs
+      // 장비 헤이스트 있으면 초록물약 이속도 중복 불가
+      const hasEquipHaste = getAllEquipped(s).some(eq => eq?.bonuses?.haste);
+      return s.activeBuffs
         .filter(b => b.expiresAt > now)
-        .reduce((mult, b) => mult * b.moveSpeedMult, 1);
+        .reduce((mult, b) => {
+          if (hasEquipHaste && b.potionId === 'green_potion') return mult;
+          return mult * b.moveSpeedMult;
+        }, 1);
     },
 
     getMaxMp: () => {

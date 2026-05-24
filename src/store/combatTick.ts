@@ -224,6 +224,9 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       const now = Date.now();
       let newActiveBuffs = [...state.activeBuffs].filter(b => b.expiresAt > now);
 
+      // 장비 헤이스트 체크 (초록물약 중복 방지용)
+      const hasEquipHaste = getAllEquipped(state).some(eq => eq?.bonuses?.haste);
+
       for (const pid of POTION_ORDER) {
         const p = POTIONS[pid];
         if (!p.buffDuration) continue;
@@ -231,6 +234,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (p.classRestriction && !p.classRestriction.includes(state.playerClass)) continue;
         if (pid === 'blue_potion' && !state.bluePotionEnabled) continue;
         if (pid === 'green_potion' && !state.greenPotionEnabled) continue;
+        // 장비 헤이스트와 초록물약 중복 불가 (L1J: 동일 haste 그룹)
+        if (pid === 'green_potion' && hasEquipHaste) continue;
         // brave 계열 (용기/와퍼/지혜) — 동일 토글 사용
         if ((pid === 'courage_potion' || pid === 'elven_wafer' || pid === 'wisdom_potion') && !state.couragePotionEnabled) continue;
         const alreadyActive = newActiveBuffs.some(b => b.potionId === pid);
