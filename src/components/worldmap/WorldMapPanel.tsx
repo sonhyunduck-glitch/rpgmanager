@@ -324,45 +324,27 @@ export default function WorldMapPanel() {
 
       {/* ━━━ REGION DETAIL ━━━ */}
       {isMobile ? (
-        /* ── 모바일: 하단 시트 오버레이 ── */
+        /* ── 모바일: 우측 드로어 오버레이 ── */
         selectedRegion && (
           <div style={{
             position: 'absolute',
-            bottom: 0,
-            left: 0,
+            top: 0,
             right: 0,
-            maxHeight: '55%',
+            bottom: 0,
+            width: '55%',
             background: 'var(--bg-panel)',
             border: '1px solid var(--border-soft)',
-            borderBottom: 'none',
-            borderRadius: 'var(--r-md) var(--r-md) 0 0',
-            padding: '0 var(--s-3) var(--s-3)',
+            borderRight: 'none',
+            borderRadius: 'var(--r-md) 0 0 var(--r-md)',
+            padding: 'var(--s-3)',
             display: 'flex',
             flexDirection: 'column',
             gap: 'var(--s-2)',
             overflow: 'hidden',
             zIndex: 20,
-            boxShadow: '0 -4px 20px rgba(0,0,0,0.35)',
+            boxShadow: '-4px 0 20px rgba(0,0,0,0.35)',
+            animation: 'slideInRight 0.2s var(--ease-out)',
           }}>
-            {/* 닫기 핸들 */}
-            <div
-              onClick={() => setSelectedRegionId(null)}
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                padding: '8px 0 4px',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              <div style={{
-                width: 32,
-                height: 4,
-                borderRadius: 2,
-                background: 'var(--border-soft)',
-              }} />
-            </div>
-
             <RegionDetail
               region={selectedRegion}
               zones={regionZones}
