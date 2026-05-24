@@ -4,7 +4,6 @@ import StatusBar from './components/layout/StatusBar';
 import LeftPanel from './components/layout/LeftPanel';
 import CombatLog from './components/hunt/CombatLog';
 import CombatSummary from './components/hunt/CombatSummary';
-import HuntZones from './components/hunt/HuntZones';
 import CombatStatus from './components/hunt/CombatStatus';
 import Minimap from './components/hunt/Minimap';
 import SkillBar from './components/hunt/SkillBar';
@@ -16,6 +15,8 @@ import TradePanel from './components/trade/TradePanel';
 import SkillPanel from './components/skills/SkillPanel';
 import ChatPanel from './components/chat/ChatPanel';
 import RightPanel from './components/layout/RightPanel';
+import Leaderboard from './components/guild/Leaderboard';
+import GuildPanel from './components/guild/GuildPanel';
 import ProfileModal from './components/profile/ProfileModal';
 import OfflineRewardModal from './components/offline/OfflineRewardModal';
 import UpdateModal from './components/update/UpdateModal';
@@ -73,7 +74,7 @@ export default function App({ userId }: AppProps) {
     };
   }, [huntStatus, tickHunt, getAtkSpeedMult]);
 
-  const isWideCenter = viewMode === 'inventory' || viewMode === 'zones' || viewMode === 'shop' || viewMode === 'trade' || viewMode === 'skills';
+  const isWideCenter = viewMode === 'inventory' || viewMode === 'zones' || viewMode === 'shop' || viewMode === 'trade' || viewMode === 'skills' || viewMode === 'ranking' || viewMode === 'guild';
 
   return (
     <div style={{
@@ -88,7 +89,7 @@ export default function App({ userId }: AppProps) {
         display: 'grid',
         gridTemplateColumns: isWideCenter
           ? '1fr 4fr'
-          : '1fr 3fr 1fr',
+          : '1fr 2.5fr 1.2fr',
         gap: 'var(--layout-gap)',
         padding: 'var(--layout-pad)',
         flex: 1,
@@ -105,44 +106,27 @@ export default function App({ userId }: AppProps) {
             minHeight: 0,
             overflow: 'hidden',
           }}>
-            <HuntZones />
             <CombatStatus />
 
-            {/* 미니맵(2x2) + 로그(우측 1x3) + 하단 빈영역 */}
+            {/* 미니맵 + 스킬바 — 확장 */}
             <div style={{
-              flex: 1,
+              flex: 3,
               minHeight: 0,
               overflow: 'hidden',
               display: 'flex',
               gap: 'var(--layout-gap)',
             }}>
-              {/* 좌측: 미니맵(상) + 빈영역(하) */}
-              <div style={{
-                flex: 2,
-                minWidth: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--layout-gap)',
-              }}>
-                {/* 미니맵(90%) + 스킬바(10%) — 2/3 높이 */}
-                <div style={{ flex: 2, minHeight: 0, overflow: 'hidden', display: 'flex', gap: 'var(--layout-gap)' }}>
-                  <div style={{ flex: 9, minWidth: 0, overflow: 'hidden' }}>
-                    <Minimap />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <SkillBar />
-                  </div>
-                </div>
-                {/* 하단 채팅 — 1/3 높이 */}
-                <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                  <ChatPanel />
-                </div>
+              <div style={{ flex: 9, minWidth: 0, overflow: 'hidden' }}>
+                <Minimap />
               </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <SkillBar />
+              </div>
+            </div>
 
-              {/* 우측: 전투 로그 — 전체 높이 */}
-              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                <CombatLog />
-              </div>
+            {/* 하단 채팅 — 확장 */}
+            <div style={{ flex: 2, minHeight: 0, overflow: 'hidden' }}>
+              <ChatPanel />
             </div>
           </div>
         )}
@@ -152,6 +136,8 @@ export default function App({ userId }: AppProps) {
         {viewMode === 'shop' && <ShopPanel />}
         {viewMode === 'trade' && <TradePanel />}
         {viewMode === 'skills' && <SkillPanel />}
+        {viewMode === 'ranking' && <Leaderboard />}
+        {viewMode === 'guild' && <GuildPanel />}
 
         {viewMode === 'craft' && (
           <div style={{
@@ -168,7 +154,7 @@ export default function App({ userId }: AppProps) {
           </div>
         )}
 
-        {/* 우측: 리더보드 + 길드 */}
+        {/* 우측: 사냥터 카드 + 전투 로그 */}
         {viewMode === 'main' && <RightPanel />}
         {viewMode === 'craft' && <ForgePanel />}
       </div>

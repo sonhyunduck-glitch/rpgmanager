@@ -1,8 +1,8 @@
 /* =========================================================
-   RIGHT PANEL — 우측 패널 (상: 리더보드 | 하: 길드)
+   RIGHT PANEL — 우측 패널 (상: 사냥터 카드 | 하: 전투 로그)
    ========================================================= */
-import Leaderboard from '../guild/Leaderboard';
-import GuildPanel from '../guild/GuildPanel';
+import HuntZones from '../hunt/HuntZones';
+import CombatLog from '../hunt/CombatLog';
 
 export default function RightPanel() {
   return (
@@ -14,14 +14,14 @@ export default function RightPanel() {
       minHeight: 0,
       overflow: 'hidden',
     }}>
-      {/* 상: 리더보드 */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <Leaderboard />
+      {/* 상: 사냥터 카드 */}
+      <div style={{ flexShrink: 0 }}>
+        <HuntZones />
       </div>
 
-      {/* 하: 길드 */}
+      {/* 하: 전투 로그 */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <GuildPanel />
+        <CombatLog />
       </div>
     </div>
   );
