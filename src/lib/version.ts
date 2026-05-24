@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.10.0 — HP/MP 자연회복 L1J 원본 (포인트 누적, CON/WIS 기반) + 회복 수치 표시
-export const APP_VERSION = '2.10.0';
+// v2.10.1 — 좌측패널 텍스트 색상 통일 (oklch → CSS 변수)
+export const APP_VERSION = '2.10.1';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

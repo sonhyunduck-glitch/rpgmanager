@@ -235,15 +235,15 @@ function TabStats() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px' }}>
         <CombatCell label="HP" value={`${currentHp}/${maxHp}`}
           color={currentHp > maxHp * 0.6 ? 'var(--success)' : currentHp > maxHp * 0.3 ? 'var(--warning)' : 'var(--danger)'} />
-        <CombatCell label="MP" value={`${hunt.currentMp}/${maxMp}`} color="oklch(0.65 0.20 300)" />
+        <CombatCell label="MP" value={`${hunt.currentMp}/${maxMp}`} color="var(--info)" />
         <CombatCell label="HIT" value={hit} color="var(--text)" />
         <CombatCell label="AC" value={ac} color="var(--success)" />
         <CombatCell label="DMG(소)" value={`${dmgMinS}~${dmgMaxS}`} color="var(--warning)" />
         <CombatCell label="DMG(대)" value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
         <CombatCell label="MR" value={mr} color="var(--info)" />
         <CombatCell label="LV HP" value={`${hpRange.min}~${hpRange.max}`} color="var(--text-dim)" />
-        <CombatCell label="HPR" value={`${hpRegenRange.min}~${hpRegenRange.max}/${hpRegenSec}s`} color="oklch(0.68 0.16 145)" />
-        <CombatCell label="MPR" value={`${mpRegenTotal}/${mpRegenSec}s${hasBlueBuff ? ' ★' : ''}`} color="oklch(0.65 0.20 300)" />
+        <CombatCell label="HPR" value={`${hpRegenRange.min}~${hpRegenRange.max}/${hpRegenSec}s`} color="var(--text-dim)" />
+        <CombatCell label="MPR" value={`${mpRegenTotal}/${mpRegenSec}s${hasBlueBuff ? ' ★' : ''}`} color="var(--text-dim)" />
       </div>
     </>
   );
@@ -353,7 +353,7 @@ function TabSkills() {
               position: 'relative', overflow: 'hidden',
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '3px 6px', background: 'var(--bg-panel)',
-              border: onCooldown ? '1px solid oklch(0.55 0.15 25)' : '1px solid var(--border-soft)',
+              border: onCooldown ? '1px solid color-mix(in oklch, var(--danger) 60%, transparent)' : '1px solid var(--border-soft)',
               borderRadius: 'var(--r-sm)',
               opacity: skill ? 1 : 0.5,
             }}>
@@ -362,7 +362,7 @@ function TabSkills() {
                 <div style={{
                   position: 'absolute', left: 0, top: 0, bottom: 0,
                   width: `${cdPct}%`,
-                  background: 'oklch(0.35 0.12 25 / 0.35)',
+                  background: 'color-mix(in oklch, var(--danger) 35%, transparent)',
                   transition: 'width 0.3s ease',
                   pointerEvents: 'none',
                 }} />
@@ -378,14 +378,14 @@ function TabSkills() {
               <span style={{
                 position: 'relative', zIndex: 1,
                 fontSize: F.value, fontWeight: 600, flex: 1,
-                color: onCooldown ? 'oklch(0.60 0.15 25)' : skill ? 'var(--text-dim)' : 'var(--text-faint)',
+                color: onCooldown ? 'var(--danger)' : skill ? 'var(--text-dim)' : 'var(--text-faint)',
                 fontStyle: skill ? 'normal' : 'italic',
               }}>{skill ? skill.name : '—'}</span>
               {skill && (
                 <span style={{
                   position: 'relative', zIndex: 1,
                   fontFamily: 'var(--font-mono)', fontSize: F.tiny,
-                  color: onCooldown ? 'oklch(0.60 0.15 25)' : 'oklch(0.65 0.20 300)',
+                  color: onCooldown ? 'var(--danger)' : 'var(--info)',
                 }}>
                   {onCooldown ? `${cdRemain * 3}s` : `MP ${skill.consumeMp}`}
                 </span>
