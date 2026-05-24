@@ -90,7 +90,7 @@ export default function App({ userId }: AppProps) {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: '100dvh',
+      height: '100%',
       overflow: 'hidden',
     }}>
       <StatusBar />

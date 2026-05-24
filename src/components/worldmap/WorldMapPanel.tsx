@@ -16,7 +16,7 @@ import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
 
 // ── 상수 ──
 const NODE_SIZE = 52;
-const NODE_SIZE_MOBILE = 36;
+const NODE_SIZE_MOBILE = 28;
 const MOBILE_BREAKPOINT = 600;
 
 // 모바일에서 겹치는 노드 위치 보정

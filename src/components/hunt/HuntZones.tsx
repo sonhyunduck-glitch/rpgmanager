@@ -1,6 +1,8 @@
 /* =========================================================
    HUNT ZONES — 현재 사냥터(좌: 정보 + 방 진행) | 다음 사냥터
+   반응형: 좁은 패널에서 세로 배치
    ========================================================= */
+import { useRef, useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES } from '../../data/gameData';
 import { LABEL } from '../../styles/shared';
@@ -13,6 +15,7 @@ function formatKillTime(ms: number): string {
 
 const ROOMS_PER_ZONE = 5;
 const ROOM_KILL_REQ = 5;
+const COMPACT_BREAKPOINT = 280;
 
 export default function HuntZones() {
   const level = useGameStore((s) => s.level);
@@ -29,6 +32,23 @@ export default function HuntZones() {
   const startHunt = useGameStore((s) => s.startHunt);
   const setMaterials = useGameStore((s) => s.setMaterials);
   const getStr = useGameStore((s) => s.getStr);
+
+  // ── 반응형 감지 ──
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerW, setContainerW] = useState(999);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setContainerW(el.clientWidth);
+    const ro = new ResizeObserver(entries => {
+      for (const e of entries) setContainerW(e.contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const isCompact = containerW < COMPACT_BREAKPOINT;
 
   const currentZone = HUNT_ZONES.find((z) => z.id === hunt.zoneId);
   const currentIdx = HUNT_ZONES.findIndex((z) => z.id === hunt.zoneId);
@@ -76,6 +96,7 @@ export default function HuntZones() {
   if (!currentZone) {
     return (
       <div
+        ref={containerRef}
         style={{
           background: 'var(--bg-panel)',
           border: '1px solid var(--border-soft)',
@@ -128,6 +149,7 @@ export default function HuntZones() {
 
   return (
     <div
+      ref={containerRef}
       style={{
         background: 'var(--bg-panel)',
         border: '1px solid var(--border-soft)',
@@ -136,11 +158,16 @@ export default function HuntZones() {
         flexShrink: 0,
       }}
     >
-      <div style={{ display: 'flex', gap: 'var(--s-2)' }}>
+      {/* compact: 세로 배치 / wide: 가로 배치 */}
+      <div style={{
+        display: 'flex',
+        flexDirection: isCompact ? 'column' : 'row',
+        gap: 'var(--s-2)',
+      }}>
         {/* ── 현재 사냥터 ── */}
         <div
           style={{
-            flex: 3,
+            flex: isCompact ? undefined : 3,
             minWidth: 0,
             background: isActive
               ? `color-mix(in oklch, ${accentColor} 8%, var(--bg-panel))`
@@ -163,8 +190,13 @@ export default function HuntZones() {
             else if (isPaused) resumeHunt();
           }}
         >
-          <div style={{ display: 'flex', gap: 'var(--s-2)' }}>
-            {/* 좌측: 맵이름 + 레벨 + 상태 */}
+          {/* compact: 이름 위, 방 아래 / wide: 가로 */}
+          <div style={{
+            display: 'flex',
+            flexDirection: isCompact ? 'column' : 'row',
+            gap: 'var(--s-2)',
+          }}>
+            {/* 맵이름 + 레벨 + 상태 */}
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <div
                 style={{
@@ -207,12 +239,12 @@ export default function HuntZones() {
               )}
             </div>
 
-            {/* 우측: Room 진행 바 */}
+            {/* Room 진행 바 */}
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
+                alignItems: isCompact ? 'flex-start' : 'center',
                 gap: 4,
                 flexShrink: 0,
                 padding: '2px 0',
@@ -231,7 +263,7 @@ export default function HuntZones() {
                     <div key={room} style={{ display: 'flex', alignItems: 'center' }}>
                       {i > 0 && (
                         <div style={{
-                          width: 8, height: 1,
+                          width: isCompact ? 4 : 8, height: 1,
                           background: isCleared || isCurrent ? 'var(--success)' : 'var(--border-soft)',
                         }} />
                       )}
@@ -314,18 +346,22 @@ export default function HuntZones() {
               }} />
               <div
                 style={{
-                  display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'space-between',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: isCompact ? '2px 4px' : 4,
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <SummaryItem label="KILLS" value={hunt.kills} color="var(--text)" />
-                <Dot />
+                {!isCompact && <Dot />}
                 <SummaryItem label="GOLD" value={hunt.goldGained.toLocaleString()} color="var(--accent)" />
-                <Dot />
+                {!isCompact && <Dot />}
                 <SummaryItem label="MATS" value={totalMaterials} color="var(--info)" />
-                <Dot />
+                {!isCompact && <Dot />}
                 <SummaryItem label="ITEMS" value={hunt.itemsFound} color="var(--success)" />
-                <Dot />
+                {!isCompact && <Dot />}
                 <SummaryItem label="AVG" value={formatKillTime(hunt.avgKillTime ?? 0)} color="var(--text)" />
               </div>
             </>
@@ -335,7 +371,7 @@ export default function HuntZones() {
         {/* ── 다음 사냥터 / 다음 층 ── */}
         <div
           style={{
-            flex: 2,
+            flex: isCompact ? undefined : 2,
             minWidth: 0,
             background: canMoveNext
               ? 'color-mix(in oklch, var(--success) 6%, var(--bg-sunken))'
