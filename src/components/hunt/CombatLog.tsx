@@ -3,11 +3,18 @@ import { useGameStore } from '../../store/gameStore';
 import type { LogEntry } from '../../types';
 
 /* ── 탭 정의 ── */
-type LogTab = 'combat' | 'loot';
+type LogTab = 'combat' | 'skill' | 'loot';
 
-/** 전투 탭: 발견 + 처치 + 진입/클리어 */
+/** 전투 탭: 발견 + 처치 + 진입/클리어 + 피격/회피/사망 */
 const COMBAT_FILTER = (e: LogEntry) =>
-  e.type === 'encounter' || e.type === 'kill' || e.type === 'enter' || (e.type === 'crit' && e.text.includes('처치'));
+  e.type === 'encounter' || e.type === 'kill' || e.type === 'enter'
+  || (e.type === 'crit' && e.text.includes('처치'))
+  || e.type === 'hit_taken' || e.type === 'miss' || e.type === 'death'
+  || e.type === 'join';
+
+/** 스킬 탭: 스킬 시전 + 무기 특수스킬 + 물약/버프 */
+const SKILL_FILTER = (e: LogEntry) =>
+  e.type === 'skill' || e.type === 'battle' || e.type === 'potion';
 
 /** 획득 탭: 아이템 획득만 */
 const LOOT_FILTER = (e: LogEntry) =>
@@ -20,6 +27,13 @@ const TAG_COLORS: Partial<Record<LogEntry['type'], string>> = {
   crit: 'var(--success)',
   loot: 'oklch(0.65 0.18 85)',
   find: 'var(--accent)',
+  skill: 'oklch(0.65 0.20 300)',
+  battle: 'oklch(0.60 0.18 30)',
+  potion: 'oklch(0.70 0.16 150)',
+  hit_taken: 'oklch(0.60 0.22 25)',
+  miss: 'var(--text-mute)',
+  death: 'oklch(0.55 0.25 15)',
+  join: 'oklch(0.60 0.15 60)',
 };
 
 const TAG_LABELS: Partial<Record<LogEntry['type'], string>> = {
@@ -28,6 +42,13 @@ const TAG_LABELS: Partial<Record<LogEntry['type'], string>> = {
   crit: '처치',
   loot: '획득',
   find: '장비',
+  skill: '스킬',
+  battle: '발동',
+  potion: '버프',
+  hit_taken: '피격',
+  miss: '회피',
+  death: '사망',
+  join: '합류',
 };
 
 /* ── 로그 라인 ── */
@@ -91,9 +112,8 @@ export default function CombatLog() {
   const [tab, setTab] = useState<LogTab>('combat');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const filtered = combatLog.filter(
-    tab === 'combat' ? COMBAT_FILTER : LOOT_FILTER,
-  );
+  const filterFn = tab === 'combat' ? COMBAT_FILTER : tab === 'skill' ? SKILL_FILTER : LOOT_FILTER;
+  const filtered = combatLog.filter(filterFn);
 
   const lastId = filtered.length > 0 ? filtered[filtered.length - 1].id : '';
   useLayoutEffect(() => {
@@ -126,6 +146,9 @@ export default function CombatLog() {
       >
         <TabBtn active={tab === 'combat'} onClick={() => setTab('combat')}>
           Combat
+        </TabBtn>
+        <TabBtn active={tab === 'skill'} onClick={() => setTab('skill')}>
+          Skill
         </TabBtn>
         <TabBtn active={tab === 'loot'} onClick={() => setTab('loot')}>
           Loot
@@ -162,7 +185,7 @@ export default function CombatLog() {
               padding: 'var(--s-6)',
             }}
           >
-            {tab === 'combat' ? 'No combat activity yet.' : 'No loot yet.'}
+            {tab === 'combat' ? 'No combat activity yet.' : tab === 'skill' ? 'No skill activity yet.' : 'No loot yet.'}
           </div>
         ) : (
           filtered.map((entry) => <LogLine key={entry.id} entry={entry} />)
