@@ -309,11 +309,17 @@ function EquipRow({ label, equipment }: { label: string; equipment: Equipment | 
 function TabSkills() {
   const equippedSkills = useGameStore(s => s.equippedSkills);
   const level = useGameStore(s => s.level);
+  const hunt = useGameStore(s => s.hunt);
+  const cooldowns = hunt.skillCooldowns ?? {};
   const maxSlots = getSkillSlotCount(level);
   const filledCount = equippedSkills.filter(id => id > 0).length;
   const slotLevels = [1, 1, 1, 1, 20, 30, 40, 50];
   const lockedSlots = [];
   for (let i = maxSlots; i < 8; i++) lockedSlots.push({ slot: i + 1, reqLevel: slotLevels[i] });
+
+  // 쿨다운 진행 중이면 리렌더 (1초마다)
+  const hasCooldown = equippedSkills.some(id => id > 0 && (cooldowns[id] ?? 0) > 0);
+  useTimer(hasCooldown);
 
   return (
     <>
@@ -322,14 +328,32 @@ function TabSkills() {
         {Array.from({ length: maxSlots }).map((_, i) => {
           const skillId = equippedSkills[i] ?? 0;
           const skill = skillId > 0 ? PLAYER_SKILLS.find(s => s.id === skillId) : null;
+          const cdRemain = skill ? (cooldowns[skill.id] ?? 0) : 0;
+          const cdMax = skill ? skill.reuseDelayTicks : 0;
+          const onCooldown = cdRemain > 0 && cdMax > 0;
+          const cdPct = onCooldown ? (cdRemain / cdMax) * 100 : 0;
+
           return (
             <div key={i} style={{
+              position: 'relative', overflow: 'hidden',
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '3px 6px', background: 'var(--bg-panel)',
-              border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)',
+              border: onCooldown ? '1px solid oklch(0.55 0.15 25)' : '1px solid var(--border-soft)',
+              borderRadius: 'var(--r-sm)',
               opacity: skill ? 1 : 0.5,
             }}>
+              {/* 쿨다운 프로그레스 바 (배경) */}
+              {onCooldown && (
+                <div style={{
+                  position: 'absolute', left: 0, top: 0, bottom: 0,
+                  width: `${cdPct}%`,
+                  background: 'oklch(0.35 0.12 25 / 0.35)',
+                  transition: 'width 0.3s ease',
+                  pointerEvents: 'none',
+                }} />
+              )}
               <span style={{
+                position: 'relative', zIndex: 1,
                 width: 16, height: 16, borderRadius: 'var(--r-xs)',
                 background: 'var(--bg-sunken)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -337,13 +361,18 @@ function TabSkills() {
                 fontWeight: 700, color: 'var(--text-mute)', flexShrink: 0,
               }}>{i + 1}</span>
               <span style={{
+                position: 'relative', zIndex: 1,
                 fontSize: F.value, fontWeight: 600, flex: 1,
-                color: skill ? 'var(--text-dim)' : 'var(--text-faint)',
+                color: onCooldown ? 'oklch(0.60 0.15 25)' : skill ? 'var(--text-dim)' : 'var(--text-faint)',
                 fontStyle: skill ? 'normal' : 'italic',
               }}>{skill ? skill.name : '—'}</span>
               {skill && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: F.tiny, color: 'oklch(0.65 0.20 300)' }}>
-                  MP {skill.consumeMp}
+                <span style={{
+                  position: 'relative', zIndex: 1,
+                  fontFamily: 'var(--font-mono)', fontSize: F.tiny,
+                  color: onCooldown ? 'oklch(0.60 0.15 25)' : 'oklch(0.65 0.20 300)',
+                }}>
+                  {onCooldown ? `${cdRemain * 3}s` : `MP ${skill.consumeMp}`}
                 </span>
               )}
             </div>
