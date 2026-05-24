@@ -2,7 +2,15 @@
    Equipment Card — 장비 카드
    ══════════════════════════════════════════════════════════ */
 import { equipDisplayName } from '../../store/gameStore';
-import type { Equipment } from '../../types';
+import { EQUIPMENT_TEMPLATES } from '../../data/gameData';
+import type { Equipment, PlayerClass } from '../../types';
+
+/** 클래스 뱃지 표시용 */
+const CLASS_BADGE: Record<PlayerClass, { icon: string; label: string }> = {
+  knight: { icon: '⚔️', label: '기사' },
+  elf:    { icon: '🏹', label: '요정' },
+  wizard: { icon: '🔮', label: '마법사' },
+};
 
 export default function EquipCard({
   eq, isEquipped, isSelected, onSelect, onAction, actionLabel, actionStyle,
@@ -79,6 +87,34 @@ export default function EquipCard({
           : <>AC {eq.baseDef}<span style={{ color: enh > 0 ? 'var(--success)' : 'var(--text-mute)' }}>+{enh}</span></>
         }
       </div>
+
+      {/* Class restriction badges */}
+      {(() => {
+        const t = EQUIPMENT_TEMPLATES[eq.templateId];
+        const cr = t?.classRestriction;
+        if (!cr || cr.length === 0) return null;
+        return (
+          <div style={{ display: 'flex', gap: 3, fontSize: '10px' }}>
+            {cr.map(cls => {
+              const b = CLASS_BADGE[cls];
+              return (
+                <span
+                  key={cls}
+                  style={{
+                    padding: '0 4px',
+                    borderRadius: 'var(--r-xs)',
+                    background: 'color-mix(in oklch, var(--text-mute) 8%, transparent)',
+                    color: 'var(--text-mute)',
+                    lineHeight: '16px',
+                  }}
+                >
+                  {b.icon}{b.label}
+                </span>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Bonus */}
       {eq.bonusEffects.length > 0 && (
