@@ -181,7 +181,7 @@ export interface GameState {
   // Shop actions
   buyPotion: (id: string, qty: number) => void;
   buyEquipFromShop: (templateId: string) => void;
-  buyMaterial: (materialId: string, qty: number, unitPrice: number) => void;
+  buyMaterial: (materialId: string, qty: number, totalCost: number) => void;
   setMaterials: (m: Record<string, number>) => void;
   setSelectedPotion: (id: string) => void;
   togglePotionAutoUse: () => void;

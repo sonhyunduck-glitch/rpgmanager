@@ -42,7 +42,7 @@ export default function ScrollShop({
 }: {
   gold: number;
   materials: Record<string, number>;
-  buyMaterial: (id: string, qty: number, unitPrice: number) => void;
+  buyMaterial: (id: string, qty: number, totalCost: number) => void;
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-3)' }}>
@@ -107,7 +107,7 @@ export default function ScrollShop({
                       return (
                         <button
                           key={qty}
-                          onClick={() => canBuy && buyMaterial(id, qty, item.price)}
+                          onClick={() => canBuy && buyMaterial(id, qty, cost)}
                           disabled={!canBuy}
                           style={{
                             padding: '4px 8px',

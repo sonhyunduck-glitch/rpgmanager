@@ -20,13 +20,14 @@ export interface ShopEtcItem {
   buyPrice: number;         // NPC 구매가
   sellPrice: number;        // NPC 판매가 (-1 = 판매 불가)
   category: ShopItemCategory;
+  packSize?: number;        // 묶음 수량 (기본 1, 은화살=5)
 }
 
 // ── 전체 구매 가능 아이템 목록 ──
 export const SHOP_ETC_ITEMS: ShopEtcItem[] = [
   { id: 'e_40319', name: '정령옥', buyPrice: 300, sellPrice: 150, category: 'material' },
   { id: 'e_40318', name: '마력의 돌', buyPrice: 400, sellPrice: 200, category: 'material' },
-  { id: 'e_40744', name: '은 화살', buyPrice: 30, sellPrice: 1, category: 'material' },
+  { id: 'e_40744', name: '은 화살', buyPrice: 1, sellPrice: 0, category: 'material', packSize: 5 },
 ];
 
 // ── 카테고리별 필터 ──

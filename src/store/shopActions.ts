@@ -43,9 +43,8 @@ export function createShopActions(set: SetState, get: GetState, save: SaveFn) {
       save(get());
     },
 
-    buyMaterial: (materialId: string, qty: number, unitPrice: number) => {
+    buyMaterial: (materialId: string, qty: number, totalCost: number) => {
       const state = get();
-      const totalCost = unitPrice * qty;
       if (state.gold < totalCost) return;
       set({
         gold: state.gold - totalCost,

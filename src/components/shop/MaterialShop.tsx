@@ -19,6 +19,8 @@ export default function MaterialShop({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
       {items.map(item => {
         const owned = materials[item.id] ?? 0;
+        const pack = item.packSize ?? 1; // 묶음 수량 (은화살=5)
+
         return (
           <div
             key={item.id}
@@ -38,7 +40,9 @@ export default function MaterialShop({
                 {item.name}
               </div>
               <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', marginTop: 1 }}>
-                구매 {fmtGold(item.buyPrice)}
+                {pack > 1
+                  ? `${pack}개 ${fmtGold(item.buyPrice)}`
+                  : `구매 ${fmtGold(item.buyPrice)}`}
                 {item.sellPrice > 0 && ` · 판매 ${fmtGold(item.sellPrice)}`}
               </div>
             </div>
@@ -58,13 +62,14 @@ export default function MaterialShop({
 
             {/* 구매 버튼들 */}
             <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-              {[1, 10, 50].map(qty => {
-                const cost = item.buyPrice * qty;
+              {[1, 10, 50].map(mult => {
+                const actualQty = pack * mult; // 실제 수량 (5×1=5, 5×10=50, 5×50=250)
+                const cost = item.buyPrice * mult; // 비용 (1×1=1, 1×10=10, 1×50=50)
                 const canBuy = gold >= cost;
                 return (
                   <button
-                    key={qty}
-                    onClick={() => canBuy && buyMaterial(item.id, qty, item.buyPrice)}
+                    key={mult}
+                    onClick={() => canBuy && buyMaterial(item.id, actualQty, cost)}
                     disabled={!canBuy}
                     style={{
                       padding: '4px 8px',
@@ -83,7 +88,7 @@ export default function MaterialShop({
                       gap: 1,
                     }}
                   >
-                    <span>+{qty}</span>
+                    <span>+{actualQty}</span>
                     <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)' }}>
                       {fmtGold(cost)}
                     </span>
