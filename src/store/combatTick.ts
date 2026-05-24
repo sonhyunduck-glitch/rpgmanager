@@ -326,7 +326,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             dmgBonus: buff.buffEffect?.dmgBonus,
             fireDmgBonus: buff.buffEffect?.fireDmgBonus,
           });
-          if (buff.reuseDelayTicks > 0) skillCooldowns[buff.id] = buff.reuseDelayTicks;
+          skillCooldowns[buff.id] = buff.reuseDelayTicks || 1;
           newLogs.push({
             id: genLogId(), type: 'skill',
             text: `${buff.name} 시전! (${Math.floor(buff.buffDuration / 60)}분)`,
@@ -440,7 +440,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         const spell = getBestAttackSpell(state.playerClass, state.level, huntMp, skillCooldowns, equipped, disabled);
         if (spell) {
           huntMp -= spell.consumeMp;
-          if (spell.reuseDelayTicks > 0) skillCooldowns[spell.id] = spell.reuseDelayTicks;
+          skillCooldowns[spell.id] = spell.reuseDelayTicks || 1;
           const rawMagic = rollSpellDamage(
             spell.damageValue, spell.damageDice, spell.damageDiceCount,
             playerInt, equipBonusSp, state.level, state.playerClass,
@@ -543,7 +543,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           if (classSkills.length > 0) {
             const classSkill = classSkills[0];
             huntMp -= classSkill.consumeMp;
-            if (classSkill.reuseDelayTicks > 0) skillCooldowns[classSkill.id] = classSkill.reuseDelayTicks;
+            skillCooldowns[classSkill.id] = classSkill.reuseDelayTicks || 1;
 
             if (classSkill.id === 132) {
               // 트리플 애로우: 3회 활 공격
@@ -988,7 +988,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               playerInt, equipBonusSp, state.level, state.playerClass,
             );
             newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + healAmt);
-            if (healSpell.reuseDelayTicks > 0) skillCooldowns[healSpell.id] = healSpell.reuseDelayTicks;
+            skillCooldowns[healSpell.id] = healSpell.reuseDelayTicks || 1;
             newLogs.push({
               id: genLogId(), type: 'skill',
               text: `${healSpell.name} 시전! HP +${healAmt} (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,

@@ -346,8 +346,8 @@ function TabSkills() {
           const skill = skillId > 0 ? PLAYER_SKILLS.find(s => s.id === skillId) : null;
           const isDisabled = skill ? (disabledSkills ?? []).includes(skill.id) : false;
           const cdRemain = skill ? (cooldowns[skill.id] ?? 0) : 0;
-          const cdMax = skill ? skill.reuseDelayTicks : 0;
-          const onCooldown = cdRemain > 0 && cdMax > 0;
+          const cdMax = skill ? Math.max(skill.reuseDelayTicks, 1) : 0;
+          const onCooldown = cdRemain > 0;
           const cdPct = onCooldown ? (cdRemain / cdMax) * 100 : 0;
 
           return (

@@ -471,7 +471,7 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
         padding: 'var(--s-3)',
       }}>
         <DetailStat label="MP 소모" value={skill.consumeMp} color="#6BA3FF" />
-        <DetailStat label="쿨타운" value={skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks}턴` : '-'} color="var(--text-dim)" />
+        <DetailStat label="쿨타운" value={skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'} color="var(--text-dim)" />
         {skill.skillType === 'attack' && (
           <>
             <DetailStat label="고정 대미지" value={skill.damageValue || '-'} color="var(--danger)" />
