@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.27.0 — 스킬북/마법서/기술서 아이템 제거 (레벨 해금 방식)
-export const APP_VERSION = '2.27.0';
+// v2.27.1 — CHA 엘릭서 삭제
+export const APP_VERSION = '2.27.1';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

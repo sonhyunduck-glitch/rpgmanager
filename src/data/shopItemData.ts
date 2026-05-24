@@ -292,7 +292,6 @@ export const SHOP_ETC_ITEMS: ShopEtcItem[] = [
   { id: 'e_40035', name: '엘릭서 (DEX)', buyPrice: 1, sellPrice: -1, category: 'potion' },
   { id: 'e_40036', name: '엘릭서 (INT)', buyPrice: 1, sellPrice: -1, category: 'potion' },
   { id: 'e_40037', name: '엘릭서 (WIS)', buyPrice: 1, sellPrice: -1, category: 'potion' },
-  { id: 'e_40038', name: '엘릭서 (CHA)', buyPrice: 1, sellPrice: -1, category: 'potion' },
   { id: 'e_40043', name: '토끼의 간', buyPrice: 1, sellPrice: -1, category: 'potion' },
   { id: 'e_40733', name: '명예의 코인', buyPrice: 1, sellPrice: -1, category: 'potion' },
   { id: 'e_40734', name: '신뢰의 코인', buyPrice: 1, sellPrice: -1, category: 'potion' },
