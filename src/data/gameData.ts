@@ -239,7 +239,7 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   lastabad_leather:        { id: 'lastabad_leather',        name: '라스타바드 레더 아머',    type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 750 },
   scale_armor:             { id: 'scale_armor',             name: '비늘 갑옷',             type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 1000 },
   orc_chain_armor:         { id: 'orc_chain_armor',         name: '오크족 사슬 갑옷',       type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 400 },
-  dark_forester_armor:     { id: 'dark_forester_armor',     name: '다크 포레스터의 갑옷',    type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 150,  bonusEffects: ['MP +10 (미구현)'] },
+  dark_forester_armor:     { id: 'dark_forester_armor',     name: '다크 포레스터의 갑옷',    type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 150,  bonuses: { mp: 10 }, bonusEffects: ['MP +10'] },
   lastabad_studded:        { id: 'lastabad_studded',        name: '라스타바드 징박힌 레더 아머', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 1000 },
   elven_breastplate:       { id: 'elven_breastplate',       name: '요정족 흉갑',            type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 500 },
   chain_armor:             { id: 'chain_armor',             name: '사슬 갑옷',             type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 5, maxEnhance: 10, sellPrice: 3000 },
@@ -317,11 +317,11 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   magic_cloak:             { id: 'magic_cloak',             name: '마법 망토',                type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 100,  bonuses: { mr: 10 }, bonusEffects: ['MR +10'] },
   wolf_cloak:              { id: 'wolf_cloak',              name: '늑대가죽 망토',             type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 500 },
   aden_cloak:              { id: 'aden_cloak',              name: '아덴 기사단의 망토',        type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 550 },
-  black_tiger_cloak:       { id: 'black_tiger_cloak',       name: '블랙 티거 가죽 망토',       type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 600,  bonusEffects: ['HP 회복량 +2 (미구현)'] },
-  earth_cloak:             { id: 'earth_cloak',             name: '대지의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonusEffects: ['MP 회복량 +2 (미구현)', '땅 속성 저항+10 (미구현)'] },
-  water_cloak:             { id: 'water_cloak',             name: '물결의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonusEffects: ['MP 회복량 +2 (미구현)', '물 속성 저항+10 (미구현)'] },
-  wind_cloak:              { id: 'wind_cloak',              name: '바람의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonusEffects: ['MP 회복량 +2 (미구현)', '바람 속성 저항+10 (미구현)'] },
-  fire_cloak:              { id: 'fire_cloak',              name: '열화의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonusEffects: ['MP 회복량 +2 (미구현)', '불 속성 저항+10 (미구현)'] },
+  black_tiger_cloak:       { id: 'black_tiger_cloak',       name: '블랙 티거 가죽 망토',       type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 600,  bonuses: { hpr: 2 }, bonusEffects: ['HPR+2'] },
+  earth_cloak:             { id: 'earth_cloak',             name: '대지의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonuses: { mpr: 2 }, bonusEffects: ['MPR+2'] },
+  water_cloak:             { id: 'water_cloak',             name: '물결의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonuses: { mpr: 2 }, bonusEffects: ['MPR+2'] },
+  wind_cloak:              { id: 'wind_cloak',              name: '바람의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonuses: { mpr: 2 }, bonusEffects: ['MPR+2'] },
+  fire_cloak:              { id: 'fire_cloak',              name: '열화의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 700,  bonuses: { mpr: 2 }, bonusEffects: ['MPR+2'] },
   chaos_cloak:             { id: 'chaos_cloak',             name: '혼돈의 망토',              type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 0, sellPrice: 900,  bonuses: { mr: 10 }, bonusEffects: ['MR +10'] },
   protection_cloak:        { id: 'protection_cloak',        name: '보호 망토',                type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 10000 },
   queen_ant_wing:          { id: 'queen_ant_wing',          name: '거대 여왕 개미의 금빛 날개', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 3000, bonuses: { hp: 50, mr: 15 }, bonusEffects: ['HP +50', 'MR +15'] },
@@ -342,10 +342,10 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   */
   basic_gloves:            { id: 'basic_gloves',            name: '장갑',                type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 4000 },
   leather_gloves:          { id: 'leather_gloves',          name: '가죽 장갑',           type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 4000 },
-  ice_gloves:              { id: 'ice_gloves',              name: '빙령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1 }, bonusEffects: ['STR +1', 'MP 회복량 +1 (미구현)', '물 속성 저항+4 (미구현)'] },
-  shadow_gloves:           { id: 'shadow_gloves',           name: '암령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1 }, bonusEffects: ['STR +1', 'MP 회복량 +1 (미구현)', '땅 속성 저항+4 (미구현)'] },
-  flame_gloves:            { id: 'flame_gloves',            name: '염령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1 }, bonusEffects: ['STR +1', 'MP 회복량 +1 (미구현)', '불 속성 저항+4 (미구현)'] },
-  wind_gloves:             { id: 'wind_gloves',             name: '풍령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1 }, bonusEffects: ['STR +1', 'MP 회복량 +1 (미구현)', '바람 속성 저항+4 (미구현)'] },
+  ice_gloves:              { id: 'ice_gloves',              name: '빙령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1'] },
+  shadow_gloves:           { id: 'shadow_gloves',           name: '암령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1'] },
+  flame_gloves:            { id: 'flame_gloves',            name: '염령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1'] },
+  wind_gloves:             { id: 'wind_gloves',             name: '풍령의 장갑',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 50000,  bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1'] },
   power_glove:             { id: 'power_glove',             name: '파워 글로브',          type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 400,  bonuses: { str: 2 }, bonusEffects: ['STR +2'] },
   steel_gloves:            { id: 'steel_gloves',            name: '강철 장갑',            type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 55 },
   yeti_gloves:             { id: 'yeti_gloves',             name: '설인 장갑',            type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 80,   bonuses: { hp: 5 }, bonusEffects: ['HP +5', '동빙 내성+8 (미구현)'] },
@@ -422,7 +422,7 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   wis_necklace:            { id: 'wis_necklace',            name: '지혜의 목걸이',          type: 'necklace', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 5000,  bonuses: { wis: 1 }, bonusEffects: ['WIS +1'] },
   health_necklace:         { id: 'health_necklace',         name: '체력의 목걸이',          type: 'necklace', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 5000,  bonuses: { con: 1 }, bonusEffects: ['CON +1'] },
   orc_warrior_necklace:    { id: 'orc_warrior_necklace',    name: '오크 투사의 목걸이',      type: 'necklace', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 32500,  bonuses: { hp: 20 }, bonusEffects: ['HP +20'] },
-  elder_necklace:          { id: 'elder_necklace',          name: '장로의 목걸이',          type: 'necklace', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 45,  bonusEffects: ['MP +30 (미구현)', 'MP 회복량+1 (미구현)'] },
+  elder_necklace:          { id: 'elder_necklace',          name: '장로의 목걸이',          type: 'necklace', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 45,  bonuses: { mp: 30, mpr: 1 }, bonusEffects: ['MP +30', 'MPR+1'] },
   antimagic_necklace:      { id: 'antimagic_necklace',      name: '항마의 목걸이',          type: 'necklace', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 300 },
   guardian_necklace:       { id: 'guardian_necklace',       name: '수호의 목걸이',          type: 'necklace', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 0, sellPrice: 1000 },
 
@@ -432,7 +432,7 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
      - 상아탑의 반지: 1AC +0, 거래 불가, 군/기/요/마 착용
      - 순간이동 조종 반지: 0AC, 텔레포트 기능 미구현
   */
-  elder_ring:              { id: 'elder_ring',              name: '장로의 반지',            type: 'ring', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 45,    bonusEffects: ['MP +10 (미구현)', 'MP 회복량+1 (미구현)'] },
+  elder_ring:              { id: 'elder_ring',              name: '장로의 반지',            type: 'ring', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 45,    bonuses: { mp: 10, mpr: 1 }, bonusEffects: ['MP +10', 'MPR+1'] },
   antimagic_ring:          { id: 'antimagic_ring',          name: '항마의 반지',            type: 'ring', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 1000,   bonuses: { mr: 5 }, bonusEffects: ['MR +5'] },
   water_ring:              { id: 'water_ring',              name: '수령의 반지',            type: 'ring', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 1000,   bonusEffects: ['물 속성 저항+30 (미구현)'] },
   banish_ring:             { id: 'banish_ring',             name: '멸마의 반지',            type: 'ring', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 1500,  bonuses: { mr: 10 }, bonusEffects: ['MR +10'] },
@@ -451,13 +451,13 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
      - 트롤의 벨트: 0AC, 무게 한도+500, 군주/기사/요정 착용
      - 항마의 벨트: 0AC, 무게 한도+400/세트: 항마, PC방 한정
   */
-  old_soul_belt:           { id: 'old_soul_belt',           name: '낡은 영혼의 벨트',       type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 7500,   bonuses: { hp: 15 }, bonusEffects: ['HP +15', 'MP +15 (미구현)'] },
+  old_soul_belt:           { id: 'old_soul_belt',           name: '낡은 영혼의 벨트',       type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 7500,   bonuses: { hp: 15, mp: 15 }, bonusEffects: ['HP +15', 'MP +15'] },
   old_body_belt:           { id: 'old_body_belt',           name: '낡은 신체의 벨트',       type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 7500,   bonuses: { hp: 30 }, bonusEffects: ['HP +30'] },
-  soul_belt:               { id: 'soul_belt',               name: '영혼의 벨트',            type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 15000,   bonuses: { hp: 25 }, bonusEffects: ['HP +25', 'MP +25 (미구현)'] },
+  soul_belt:               { id: 'soul_belt',               name: '영혼의 벨트',            type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 15000,   bonuses: { hp: 25, mp: 25 }, bonusEffects: ['HP +25', 'MP +25'] },
   body_belt:               { id: 'body_belt',               name: '신체의 벨트',            type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 8000,   bonuses: { hp: 50 }, bonusEffects: ['HP +50'] },
   courage_belt:            { id: 'courage_belt',            name: '용기의 벨트',            type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 0, sellPrice: 300,  bonuses: { hp: 30 }, bonusEffects: ['HP +30'] },
-  shining_soul_belt:       { id: 'shining_soul_belt',       name: '빛나는 영혼의 벨트',      type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 800,  bonuses: { hp: 20 }, bonusEffects: ['HP +20', 'MP +20 (미구현)', 'HP·MP 회복량+1 (미구현)'] },
-  shining_body_belt:       { id: 'shining_body_belt',       name: '빛나는 신체의 벨트',      type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 1100, bonuses: { hp: 50 }, bonusEffects: ['HP +50', 'HP 회복량+1 (미구현)'] },
+  shining_soul_belt:       { id: 'shining_soul_belt',       name: '빛나는 영혼의 벨트',      type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 800,  bonuses: { hp: 20, mp: 20, hpr: 1, mpr: 1 }, bonusEffects: ['HP +20', 'MP +20', 'HPR+1', 'MPR+1'] },
+  shining_body_belt:       { id: 'shining_body_belt',       name: '빛나는 신체의 벨트',      type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 0, sellPrice: 1100, bonuses: { hp: 50, hpr: 1 }, bonusEffects: ['HP +50', 'HPR+1'] },
   giant_ring_belt:         { id: 'giant_ring_belt',         name: '에이션트 자이언트의 반지', type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 0, sellPrice: 1500, bonuses: { str: 1 }, bonusEffects: ['STR +1'] },
 };
 

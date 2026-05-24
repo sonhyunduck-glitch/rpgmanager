@@ -188,6 +188,10 @@ function convertWeapons(rows) {
     if (mp) { bonuses.mp = mp; effects.push(fmtBonus('MP', mp)); }
     if (sp) { bonuses.sp = sp; effects.push(fmtBonus('SP', sp)); }
     if (mr) { bonuses.mr = mr; effects.push(fmtBonus('MR', mr)); }
+    const hpr = toInt(row.hpr);
+    const mpr = toInt(row.mpr);
+    if (hpr) { bonuses.hpr = hpr; effects.push(fmtBonus('HPR', hpr)); }
+    if (mpr) { bonuses.mpr = mpr; effects.push(fmtBonus('MPR', mpr)); }
     if (!canBeDmg) { bonuses.unbreakable = true; effects.push('손상되지 않음'); }
     if (isHaste) { bonuses.haste = true; effects.push('헤이스트'); }
     if (doubleDmg) { bonuses.doubleDmgChance = doubleDmg; effects.push(`이중 타격 ${doubleDmg}%`); }
@@ -291,6 +295,10 @@ function convertArmors(rows) {
     if (mp) { bonuses.mp = mp; effects.push(fmtBonus('MP', mp)); }
     if (sp) { bonuses.sp = sp; effects.push(fmtBonus('SP', sp)); }
     if (mr) { bonuses.mr = mr; effects.push(fmtBonus('MR', mr)); }
+    const hpr = toInt(row.hpr);
+    const mpr = toInt(row.mpr);
+    if (hpr) { bonuses.hpr = hpr; effects.push(fmtBonus('HPR', hpr)); }
+    if (mpr) { bonuses.mpr = mpr; effects.push(fmtBonus('MPR', mpr)); }
     if (isHaste) { bonuses.haste = true; effects.push('헤이스트'); }
 
     // 클래스 제한 (방어구는 다양한 조합 가능)

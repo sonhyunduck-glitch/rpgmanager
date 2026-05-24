@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.11.1 — MP/HP 리젠 속도 L1J 평상시 기준 적용 (64s→16s) + 장비 MPR/HPR
-export const APP_VERSION = '2.11.1';
+// v2.11.2 — 장비 HPR/MPR 보너스 CSV 임포트 + 핸드 큐레이트 적용
+export const APP_VERSION = '2.11.2';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
