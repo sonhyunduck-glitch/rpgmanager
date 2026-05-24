@@ -102,7 +102,7 @@
     width: 100dvh !important;
     height: 100dvw !important;
     transform-origin: top left;
-    transform: rotate(90deg) translateX(-100%);
+    transform: rotate(90deg) translateY(-100%);
     overflow: hidden !important;
   }
 }
