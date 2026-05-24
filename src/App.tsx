@@ -14,7 +14,6 @@ import ChatPanel from './components/chat/ChatPanel';
 import RightPanel from './components/layout/RightPanel';
 import Leaderboard from './components/guild/Leaderboard';
 import GuildPanel from './components/guild/GuildPanel';
-import ProfileModal from './components/profile/ProfileModal';
 import OfflineRewardModal from './components/offline/OfflineRewardModal';
 import UpdateModal from './components/update/UpdateModal';
 import RotateOverlay from './components/ui/RotateOverlay';
@@ -144,7 +143,6 @@ export default function App({ userId }: AppProps) {
       </div>
 
       {/* 전역 모달 오버레이 */}
-      <ProfileModal />
       <OfflineRewardModal />
       <UpdateModal />
       <RotateOverlay />

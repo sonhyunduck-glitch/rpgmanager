@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.27.8 — 스킬 재료 소모 (정령옥/마력의돌) + SKILL탭 재료 보유 표시
-export const APP_VERSION = '2.27.8';
+// v2.27.9 — 프로필 모달→우측 패널 이동, 폰트 크기 최적화
+export const APP_VERSION = '2.27.9';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

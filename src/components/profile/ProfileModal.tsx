@@ -1,5 +1,5 @@
 /* =========================================================
-   PROFILE MODAL — 다른 유저 프로필 조회 오버레이
+   PROFILE PANEL — 다른 유저 프로필 조회 (우측 패널 내 표시)
    이름 클릭 → 장비/스탯/길드 확인
    ========================================================= */
 import { useEffect, useState } from 'react';
@@ -60,7 +60,7 @@ export default function ProfileModal() {
       setEquip(e);
       setLoading(false);
     }).catch((err) => {
-      console.error('[ProfileModal] load error:', err);
+      console.error('[ProfilePanel] load error:', err);
       setLoading(false);
     });
   }, [viewingProfileId]);
@@ -72,37 +72,77 @@ export default function ProfileModal() {
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        background: 'rgba(0,0,0,0.6)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        overflow: 'hidden',
+        background: 'var(--bg-canvas)',
+        border: '1px solid var(--border-soft)',
+        borderRadius: 'var(--r-md)',
       }}
-      onClick={closeProfile}
     >
+      {/* 상단 헤더: 닫기 버튼 */}
       <div
         style={{
-          background: 'var(--bg-panel)',
-          border: '1px solid var(--border-soft)',
-          borderRadius: 'var(--r-md)',
-          padding: 'var(--s-4)',
-          width: 360, maxHeight: '80vh',
-          display: 'flex', flexDirection: 'column',
-          gap: 'var(--s-3)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          overflowY: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '4px 8px',
+          borderBottom: '1px solid var(--border-soft)',
+          background: 'var(--bg-sunken)',
+          flexShrink: 0,
         }}
-        onClick={e => e.stopPropagation()}
+      >
+        <span style={{
+          fontSize: 10,
+          fontWeight: 700,
+          color: 'var(--text-mute)',
+          fontFamily: 'var(--font-mono)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+        }}>
+          Profile
+        </span>
+        <button
+          onClick={closeProfile}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-mute)',
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: 'pointer',
+            padding: '2px 6px',
+            borderRadius: 'var(--r-xs)',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* 스크롤 가능 컨텐츠 */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '6px 8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
       >
         {loading ? (
           <div style={{
             textAlign: 'center', padding: 'var(--s-6)',
-            color: 'var(--text-mute)', fontSize: 'var(--fs-sm)',
+            color: 'var(--text-mute)', fontSize: 11,
           }}>
             Loading...
           </div>
         ) : !profile ? (
           <div style={{
             textAlign: 'center', padding: 'var(--s-6)',
-            color: 'var(--text-mute)', fontSize: 'var(--fs-sm)',
+            color: 'var(--text-mute)', fontSize: 11,
           }}>
             프로필을 찾을 수 없습니다.
           </div>
@@ -110,14 +150,14 @@ export default function ProfileModal() {
           <>
             {/* ── 헤더: 이름 + 클래스 + 레벨 + 칭호 ── */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 {profile.player_class && (
-                  <span style={{ fontSize: 'var(--fs-sm)' }}>
+                  <span style={{ fontSize: 12 }}>
                     {CLASS_ICONS[profile.player_class] ?? ''}
                   </span>
                 )}
                 <span style={{
-                  fontSize: 'var(--fs-md)', fontWeight: 700,
+                  fontSize: 13, fontWeight: 700,
                   color: isMe ? 'var(--accent)' : 'var(--info)',
                   fontFamily: 'var(--font-display)',
                 }}>
@@ -125,9 +165,9 @@ export default function ProfileModal() {
                 </span>
                 {profile.player_class && CLASS_CONFIGS[profile.player_class as PlayerClass] && (
                   <span style={{
-                    fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
+                    fontSize: 9, color: 'var(--text-mute)',
                     fontFamily: 'var(--font-mono)',
-                    padding: '1px 6px',
+                    padding: '0px 4px',
                     background: 'color-mix(in oklch, var(--accent) 10%, transparent)',
                     borderRadius: 'var(--r-xs)',
                   }}>
@@ -135,24 +175,24 @@ export default function ProfileModal() {
                   </span>
                 )}
                 <span style={{
-                  ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0,
-                  color: 'var(--text-dim)',
+                  fontSize: 10, color: 'var(--text-dim)',
+                  fontFamily: 'var(--font-mono)',
                 }}>
                   Lv.{profile.level}
                 </span>
               </div>
               {profile.title && (
                 <div style={{
-                  fontSize: 'var(--fs-xs)', color: 'var(--accent)',
-                  fontFamily: 'var(--font-mono)', marginTop: 2,
+                  fontSize: 9, color: 'var(--accent)',
+                  fontFamily: 'var(--font-mono)', marginTop: 1,
                 }}>
                   {profile.title}
                 </div>
               )}
               <div style={{
-                fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
-                fontFamily: 'var(--font-mono)', marginTop: 4,
-                display: 'flex', gap: 8,
+                fontSize: 9, color: 'var(--text-mute)',
+                fontFamily: 'var(--font-mono)', marginTop: 2,
+                display: 'flex', gap: 6, flexWrap: 'wrap',
               }}>
                 {profile.guild_name && (
                   <span>길드: <span style={{ color: 'var(--info)' }}>{profile.guild_name}</span></span>
@@ -205,7 +245,7 @@ export default function ProfileModal() {
               return (<>
             <div style={{
               display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
-              gap: 'var(--s-1)',
+              gap: 2,
             }}>
               <StatBox label="STR" value={str} color="var(--danger)" sub={`${base.str}+${profile.stat_str}`} />
               <StatBox label="DEX" value={dex} color="var(--success)" sub={`${base.dex}+${profile.stat_dex}`} />
@@ -215,7 +255,7 @@ export default function ProfileModal() {
             </div>
 
                 <div>
-                  <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 'var(--s-1)' }}>
+                  <div style={{ ...LABEL, fontSize: 9, marginBottom: 2 }}>
                     Combat
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
@@ -237,11 +277,11 @@ export default function ProfileModal() {
 
             {/* ── 장비 ── */}
             <div>
-              <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 'var(--s-1)' }}>
+              <div style={{ ...LABEL, fontSize: 9, marginBottom: 2 }}>
                 Equipment
               </div>
               <div style={{
-                display: 'flex', flexDirection: 'column', gap: 2,
+                display: 'flex', flexDirection: 'column', gap: 1,
               }}>
                 {EQUIP_SLOTS.map(slot => {
                   const item = equip?.equipped.find(e => e.type === slot.type);
@@ -252,30 +292,13 @@ export default function ProfileModal() {
               </div>
               {equip && (
                 <div style={{
-                  fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
-                  fontFamily: 'var(--font-mono)', marginTop: 'var(--s-1)',
+                  fontSize: 9, color: 'var(--text-mute)',
+                  fontFamily: 'var(--font-mono)', marginTop: 2,
                 }}>
                   인벤토리: {equip.inventoryCount}개
                 </div>
               )}
             </div>
-
-            {/* ── 닫기 버튼 ── */}
-            <button
-              onClick={closeProfile}
-              style={{
-                padding: '6px 0',
-                border: '1px solid var(--border-soft)',
-                borderRadius: 'var(--r-sm)',
-                background: 'var(--bg-sunken)',
-                color: 'var(--text-mute)',
-                fontSize: 'var(--fs-xs)', fontWeight: 600,
-                fontFamily: 'var(--font-mono)',
-                cursor: 'pointer',
-              }}
-            >
-              닫기
-            </button>
           </>
         )}
       </div>
@@ -289,13 +312,13 @@ function StatBox({ label, value, color, sub }: { label: string; value: number; c
     <div style={{
       background: 'var(--bg-sunken)',
       border: '1px solid var(--border-soft)',
-      borderRadius: 'var(--r-sm)',
-      padding: '4px',
+      borderRadius: 'var(--r-xs)',
+      padding: '3px 2px',
       textAlign: 'center',
     }}>
-      <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 1 }}>{label}</div>
-      <div style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color }}>{value}</div>
-      {sub && <div style={{ fontSize: '9px', color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>({sub})</div>}
+      <div style={{ ...LABEL, fontSize: 9, marginBottom: 0 }}>{label}</div>
+      <div style={{ ...STAT_VALUE, fontSize: 12, color }}>{value}</div>
+      {sub && <div style={{ fontSize: 8, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>({sub})</div>}
     </div>
   );
 }
@@ -305,15 +328,15 @@ function ProfileCombatCell({ label, value, color }: { label: string; value: stri
   return (
     <div style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '3px 6px',
+      padding: '2px 5px',
       background: 'var(--bg-sunken)',
       border: '1px solid var(--border-soft)',
       borderRadius: 'var(--r-xs)',
     }}>
-      <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 0, color: 'var(--text-mute)' }}>
+      <span style={{ ...LABEL, fontSize: 9, marginBottom: 0, color: 'var(--text-mute)' }}>
         {label}
       </span>
-      <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-xs)', color, fontFamily: 'var(--font-mono)' }}>
+      <span style={{ ...STAT_VALUE, fontSize: 10, color, fontFamily: 'var(--font-mono)' }}>
         {value}
       </span>
     </div>
@@ -324,14 +347,14 @@ function ProfileCombatCell({ label, value, color }: { label: string; value: stri
 function EquipSlotRow({ label, item }: { label: string; item: Equipment | null }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 6,
-      padding: '3px 6px',
+      display: 'flex', alignItems: 'center', gap: 4,
+      padding: '2px 5px',
       borderRadius: 'var(--r-xs)',
       background: item ? 'color-mix(in oklch, var(--accent) 4%, transparent)' : 'transparent',
     }}>
       <span style={{
-        ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 0,
-        minWidth: 36, textAlign: 'right',
+        ...LABEL, fontSize: 9, marginBottom: 0,
+        minWidth: 30, textAlign: 'right',
         color: item ? 'var(--text-mute)' : 'var(--border-soft)',
       }}>
         {label}
@@ -339,7 +362,7 @@ function EquipSlotRow({ label, item }: { label: string; item: Equipment | null }
       {item ? (
         <>
           <span style={{
-            fontSize: 'var(--fs-xs)', fontWeight: 600,
+            fontSize: 10, fontWeight: 600,
             color: item.enhanceLevel >= 7 ? 'var(--warning)'
               : item.enhanceLevel > 0 ? 'var(--accent)'
               : 'var(--text)',
@@ -350,7 +373,7 @@ function EquipSlotRow({ label, item }: { label: string; item: Equipment | null }
             {equipDisplayName(item)}
           </span>
           <span style={{
-            fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
+            fontSize: 9, color: 'var(--text-mute)',
             fontFamily: 'var(--font-mono)', flexShrink: 0,
           }}>
             {item.baseAtk > 0 ? `ATK ${item.baseAtk}` : `AC ${item.baseDef}`}
@@ -358,7 +381,7 @@ function EquipSlotRow({ label, item }: { label: string; item: Equipment | null }
         </>
       ) : (
         <span style={{
-          fontSize: 'var(--fs-xs)', fontStyle: 'italic',
+          fontSize: 10, fontStyle: 'italic',
           color: 'var(--border-soft)',
         }}>
           비어있음
