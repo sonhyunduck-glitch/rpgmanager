@@ -75,6 +75,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           safeEnchant: row.safe_enchant ?? ((['weapon','bow','staff'].includes(row.type)) ? 6 : 4),
           maxEnhance: row.max_enhance, bonuses: row.bonuses ?? {},
           bonusEffects: row.bonus_effects ?? [], sellPrice: row.sell_price,
+          weight: row.weight ?? 0,
         };
         if (row.equipped && row.equipped_slot) equipped[row.equipped_slot] = eq;
         else inv.push(eq);

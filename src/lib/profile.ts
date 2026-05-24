@@ -83,6 +83,7 @@ export async function getPlayerEquipment(userId: string): Promise<PlayerEquipmen
     bonuses: (row.bonuses ?? {}) as EquipBonuses,
     bonusEffects: (row.bonus_effects ?? []) as string[],
     sellPrice: row.sell_price,
+    weight: row.weight ?? 0,
   }));
 
   return { equipped, inventoryCount: count ?? 0 };

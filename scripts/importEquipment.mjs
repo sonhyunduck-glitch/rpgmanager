@@ -219,6 +219,7 @@ function convertWeapons(rows) {
       id, name, type: gameType,
       baseAtk: dmgSmall, baseAtkLarge: dmgLarge,
       baseDef: 0, safeEnchant: Math.max(0, safeEnchant), maxEnhance, sellPrice,
+      weight,
     };
     if (Object.keys(bonuses).length > 0) tpl.bonuses = bonuses;
     if (effects.length > 0) tpl.bonusEffects = effects;
@@ -322,6 +323,7 @@ function convertArmors(rows) {
       id, name, type: gameType,
       baseAtk: 0, baseAtkLarge: 0,
       baseDef, safeEnchant: Math.max(0, safeEnchant), maxEnhance, sellPrice,
+      weight,
     };
     if (Object.keys(bonuses).length > 0) tpl.bonuses = bonuses;
     if (effects.length > 0) tpl.bonusEffects = effects;
@@ -360,6 +362,7 @@ function generateTs(weapons, armors) {
     parts.push(`safeEnchant:${tpl.safeEnchant}`);
     parts.push(`maxEnhance:${tpl.maxEnhance}`);
     parts.push(`sellPrice:${tpl.sellPrice}`);
+    parts.push(`weight:${tpl.weight}`);
     if (tpl.bonuses) parts.push(`bonuses:${JSON.stringify(tpl.bonuses)}`);
     if (tpl.bonusEffects) parts.push(`bonusEffects:${JSON.stringify(tpl.bonusEffects)}`);
     if (tpl.classRestriction) parts.push(`classRestriction:${JSON.stringify(tpl.classRestriction)}`);

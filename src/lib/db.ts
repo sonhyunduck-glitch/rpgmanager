@@ -47,6 +47,7 @@ export interface DBItem {
   bonuses: Record<string, unknown>;
   bonus_effects: string[];
   sell_price: number;
+  weight?: number;
   equipped: boolean;
   equipped_slot: string | null;
 }
@@ -99,6 +100,7 @@ export function dbItemToEquipment(item: DBItem): Equipment {
     bonuses: (item.bonuses ?? {}) as Equipment['bonuses'],
     bonusEffects: (item.bonus_effects ?? []) as string[],
     sellPrice: item.sell_price,
+    weight: item.weight ?? 0,
   };
 }
 
@@ -123,6 +125,7 @@ export function equipmentToDBItem(
     bonuses: eq.bonuses as Record<string, unknown>,
     bonus_effects: eq.bonusEffects,
     sell_price: eq.sellPrice,
+    weight: eq.weight,
     equipped,
     equipped_slot: equippedSlot,
   };

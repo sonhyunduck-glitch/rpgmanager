@@ -130,6 +130,7 @@ function equipToRow(eq: Equipment, equipped: boolean, slot: string | null) {
     bonuses: eq.bonuses as Record<string, unknown>,
     bonus_effects: eq.bonusEffects,
     sell_price: eq.sellPrice,
+    weight: eq.weight,
     equipped,
     equipped_slot: slot,
   };

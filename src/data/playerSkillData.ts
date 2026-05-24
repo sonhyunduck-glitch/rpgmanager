@@ -138,6 +138,23 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 1,
     description: '마법 방패로 AC -2',
   },
+  {
+    id: 8,
+    name: '홀리 웨폰',
+    skillCircle: 1,
+    consumeMp: 10,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1200, // 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { dmgBonus: 1 },
+    classes: ['wizard', 'elf', 'knight'],
+    requiredLevel: 1,
+    description: '무기에 신성한 힘을 부여 (언데드 추가 대미지)',
+  },
 
   // ── 서클 2 ────────────────────────────────────────────────────────────────
   {
@@ -172,6 +189,41 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 1,
     description: '암석을 떨어뜨려 공격',
   },
+  // 공격
+  {
+    id: 10,
+    name: '칠 터치',
+    skillCircle: 2,
+    consumeMp: 8,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 10,
+    damageDice: 10,
+    damageDiceCount: 2,
+    attr: 4, // 물
+    classes: ['wizard', 'elf'],
+    requiredLevel: 1,
+    description: '냉기의 손길로 공격',
+  },
+  // 버프
+  {
+    id: 12,
+    name: '인챈트 웨폰',
+    skillCircle: 2,
+    consumeMp: 20,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1800, // 30분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 2, // 불
+    buffEffect: { dmgBonus: 2 },
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '무기를 마법으로 강화 (+2 추가 대미지)',
+  },
 
   // ── 서클 3 ────────────────────────────────────────────────────────────────
   {
@@ -205,6 +257,24 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['wizard', 'elf'],
     requiredLevel: 1,
     description: '얼음 구름으로 공격',
+  },
+  // 버프
+  {
+    id: 21,
+    name: '블레스드 아머',
+    skillCircle: 3,
+    consumeMp: 20,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1800, // 30분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { acBonus: -3 },
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '방어구를 마법으로 강화 (AC -3)',
   },
   // 힐
   {
@@ -272,6 +342,23 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['wizard'],
     requiredLevel: 1,
     description: '대지의 감옥으로 공격',
+  },
+  // 버프
+  {
+    id: 26,
+    name: '인챈트 덱스터리티',
+    skillCircle: 4,
+    consumeMp: 50,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1200, // 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 8, // 바람
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '민첩성 증가 버프',
   },
 
   // ── 서클 5 ────────────────────────────────────────────────────────────────
@@ -376,6 +463,22 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 1,
     description: '공격 속도 33% 증가',
   },
+  {
+    id: 42,
+    name: '인챈트 마이티',
+    skillCircle: 6,
+    consumeMp: 50,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1200, // 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 2, // 불
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '힘 증가 버프',
+  },
 
   // ── 서클 7 ────────────────────────────────────────────────────────────────
   {
@@ -394,8 +497,73 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 1,
     description: '얼음 창을 투척',
   },
+  {
+    id: 53,
+    name: '토네이도',
+    skillCircle: 7,
+    consumeMp: 40,
+    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 20,
+    damageDice: 10,
+    damageDiceCount: 5,
+    attr: 8, // 바람
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '거대한 회오리바람으로 공격',
+  },
 
   // ── 서클 8 ────────────────────────────────────────────────────────────────
+  // 공격
+  {
+    id: 58,
+    name: '파이어월',
+    skillCircle: 8,
+    consumeMp: 60,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 41,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 2, // 불
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '화염의 벽으로 공격',
+  },
+  {
+    id: 59,
+    name: '블리자드',
+    skillCircle: 8,
+    consumeMp: 60,
+    reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 3,
+    damageDice: 10,
+    damageDiceCount: 3,
+    attr: 4, // 물
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '눈보라를 소환하여 광역 공격',
+  },
+  {
+    id: 62,
+    name: '어스 퀘이크',
+    skillCircle: 8,
+    consumeMp: 40,
+    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 40,
+    damageDice: 10,
+    damageDiceCount: 6,
+    attr: 1, // 땅
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '대지진으로 광역 공격',
+  },
   // 힐
   {
     id: 57,
@@ -430,6 +598,22 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['wizard'],
     requiredLevel: 1,
     description: '폭풍우의 번개를 소환',
+  },
+  {
+    id: 70,
+    name: '파이어 스톰',
+    skillCircle: 9,
+    consumeMp: 48,
+    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 30,
+    damageDice: 15,
+    damageDiceCount: 8,
+    attr: 2, // 불
+    classes: ['wizard'],
+    requiredLevel: 1,
+    description: '화염 폭풍으로 광역 공격',
   },
 
   // ── 서클 10 ───────────────────────────────────────────────────────────────
@@ -470,6 +654,39 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   // 엘프 정령 스킬 (클래스 전용, skillCircle=0)
   // =========================================================================
 
+  {
+    id: 129,
+    name: '레지스트 매직',
+    skillCircle: 0,
+    consumeMp: 5,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1200, // 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    classes: ['elf'],
+    requiredLevel: 8,
+    description: '마법 저항력 증가',
+  },
+  /** 특수 처리: HP를 소모하여 MP로 전환 */
+  {
+    id: 130,
+    name: '바디 투 마인드',
+    skillCircle: 0,
+    consumeMp: 0,
+    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    buffDuration: 0,
+    skillType: 'heal',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    classes: ['elf'],
+    requiredLevel: 12,
+    description: 'HP 8을 소모하여 MP로 전환',
+  },
   /** 특수 처리: 3회 활 공격 (스펠 대미지가 아닌 물리 공격 3회) */
   {
     id: 132,
@@ -486,6 +703,71 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['elf'],
     requiredLevel: 24,
     description: '3발의 화살을 동시에 발사 (3회 공격)',
+  },
+  /** 특수 처리: 디버프 — 몬스터 속성 방어력 감소 */
+  {
+    id: 133,
+    name: '엘리멘탈 폴다운',
+    skillCircle: 0,
+    consumeMp: 10,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 32,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    classes: ['elf'],
+    requiredLevel: 16,
+    description: '몬스터의 속성 방어력을 감소',
+  },
+  {
+    id: 137,
+    name: '클리어 마인드',
+    skillCircle: 0,
+    consumeMp: 10,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1200, // 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    classes: ['elf'],
+    requiredLevel: 24,
+    description: '정신 집중력 증가',
+  },
+  {
+    id: 138,
+    name: '레지스트 엘리멘트',
+    skillCircle: 0,
+    consumeMp: 10,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 1200, // 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    classes: ['elf'],
+    requiredLevel: 24,
+    description: '속성 저항력 증가',
+  },
+  {
+    id: 147,
+    name: '프로텍션 프롬 엘리멘트',
+    skillCircle: 0,
+    consumeMp: 6,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 64,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    classes: ['elf'],
+    requiredLevel: 28,
+    description: '속성 공격으로부터 보호',
   },
   {
     id: 148,
@@ -521,13 +803,209 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 32,
     description: '원거리 공격 속도 25% 증가',
   },
+  {
+    id: 150,
+    name: '윈드 워크',
+    skillCircle: 0,
+    consumeMp: 15,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 8, // 바람
+    buffEffect: { atkSpeedMult: 1.33 },
+    classes: ['elf'],
+    requiredLevel: 28,
+    description: '바람의 힘으로 공격 속도 증가',
+  },
+  {
+    id: 151,
+    name: '어스 스킨',
+    skillCircle: 0,
+    consumeMp: 15,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 1, // 땅
+    buffEffect: { acBonus: -3 },
+    classes: ['elf'],
+    requiredLevel: 28,
+    description: '대지의 보호로 AC -3',
+  },
+  /** 특수 처리: 디버프 — 몬스터 속박 */
+  {
+    id: 152,
+    name: '인탱글',
+    skillCircle: 0,
+    consumeMp: 20,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 64,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 1, // 땅
+    classes: ['elf'],
+    requiredLevel: 28,
+    description: '자연의 덩굴로 적을 속박',
+  },
+  /** 특수 처리: 디버프 — 몬스터 버프 제거 */
+  {
+    id: 153,
+    name: '이레이즈 매직',
+    skillCircle: 0,
+    consumeMp: 18,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 32,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    classes: ['elf'],
+    requiredLevel: 32,
+    description: '적의 마법 효과를 제거',
+  },
+  {
+    id: 155,
+    name: '블레스 오브 파이어',
+    skillCircle: 0,
+    consumeMp: 40,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 2, // 불
+    classes: ['elf'],
+    requiredLevel: 36,
+    description: '불의 축복으로 파티원 화염 공격력 증가',
+  },
+  {
+    id: 156,
+    name: '아이 오브 스톰',
+    skillCircle: 0,
+    consumeMp: 40,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 8, // 바람
+    classes: ['elf'],
+    requiredLevel: 36,
+    description: '폭풍의 눈으로 파티원 바람 공격력 증가',
+  },
+  {
+    id: 158,
+    name: '네이쳐스 터치',
+    skillCircle: 0,
+    consumeMp: 20,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 320,
+    skillType: 'heal',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 4, // 물
+    classes: ['elf'],
+    requiredLevel: 36,
+    description: '자연의 힘으로 지속 회복',
+  },
+  {
+    id: 159,
+    name: '블레스 오브 어스',
+    skillCircle: 0,
+    consumeMp: 40,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 1, // 땅
+    classes: ['elf'],
+    requiredLevel: 40,
+    description: '대지의 축복으로 파티원 땅 공격력 증가',
+  },
+  {
+    id: 160,
+    name: '아쿠아 프로텍트',
+    skillCircle: 0,
+    consumeMp: 30,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 4, // 물
+    classes: ['elf'],
+    requiredLevel: 40,
+    description: '물의 보호로 방어력 증가',
+  },
+  {
+    id: 163,
+    name: '버닝 웨폰',
+    skillCircle: 0,
+    consumeMp: 30,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 2, // 불
+    classes: ['elf'],
+    requiredLevel: 44,
+    description: '무기에 화염을 부여하여 공격력 증가',
+  },
+  {
+    id: 164,
+    name: '네이쳐스 블레싱',
+    skillCircle: 0,
+    consumeMp: 30,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 0,
+    skillType: 'heal',
+    damageValue: 10,
+    damageDice: 12,
+    damageDiceCount: 0, // 동적
+    attr: 4, // 물
+    classes: ['elf'],
+    requiredLevel: 44,
+    description: '자연의 축복으로 파티원 치유',
+  },
+  {
+    id: 166,
+    name: '스톰 샷',
+    skillCircle: 0,
+    consumeMp: 30,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 8, // 바람
+    classes: ['elf'],
+    requiredLevel: 48,
+    description: '폭풍의 힘으로 원거리 공격 강화',
+  },
   /** 특수 처리: 디버프 — 몬스터의 이동/공격 속도 감소 (수 틱간 지속) */
   {
     id: 167,
     name: '윈드 셰클',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayTicks: 7, // L1J reuse_delay: 20000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -537,6 +1015,23 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['elf'],
     requiredLevel: 40,
     description: '바람의 족쇄로 적의 이동/공격 속도 감소',
+  },
+  {
+    id: 168,
+    name: '아이언 스킨',
+    skillCircle: 0,
+    consumeMp: 30,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 960, // 16분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 1, // 땅
+    buffEffect: { acBonus: -5 },
+    classes: ['elf'],
+    requiredLevel: 48,
+    description: '강철의 피부로 AC -5',
   },
   {
     id: 174,
@@ -576,6 +1071,74 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['knight'],
     requiredLevel: 20,
     description: '충격으로 적을 기절시킴 (1틱 공격 불가)',
+  },
+  {
+    id: 88,
+    name: '리덕션 아머',
+    skillCircle: 0,
+    consumeMp: 7,
+    reuseDelayTicks: 4, // L1J reuse_delay: 3000ms
+    buffDuration: 192,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { acBonus: -3 },
+    classes: ['knight'],
+    requiredLevel: 15,
+    description: '대미지 경감 방어 (HP 50 소모)',
+  },
+  {
+    id: 89,
+    name: '바운스 어택',
+    skillCircle: 0,
+    consumeMp: 10,
+    reuseDelayTicks: 5, // L1J reuse_delay: 5000ms
+    buffDuration: 64,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { dmgBonus: 5 },
+    classes: ['knight'],
+    requiredLevel: 20,
+    description: '반격 태세로 추가 대미지 (HP 60 소모)',
+  },
+  {
+    id: 90,
+    name: '솔리드 캐리지',
+    skillCircle: 0,
+    consumeMp: 10,
+    reuseDelayTicks: 4, // L1J reuse_delay: 3000ms
+    buffDuration: 64,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { acBonus: -2 },
+    classes: ['knight'],
+    requiredLevel: 25,
+    description: '견고한 자세로 방어력 증가 (HP 100 소모)',
+  },
+  {
+    id: 91,
+    name: '카운터 배리어',
+    skillCircle: 0,
+    consumeMp: 10,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 64,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { acBonus: -1 },
+    classes: ['knight'],
+    requiredLevel: 30,
+    description: '반격 방어막 (HP 100 소모)',
   },
   {
     id: 113,
@@ -627,6 +1190,40 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['knight'],
     requiredLevel: 40,
     description: '빛나는 기운으로 AC -3',
+  },
+  {
+    id: 114,
+    name: '글로잉 오라',
+    skillCircle: 0,
+    consumeMp: 25,
+    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    buffDuration: 640,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { hitBonus: 5, dmgBonus: 2 },
+    classes: ['knight'],
+    requiredLevel: 35,
+    description: '빛나는 오라로 명중 +5, 추타 +2',
+  },
+  /** 특수 처리: HP를 소모하여 파티원 치유 */
+  {
+    id: 119,
+    name: '디바인 희생',
+    skillCircle: 0,
+    consumeMp: 50,
+    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
+    buffDuration: 0,
+    skillType: 'heal',
+    damageValue: 10,
+    damageDice: 8,
+    damageDiceCount: 0, // 동적
+    attr: 4, // 물
+    classes: ['knight'],
+    requiredLevel: 45,
+    description: '자신의 HP를 희생하여 파티원 치유 (HP 30 소모)',
   },
 ];
 

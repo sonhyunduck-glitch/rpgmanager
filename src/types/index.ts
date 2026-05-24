@@ -58,6 +58,7 @@ export interface EquipmentTemplate {
   safeEnchant: number;      // 안전 강화 수치 (이 미만 100% 성공 + 파괴 없음, L1J safe_enchant)
   maxEnhance: number;
   sellPrice: number;
+  weight: number;            // 무게 (L1J 1/10 단위 그대로)
   bonuses?: EquipBonuses;
   bonusEffects?: string[];  // UI 표시용 텍스트
   classRestriction?: PlayerClass[];  // 장착 가능 클래스 (없으면 전체)
@@ -78,6 +79,7 @@ export interface Equipment {
   bonuses: EquipBonuses;
   bonusEffects: string[];   // UI 표시용 텍스트
   sellPrice: number;
+  weight: number;            // 무게 (L1J 1/10 단위 그대로)
 }
 
 // ── Hunting ──

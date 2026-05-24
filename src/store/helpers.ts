@@ -39,6 +39,7 @@ export function createEquipment(templateId: string): Equipment {
     bonuses: t.bonuses ? { ...t.bonuses } : {},
     bonusEffects: t.bonusEffects ? [...t.bonusEffects] : [],
     sellPrice: t.sellPrice,
+    weight: t.weight,
   };
 }
 

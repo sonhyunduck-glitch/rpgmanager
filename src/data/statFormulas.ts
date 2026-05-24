@@ -5,6 +5,17 @@
 import { secureRandom, secureRandomInt } from '../lib/random';
 import type { PlayerClass } from '../types';
 
+// ── 최대 소지 무게 ──
+
+/**
+ * 최대 소지 무게 (L1J 기반)
+ * L1J: 150 * STR + 1000 (기본 공식)
+ * weight 단위: L1J의 1/10 단위 그대로 사용
+ */
+export function maxCarryWeight(str: number): number {
+  return 150 * str + 1000;
+}
+
 // ── 초기 스탯 (레벨 1 기본값 — 기사 기준, 클래스별은 classData.ts) ──
 
 export const BASE_STATS = {
