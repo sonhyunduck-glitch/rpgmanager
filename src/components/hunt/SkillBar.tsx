@@ -8,7 +8,7 @@
    ========================================================= */
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { POTIONS, TRANSFORM_SCROLL_DURATION } from '../../data/gameData';
+import { POTIONS, TRANSFORM_SCROLL_DURATION, getBravePotionId } from '../../data/gameData';
 import HpPotionModal from './HpPotionModal';
 import TransformScrollModal from './TransformScrollModal';
 import BuffPotionButton, { useTimer } from './BuffPotionButton';
@@ -35,6 +35,11 @@ export default function SkillBar() {
   const activeBuffs = useGameStore((s) => s.activeBuffs);
   const transformScrollEnabled = useGameStore((s) => s.transformScrollEnabled);
   const transformScrollType = useGameStore((s) => s.transformScrollType);
+  const playerClass = useGameStore((s) => s.playerClass);
+
+  // 클래스별 brave 계열 물약 (L1J: 기사=용기, 요정=와퍼, 마법사=지혜)
+  const bravePotionId = getBravePotionId(playerClass);
+  const bravePotion = POTIONS[bravePotionId];
 
   const hpPotion = POTIONS[selectedPotionId];
   const hpCount = potions[selectedPotionId] ?? 0;
@@ -122,8 +127,8 @@ export default function SkillBar() {
         {/* 2번: 초록 물약 토글 */}
         <BuffPotionButton potionId="green_potion" label="초록 물약" slotNum={2} />
 
-        {/* 3번: 용기 물약 토글 */}
-        <BuffPotionButton potionId="courage_potion" label="용기의 물약" slotNum={3} />
+        {/* 3번: 클래스별 brave 물약 (L1J: 기사=용기, 요정=와퍼, 마법사=지혜) */}
+        <BuffPotionButton potionId={bravePotionId} label={bravePotion.name} slotNum={3} />
 
         {/* 4번: 변신주문서 설정 (모달) */}
         <button

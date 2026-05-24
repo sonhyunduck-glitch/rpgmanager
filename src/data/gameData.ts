@@ -2,7 +2,7 @@
    STATIC GAME DATA — 몬스터, 사냥터, 장비 템플릿, 재료, 레시피
    ========================================================= */
 
-import type { EquipmentTemplate, Material, HuntZone, Recipe, Potion } from '../types';
+import type { EquipmentTemplate, Material, HuntZone, Recipe, Potion, PlayerClass } from '../types';
 import { generateHuntZones, getMonstersForTier, getMonstersForRoom, roomToTier } from './monsterData';
 import { CSV_EQUIPMENT } from './csvEquipData';
 import { ETC_ITEMS } from './dropData';
@@ -115,12 +115,28 @@ export const POTIONS: Record<string, Potion> = {
                     buffDuration: 600 },  // L1J: 10분 MP리젠 버프
   green_potion:   { id: 'green_potion',   name: '초록 물약', healMin: 0,  healMax: 0,   buyPrice: 200, requiredLevel: 1,
                     buffDuration: 300, atkSpeedMult: 1.33, moveSpeedMult: 1.33 },
+  // ── L1J 클래스별 brave 계열 물약 ──
   courage_potion: { id: 'courage_potion', name: '용기의 물약', healMin: 0, healMax: 0,  buyPrice: 800, requiredLevel: 1,
-                    buffDuration: 300, atkSpeedMult: 1.33 },
+                    buffDuration: 300, atkSpeedMult: 1.33,
+                    classRestriction: ['knight'] },  // L1J: 기사 전용 (ClassInitial=K)
+  elven_wafer:    { id: 'elven_wafer',    name: '엘븐 와퍼', healMin: 0, healMax: 0,   buyPrice: 2000, requiredLevel: 1,
+                    buffDuration: 300, atkSpeedMult: 1.33,
+                    classRestriction: ['elf'] },     // L1J: 요정 전용 (ClassInitial=E)
+  wisdom_potion:  { id: 'wisdom_potion',  name: '지혜의 물약', healMin: 0, healMax: 0,  buyPrice: 600, requiredLevel: 1,
+                    buffDuration: 300, spBonus: 2,
+                    classRestriction: ['wizard'] },  // L1J: 마법사 전용 (ClassInitial=W, SP+2)
 };
-export const POTION_ORDER = ['red_potion', 'crimson_potion', 'clear_potion', 'blue_potion', 'green_potion', 'courage_potion'];
+export const POTION_ORDER = ['red_potion', 'crimson_potion', 'clear_potion', 'blue_potion', 'green_potion', 'courage_potion', 'elven_wafer', 'wisdom_potion'];
 /** 힐 물약만 (자동사용 순환용) */
 export const HEAL_POTION_ORDER = ['red_potion', 'crimson_potion', 'clear_potion'];
+/** 클래스별 brave 계열 물약 ID 조회 */
+export function getBravePotionId(playerClass: PlayerClass): string {
+  switch (playerClass) {
+    case 'knight': return 'courage_potion';
+    case 'elf':    return 'elven_wafer';
+    case 'wizard': return 'wisdom_potion';
+  }
+}
 
 // ── Materials ──
 export const MATERIALS: Record<string, Material> = {

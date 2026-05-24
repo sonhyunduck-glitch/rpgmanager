@@ -15,6 +15,8 @@ export function createShopActions(set: SetState, get: GetState, save: SaveFn) {
       const state = get();
       const potion = POTIONS[id];
       if (!potion) return;
+      // 클래스 제한 체크 (L1J: 용기=기사, 와퍼=요정, 지혜=마법사)
+      if (potion.classRestriction && !potion.classRestriction.includes(state.playerClass)) return;
       const cost = potion.buyPrice * qty;
       if (state.gold < cost) return;
       set({

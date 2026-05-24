@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.20.0 — 버프 유실 방지 (beforeunload 저장) + 합류 몬스터 대미지 공식 수정
-export const APP_VERSION = '2.20.0';
+// v2.21.0 — L1J 소모품 클래스 제한 (용기=기사, 와퍼=요정, 지혜=마법사)
+export const APP_VERSION = '2.21.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

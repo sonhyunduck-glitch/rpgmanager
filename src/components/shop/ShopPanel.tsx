@@ -28,6 +28,7 @@ export default function ShopPanel() {
   const gold = useGameStore(s => s.gold);
   const potions = useGameStore(s => s.potions);
   const buyPotion = useGameStore(s => s.buyPotion);
+  const playerClass = useGameStore(s => s.playerClass);
   const inventory = useGameStore(s => s.inventory);
   const inventoryCapacity = useGameStore(s => s.inventoryCapacity);
   const materials = useGameStore(s => s.materials);
@@ -79,6 +80,7 @@ export default function ShopPanel() {
               gold={gold}
               potions={potions}
               buyPotion={buyPotion}
+              playerClass={playerClass}
             />
           )}
           {tab === 'scroll' && (

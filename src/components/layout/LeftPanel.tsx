@@ -3,7 +3,7 @@ import { useGameStore } from '../../store/gameStore';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
 import { CLASS_CONFIGS } from '../../data/classData';
 import { MAX_SKILL_SLOTS, PLAYER_SKILLS } from '../../data/playerSkillData';
-import { POTIONS, HEAL_POTION_ORDER, xpForLevel, getTransformScrollSpeed } from '../../data/gameData';
+import { POTIONS, HEAL_POTION_ORDER, xpForLevel, getTransformScrollSpeed, getBravePotionId } from '../../data/gameData';
 import {
   finalAC, finalMR,
   meleeHit,
@@ -507,6 +507,7 @@ function TabConsumables() {
   const transformScrollType = useGameStore(s => s.transformScrollType);
   const activeBuffs = useGameStore(s => s.activeBuffs);
   const level = useGameStore(s => s.level);
+  const playerClass = useGameStore(s => s.playerClass);
 
   const setSelectedPotion = useGameStore(s => s.setSelectedPotion);
   const togglePotionAutoUse = useGameStore(s => s.togglePotionAutoUse);
@@ -591,9 +592,16 @@ function TabConsumables() {
       <BuffPotionRow label="초록 물약" count={potions['green_potion'] ?? 0}
         color="#66bb6a" enabled={greenPotionEnabled} onToggle={toggleGreenPotion}
         buff={activeBuffs.find((b: ActiveBuff) => b.potionId === 'green_potion' && b.expiresAt > now)} />
-      <BuffPotionRow label="용기의 물약" count={potions['courage_potion'] ?? 0}
-        color="#ab47bc" enabled={couragePotionEnabled} onToggle={toggleCouragePotion}
-        buff={activeBuffs.find((b: ActiveBuff) => b.potionId === 'courage_potion' && b.expiresAt > now)} />
+      {(() => {
+        const bpId = getBravePotionId(playerClass);
+        const bp = POTIONS[bpId];
+        const bpColor = bpId === 'elven_wafer' ? '#81c784' : bpId === 'wisdom_potion' ? '#7986cb' : '#ab47bc';
+        return (
+          <BuffPotionRow label={bp.name} count={potions[bpId] ?? 0}
+            color={bpColor} enabled={couragePotionEnabled} onToggle={toggleCouragePotion}
+            buff={activeBuffs.find((b: ActiveBuff) => b.potionId === bpId && b.expiresAt > now)} />
+        );
+      })()}
 
       {/* ── 변신주문서 ── */}
       <SectionTitle>변신주문서</SectionTitle>

@@ -1,6 +1,7 @@
 /* ── 물약 상점 ── */
 import { POTIONS, POTION_ORDER } from '../../data/gameData';
 import { LABEL } from '../../styles/shared';
+import type { PlayerClass } from '../../types';
 
 const POTION_COLOR: Record<string, string> = {
   red_potion: '#ef5350',
@@ -9,14 +10,23 @@ const POTION_COLOR: Record<string, string> = {
   blue_potion: '#42a5f5',
   green_potion: '#66bb6a',
   courage_potion: '#ab47bc',
+  elven_wafer: '#81c784',
+  wisdom_potion: '#7986cb',
+};
+
+const CLASS_BADGE: Record<PlayerClass, string> = {
+  knight: '⚔️',
+  elf: '🏹',
+  wizard: '🔮',
 };
 
 export default function PotionShop({
-  gold, potions, buyPotion,
+  gold, potions, buyPotion, playerClass,
 }: {
   gold: number;
   potions: Record<string, number>;
   buyPotion: (id: string, qty: number) => void;
+  playerClass: PlayerClass;
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
@@ -24,6 +34,8 @@ export default function PotionShop({
         const p = POTIONS[id];
         const owned = potions[id] ?? 0;
         const color = POTION_COLOR[id] ?? 'var(--text-dim)';
+        // 클래스 제한 체크 (L1J: 용기=기사, 와퍼=요정, 지혜=마법사)
+        const canUse = !p.classRestriction || p.classRestriction.includes(playerClass);
         return (
           <div
             key={id}
@@ -35,6 +47,7 @@ export default function PotionShop({
               background: 'var(--bg-sunken)',
               border: '1px solid var(--border-soft)',
               borderRadius: 'var(--r-sm)',
+              opacity: canUse ? 1 : 0.4,
             }}
           >
             {/* 물약 아이콘 */}
@@ -57,8 +70,14 @@ export default function PotionShop({
 
             {/* 정보 */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 'var(--fs-base)', color }}>
+              <div style={{ fontWeight: 700, fontSize: 'var(--fs-base)', color, display: 'flex', alignItems: 'center', gap: 4 }}>
                 {p.name}
+                {/* 클래스 제한 뱃지 */}
+                {p.classRestriction && (
+                  <span style={{ fontSize: 'var(--fs-2xs)', opacity: 0.8 }}>
+                    {p.classRestriction.map(c => CLASS_BADGE[c]).join('')}
+                  </span>
+                )}
               </div>
               <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', marginTop: 2 }}>
                 {p.buffDuration ? (
@@ -66,12 +85,13 @@ export default function PotionShop({
                     {p.id === 'blue_potion' ? 'MP 리젠 증가' : ''}
                     {p.atkSpeedMult && p.atkSpeedMult > 1 && `공속 ×${p.atkSpeedMult}`}
                     {p.moveSpeedMult && p.moveSpeedMult > 1 && ` 이속 ×${p.moveSpeedMult}`}
+                    {p.spBonus ? `SP +${p.spBonus}` : ''}
                     {` (${p.buffDuration >= 60 ? `${Math.floor(p.buffDuration / 60)}분` : `${p.buffDuration}초`})`}
+                    {!canUse && ' (사용 불가)'}
                   </>
                 ) : (
                   <>HP {p.healMin}~{p.healMax} 회복</>
                 )}
-                {/* 레벨 제한 없음 */}
               </div>
             </div>
 
@@ -92,7 +112,7 @@ export default function PotionShop({
             <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
               {[1, 10, 50].map(qty => {
                 const cost = p.buyPrice * qty;
-                const canBuy = gold >= cost;
+                const canBuy = gold >= cost && canUse;
                 return (
                   <button
                     key={qty}

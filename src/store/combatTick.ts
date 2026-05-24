@@ -229,9 +229,12 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       for (const pid of POTION_ORDER) {
         const p = POTIONS[pid];
         if (!p.buffDuration) continue;
+        // 클래스 제한 체크 (L1J: 용기=기사, 와퍼=요정, 지혜=마법사)
+        if (p.classRestriction && !p.classRestriction.includes(state.playerClass)) continue;
         if (pid === 'blue_potion' && !state.bluePotionEnabled) continue;
         if (pid === 'green_potion' && !state.greenPotionEnabled) continue;
-        if (pid === 'courage_potion' && !state.couragePotionEnabled) continue;
+        // brave 계열 (용기/와퍼/지혜) — 동일 토글 사용
+        if ((pid === 'courage_potion' || pid === 'elven_wafer' || pid === 'wisdom_potion') && !state.couragePotionEnabled) continue;
         const alreadyActive = newActiveBuffs.some(b => b.potionId === pid);
         if (alreadyActive) continue;
         const pCount = newPotions[pid] ?? 0;
@@ -242,6 +245,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           expiresAt: now + p.buffDuration * 1000,
           atkSpeedMult: p.atkSpeedMult ?? 1,
           moveSpeedMult: p.moveSpeedMult ?? 1,
+          spBonus: p.spBonus ?? 0,
         });
         newLogs.push({
           id: genLogId(), type: 'potion',
@@ -249,6 +253,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           timestamp: now,
         });
       }
+
+      // 지혜의 물약 SP 보너스 (L1J: SP+2, 마법 대미지 계수 증가)
+      const buffSpBonus = newActiveBuffs.reduce((s, b) => s + (b.spBonus ?? 0), 0);
+      const totalSp = equipBonusSp + buffSpBonus;
 
       // ── 변신주문서 자동 사용 ──
       if (state.transformScrollEnabled) {
@@ -443,7 +451,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           skillCooldowns[spell.id] = spell.reuseDelayTicks || 1;
           const rawMagic = rollSpellDamage(
             spell.damageValue, spell.damageDice, spell.damageDiceCount,
-            playerInt, equipBonusSp, state.level, state.playerClass,
+            playerInt, totalSp, state.level, state.playerClass,
           );
           const { isCrit: magicCrit } = rollMagicCritical();
           isCrit = magicCrit;
@@ -454,7 +462,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         } else {
           // MP 부족 → 지팡이 기본 공격 (약한 물리)
           const rawMagic = rollMagicDamage(
-            weaponBaseDmg, playerInt, equipBonusSp,
+            weaponBaseDmg, playerInt, totalSp,
             state.level, state.playerClass,
           );
           finalDmg = Math.max(1, Math.floor(rawMagic * 0.3)) + undeadBonus;
@@ -579,7 +587,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               // 서클 마법 공격 (기사/요정이 장착한 공격 마법 자동 시전)
               const spellDmg = rollSpellDamage(
                 classSkill.damageValue, classSkill.damageDice, classSkill.damageDiceCount,
-                playerInt, equipBonusSp, state.level, state.playerClass,
+                playerInt, totalSp, state.level, state.playerClass,
               );
               const afterMr = applyMagicReduction(spellDmg, monster.mr);
               const skillFinalDmg = Math.max(1, afterMr);
@@ -986,7 +994,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             huntMp -= healSpell.consumeMp;
             const healAmt = rollSpellDamage(
               healSpell.damageValue, healSpell.damageDice, healSpell.damageDiceCount,
-              playerInt, equipBonusSp, state.level, state.playerClass,
+              playerInt, totalSp, state.level, state.playerClass,
             );
             newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + healAmt);
             skillCooldowns[healSpell.id] = healSpell.reuseDelayTicks || 1;

@@ -10,6 +10,8 @@ import type { ActiveBuff } from '../../types';
 const POTION_COLORS: Record<string, string> = {
   green_potion: '#66bb6a',
   courage_potion: '#ab47bc',
+  elven_wafer: '#81c784',
+  wisdom_potion: '#7986cb',
   transform_scroll: '#00e5ff',
 };
 
@@ -36,14 +38,17 @@ export default function BuffPotionButton({
   const potions = useGameStore((s) => s.potions);
   const materials = useGameStore((s) => s.materials);
   const activeBuffs = useGameStore((s) => s.activeBuffs);
+  const isBraveType = potionId === 'courage_potion' || potionId === 'elven_wafer' || potionId === 'wisdom_potion';
   const buffEnabled = useGameStore((s) =>
     potionId === 'transform_scroll' ? s.transformScrollEnabled
     : potionId === 'green_potion' ? s.greenPotionEnabled
+    : isBraveType ? s.couragePotionEnabled
     : s.couragePotionEnabled,
   );
   const toggleBuff = useGameStore((s) =>
     potionId === 'transform_scroll' ? s.toggleTransformScroll
     : potionId === 'green_potion' ? s.toggleGreenPotion
+    : isBraveType ? s.toggleCouragePotion
     : s.toggleCouragePotion,
   );
 

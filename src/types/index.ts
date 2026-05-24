@@ -239,6 +239,8 @@ export interface Potion {
   buffDuration?: number;      // 초
   atkSpeedMult?: number;      // 공격속도 배율
   moveSpeedMult?: number;     // 이동속도 배율
+  spBonus?: number;           // SP 보너스 (마법 대미지 계수, L1J wisdom)
+  classRestriction?: PlayerClass[];  // 사용 가능 클래스 (없으면 전클래스)
 }
 
 export interface ActiveBuff {
@@ -247,6 +249,7 @@ export interface ActiveBuff {
   expiresAt: number;          // Date.now() + duration
   atkSpeedMult: number;
   moveSpeedMult: number;
+  spBonus?: number;            // SP bonus (wisdom potion, L1J SP+2)
   // Skill buff effects (from player skills)
   skillId?: number;            // Skill source (for skill buffs, 0 for potion buffs)
   acBonus?: number;            // AC bonus (negative = better defense)
