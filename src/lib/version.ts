@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.26.6 — 월드맵 원본 레이아웃 복원 + 노드 크기만 축소
-export const APP_VERSION = '2.26.6';
+// v2.26.7 — 월드맵 빈 곳 클릭 시 사냥터 리스트 닫기
+export const APP_VERSION = '2.26.7';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

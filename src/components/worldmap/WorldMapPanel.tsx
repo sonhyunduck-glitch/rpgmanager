@@ -132,7 +132,9 @@ export default function WorldMapPanel() {
       position: 'relative',
     }}>
       {/* ━━━ MAP AREA ━━━ */}
-      <div style={{
+      <div
+        onClick={() => { setSelectedRegionId(null); setSelectedZoneId(null); }}
+        style={{
         flex: 1,
         background: 'var(--bg-panel)',
         backgroundImage: `
@@ -218,7 +220,7 @@ export default function WorldMapPanel() {
           return (
             <button
               key={region.id}
-              onClick={() => !isLocked && handleRegionClick(region.id)}
+              onClick={(e) => { e.stopPropagation(); if (!isLocked) handleRegionClick(region.id); }}
               title={isLocked ? `Lv.${region.requiredLevel} 필요` : region.name}
               style={{
                 position: 'absolute',
