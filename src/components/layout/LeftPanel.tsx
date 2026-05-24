@@ -433,7 +433,7 @@ function TabConsumables() {
   const selectedPotionId = useGameStore(s => s.selectedPotionId);
   const potionAutoUse = useGameStore(s => s.potionAutoUse);
   const potionAutoThreshold = useGameStore(s => s.potionAutoThreshold);
-  const potionAutoBuy = useGameStore(s => s.potionAutoBuy);
+
   const greenPotionEnabled = useGameStore(s => s.greenPotionEnabled);
   const couragePotionEnabled = useGameStore(s => s.couragePotionEnabled);
   const transformScrollEnabled = useGameStore(s => s.transformScrollEnabled);
@@ -444,7 +444,7 @@ function TabConsumables() {
   const setSelectedPotion = useGameStore(s => s.setSelectedPotion);
   const togglePotionAutoUse = useGameStore(s => s.togglePotionAutoUse);
   const setPotionAutoThreshold = useGameStore(s => s.setPotionAutoThreshold);
-  const togglePotionAutoBuy = useGameStore(s => s.togglePotionAutoBuy);
+
   const toggleGreenPotion = useGameStore(s => s.toggleGreenPotion);
   const toggleCouragePotion = useGameStore(s => s.toggleCouragePotion);
   const toggleTransformScroll = useGameStore(s => s.toggleTransformScroll);
@@ -514,9 +514,6 @@ function TabConsumables() {
           ))}
         </div>
       )}
-
-      {/* 자동 구매 */}
-      <ToggleRow label="자동 구매" active={potionAutoBuy} onToggle={togglePotionAutoBuy} />
 
       {/* ── 버프 물약 ── */}
       <SectionTitle>버프 물약</SectionTitle>
