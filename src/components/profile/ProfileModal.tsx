@@ -8,6 +8,10 @@ import { getPlayerProfile, getPlayerEquipment } from '../../lib/profile';
 import type { PlayerProfile, PlayerEquipment } from '../../lib/profile';
 import type { Equipment, EquipType, PlayerClass } from '../../types';
 import { CLASS_CONFIGS } from '../../data/classData';
+import {
+  finalAC, finalMR, meleeHit, minDamage, maxDamage, hpGainRange, calcMaxMp,
+  calcHpRegenRange, calcHpRegenIntervalSec, calcMpRegenAmount, calcMpRegenIntervalSec,
+} from '../../data/statFormulas';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
 import { timeAgo, dateFmt } from '../../lib/utils';
 
@@ -170,6 +174,61 @@ export default function ProfileModal() {
               <StatBox label="INT" value={profile.stat_int} color="var(--accent)" />
             </div>
 
+            {/* ── 전투 스탯 ── */}
+            {(() => {
+              const pc = (profile.player_class as PlayerClass) ?? 'knight';
+              const lv = profile.level;
+              const str = profile.stat_str;
+              const dex = profile.stat_dex;
+              const con = profile.stat_con;
+              const wis = profile.stat_wis;
+              const int = profile.stat_int;
+              const weapon = equip?.equipped.find(e => e.type === 'weapon' || e.type === 'bow' || e.type === 'staff') ?? null;
+              const weaponEnchant = weapon?.enhanceLevel ?? 0;
+              const weaponBaseDmgS = weapon?.baseAtk ?? 0;
+              const weaponBaseDmgL = weapon?.baseAtkLarge ?? 0;
+              const totalDef = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.baseDef ?? 0) + (eq.enhanceLevel > 0 && eq.baseDef > 0 ? eq.enhanceLevel : 0), 0);
+              const bonusHit = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.hit ?? 0), 0);
+              const bonusExtraDmg = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.extraDmg ?? 0), 0);
+              const bonusMr = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.mr ?? 0), 0);
+              const bonusHp = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.hp ?? 0), 0);
+              const hit = meleeHit(lv, weaponEnchant, str) + bonusHit;
+              const ac = finalAC(totalDef, lv, dex, pc);
+              const dmgMinS = minDamage(lv, weaponEnchant, str) + bonusExtraDmg;
+              const dmgMaxS = maxDamage(weaponBaseDmgS, lv, weaponEnchant, str) + bonusExtraDmg;
+              const dmgMinL = minDamage(lv, weaponEnchant, str) + bonusExtraDmg;
+              const dmgMaxL = maxDamage(weaponBaseDmgL, lv, weaponEnchant, str) + bonusExtraDmg;
+              const mr = finalMR(lv, wis) + bonusMr;
+              const maxHp = profile.max_hp + bonusHp;
+              const maxMp = calcMaxMp(lv, wis, int, pc);
+              const hpRange = hpGainRange(con);
+              const hpRegenR = calcHpRegenRange(lv, con);
+              const hpRegenSec = calcHpRegenIntervalSec(lv, pc);
+              const mpRegenAmt = calcMpRegenAmount(wis);
+              const mpRegenSec = calcMpRegenIntervalSec();
+
+              return (
+                <div>
+                  <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 'var(--s-1)' }}>
+                    Combat
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                    <ProfileCombatCell label="HP" value={`${profile.current_hp}/${maxHp}`}
+                      color={profile.current_hp > maxHp * 0.6 ? 'var(--success)' : profile.current_hp > maxHp * 0.3 ? 'var(--warning)' : 'var(--danger)'} />
+                    <ProfileCombatCell label="MP" value={`0/${maxMp}`} color="var(--info)" />
+                    <ProfileCombatCell label="HIT" value={`${hit}`} color="var(--text)" />
+                    <ProfileCombatCell label="AC" value={`${ac}`} color="var(--success)" />
+                    <ProfileCombatCell label="DMG(소)" value={`${dmgMinS}~${dmgMaxS}`} color="var(--warning)" />
+                    <ProfileCombatCell label="DMG(대)" value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
+                    <ProfileCombatCell label="MR" value={`${mr}`} color="var(--info)" />
+                    <ProfileCombatCell label="LV HP" value={`${hpRange.min}~${hpRange.max}`} color="var(--text-dim)" />
+                    <ProfileCombatCell label="HPR" value={`${hpRegenR.min}~${hpRegenR.max}/${hpRegenSec}s`} color="var(--text-dim)" />
+                    <ProfileCombatCell label="MPR" value={`${mpRegenAmt}/${mpRegenSec}s`} color="var(--text-dim)" />
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* ── 장비 ── */}
             <div>
               <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 'var(--s-1)' }}>
@@ -230,6 +289,26 @@ function StatBox({ label, value, color }: { label: string; value: number; color:
     }}>
       <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 1 }}>{label}</div>
       <div style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color }}>{value}</div>
+    </div>
+  );
+}
+
+/* ── 전투 스탯 셀 ── */
+function ProfileCombatCell({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '3px 6px',
+      background: 'var(--bg-sunken)',
+      border: '1px solid var(--border-soft)',
+      borderRadius: 'var(--r-xs)',
+    }}>
+      <span style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 0, color: 'var(--text-mute)' }}>
+        {label}
+      </span>
+      <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-xs)', color, fontFamily: 'var(--font-mono)' }}>
+        {value}
+      </span>
     </div>
   );
 }

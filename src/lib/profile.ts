@@ -15,6 +15,8 @@ export interface PlayerProfile {
   stat_con: number;
   stat_wis: number;
   stat_int: number;
+  max_hp: number;
+  current_hp: number;
   player_class: string | null;
   guild_id: string | null;
   guild_name: string | null;
@@ -31,7 +33,7 @@ export interface PlayerEquipment {
 export async function getPlayerProfile(userId: string): Promise<PlayerProfile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, level, title, gold, stat_str, stat_dex, stat_con, stat_wis, stat_int, player_class, guild_id, last_active_at, created_at')
+    .select('id, name, level, title, gold, stat_str, stat_dex, stat_con, stat_wis, stat_int, max_hp, current_hp, player_class, guild_id, last_active_at, created_at')
     .eq('id', userId)
     .single();
 
