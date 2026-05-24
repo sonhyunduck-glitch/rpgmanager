@@ -1,8 +1,9 @@
 /* =========================================================
    WORLD MAP PANEL — L1J 월드맵 시각화
    지역 노드 + 연결선 + 클릭으로 사냥터 이동
+   반응형: 모바일에서 하단 시트 오버레이
    ========================================================= */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES } from '../../data/gameData';
 import {
@@ -14,7 +15,18 @@ import {
 import { LABEL, BTN_PRIMARY, BTN_DISABLED } from '../../styles/shared';
 
 // ── 상수 ──
-const NODE_SIZE = 52;        // node circle diameter
+const NODE_SIZE = 52;
+const NODE_SIZE_MOBILE = 36;
+const MOBILE_BREAKPOINT = 600;
+
+// 모바일에서 겹치는 노드 위치 보정
+// 원본: talking_island(38,90) ↔ silver_knight(40,76) → 가로 2%차 → 모바일에서 겹침
+// 원본: mutant_forest(58,55) ↔ lastabad(65,68) → 가로 7%차 → 모바일에서 빡빡함
+const MOBILE_POS: Record<string, { x: number; y: number }> = {
+  talking_island: { x: 30, y: 92 },
+  silver_knight:  { x: 52, y: 76 },
+  lastabad:       { x: 74, y: 68 },
+};
 
 export default function WorldMapPanel() {
   const level = useGameStore(s => s.level);
@@ -46,6 +58,30 @@ export default function WorldMapPanel() {
   const selectedZone = selectedZoneId
     ? HUNT_ZONES.find(z => z.id === selectedZoneId) ?? null
     : null;
+
+  // ── 반응형 감지 ──
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerW, setContainerW] = useState(999);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setContainerW(el.clientWidth);
+    const ro = new ResizeObserver(entries => {
+      for (const e of entries) setContainerW(e.contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const isMobile = containerW < MOBILE_BREAKPOINT;
+  const nodeSize = isMobile ? NODE_SIZE_MOBILE : NODE_SIZE;
+
+  // 지역 위치 (모바일 보정 적용)
+  const getPos = useCallback((region: WorldRegion) => {
+    if (isMobile && MOBILE_POS[region.id]) return MOBILE_POS[region.id];
+    return region.position;
+  }, [isMobile]);
 
   const handleRegionClick = (regionId: string) => {
     setSelectedRegionId(regionId);
@@ -84,13 +120,15 @@ export default function WorldMapPanel() {
   }, []);
 
   return (
-    <div style={{
+    <div ref={containerRef} style={{
       display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
       height: '100%',
-      gap: 'var(--s-3)',
+      gap: isMobile ? 0 : 'var(--s-3)',
       overflow: 'hidden',
+      position: 'relative',
     }}>
-      {/* ━━━ LEFT: World Map ━━━ */}
+      {/* ━━━ MAP AREA ━━━ */}
       <div style={{
         flex: 1,
         background: 'var(--bg-panel)',
@@ -99,19 +137,20 @@ export default function WorldMapPanel() {
         `,
         backgroundSize: '24px 24px',
         border: '1px solid var(--border-soft)',
-        borderRadius: 'var(--r-md)',
+        borderRadius: isMobile ? 'var(--r-md)' : 'var(--r-md)',
         position: 'relative',
         overflow: 'hidden',
         minWidth: 0,
+        minHeight: 0,
       }}>
         {/* Map title */}
         <div style={{
           position: 'absolute',
-          top: 'var(--s-3)',
-          left: 'var(--s-3)',
+          top: 'var(--s-2)',
+          left: 'var(--s-2)',
           zIndex: 10,
           ...LABEL,
-          fontSize: 'var(--fs-sm)',
+          fontSize: isMobile ? 'var(--fs-xs)' : 'var(--fs-sm)',
           color: 'var(--text-dim)',
         }}>
           아덴 대륙
@@ -120,10 +159,10 @@ export default function WorldMapPanel() {
         {/* 나침반 */}
         <div style={{
           position: 'absolute',
-          top: 'var(--s-3)',
-          right: 'var(--s-3)',
+          top: 'var(--s-2)',
+          right: 'var(--s-2)',
           zIndex: 10,
-          fontSize: '11px',
+          fontSize: isMobile ? '9px' : '11px',
           color: 'var(--text-faint)',
           fontFamily: 'var(--font-mono)',
           display: 'flex',
@@ -147,19 +186,23 @@ export default function WorldMapPanel() {
             pointerEvents: 'none',
           }}
         >
-          {connections.map(({ from, to }, i) => (
-            <line
-              key={i}
-              x1={`${from.position.x}%`}
-              y1={`${from.position.y}%`}
-              x2={`${to.position.x}%`}
-              y2={`${to.position.y}%`}
-              stroke="var(--border-soft)"
-              strokeWidth="1.5"
-              strokeDasharray="6,4"
-              opacity="0.5"
-            />
-          ))}
+          {connections.map(({ from, to }, i) => {
+            const fp = getPos(from);
+            const tp = getPos(to);
+            return (
+              <line
+                key={i}
+                x1={`${fp.x}%`}
+                y1={`${fp.y}%`}
+                x2={`${tp.x}%`}
+                y2={`${tp.y}%`}
+                stroke="var(--border-soft)"
+                strokeWidth={isMobile ? 1 : 1.5}
+                strokeDasharray={isMobile ? '4,3' : '6,4'}
+                opacity="0.5"
+              />
+            );
+          })}
         </svg>
 
         {/* Region nodes */}
@@ -167,6 +210,7 @@ export default function WorldMapPanel() {
           const isCurrentRegion = currentRegion?.id === region.id;
           const isSelected = selectedRegionId === region.id;
           const isLocked = level < region.requiredLevel;
+          const pos = getPos(region);
 
           return (
             <button
@@ -175,18 +219,18 @@ export default function WorldMapPanel() {
               title={isLocked ? `Lv.${region.requiredLevel} 필요` : region.name}
               style={{
                 position: 'absolute',
-                left: `${region.position.x}%`,
-                top: `${region.position.y}%`,
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
                 transform: 'translate(-50%, -50%)',
                 zIndex: isSelected ? 5 : isCurrentRegion ? 4 : 3,
-                width: NODE_SIZE,
-                height: NODE_SIZE,
+                width: nodeSize,
+                height: nodeSize,
                 borderRadius: '50%',
                 border: isSelected
-                  ? `3px solid ${region.color}`
+                  ? `${isMobile ? 2 : 3}px solid ${region.color}`
                   : isCurrentRegion
-                    ? '3px solid var(--accent)'
-                    : '2px solid var(--border-soft)',
+                    ? `${isMobile ? 2 : 3}px solid var(--accent)`
+                    : `${isMobile ? 1.5 : 2}px solid var(--border-soft)`,
                 background: isLocked
                   ? 'var(--bg-sunken)'
                   : isSelected
@@ -199,9 +243,9 @@ export default function WorldMapPanel() {
                 justifyContent: 'center',
                 transition: 'all 0.2s ease',
                 boxShadow: isSelected
-                  ? `0 0 12px color-mix(in oklch, ${region.color} 40%, transparent)`
+                  ? `0 0 ${isMobile ? 8 : 12}px color-mix(in oklch, ${region.color} 40%, transparent)`
                   : isCurrentRegion
-                    ? '0 0 8px color-mix(in oklch, var(--accent) 40%, transparent)'
+                    ? `0 0 ${isMobile ? 6 : 8}px color-mix(in oklch, var(--accent) 40%, transparent)`
                     : 'var(--shadow-sm)',
                 opacity: isLocked ? 0.4 : 1,
                 padding: 0,
@@ -209,7 +253,7 @@ export default function WorldMapPanel() {
                 color: 'var(--text)',
               }}
             >
-              <span style={{ fontSize: '18px', lineHeight: 1 }}>
+              <span style={{ fontSize: isMobile ? '14px' : '18px', lineHeight: 1 }}>
                 {isLocked ? '🔒' : region.icon}
               </span>
             </button>
@@ -221,17 +265,18 @@ export default function WorldMapPanel() {
           const isLocked = level < region.requiredLevel;
           const isCurrentRegion = currentRegion?.id === region.id;
           const isSelected = selectedRegionId === region.id;
+          const pos = getPos(region);
 
           return (
             <div
               key={`label-${region.id}`}
               style={{
                 position: 'absolute',
-                left: `${region.position.x}%`,
-                top: `calc(${region.position.y}% + ${NODE_SIZE / 2 + 4}px)`,
+                left: `${pos.x}%`,
+                top: `calc(${pos.y}% + ${nodeSize / 2 + 3}px)`,
                 transform: 'translateX(-50%)',
                 zIndex: 2,
-                fontSize: '10px',
+                fontSize: isMobile ? '8px' : '10px',
                 fontWeight: isSelected || isCurrentRegion ? 700 : 500,
                 color: isLocked
                   ? 'var(--text-faint)'
@@ -244,69 +289,131 @@ export default function WorldMapPanel() {
                 pointerEvents: 'none',
                 textShadow: '0 1px 3px var(--bg-panel)',
                 fontFamily: 'var(--font-ui)',
+                lineHeight: 1.3,
+                textAlign: 'center',
               }}
             >
               {region.name}
               {isCurrentRegion && (
                 <span style={{
                   marginLeft: 2,
-                  fontSize: '8px',
+                  fontSize: isMobile ? '6px' : '8px',
                   color: 'var(--accent)',
                 }}>●</span>
               )}
-              <div style={{
-                fontSize: '8px',
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--text-faint)',
-                marginTop: 1,
-              }}>
-                Lv.{region.requiredLevel}+
-              </div>
+              {/* 모바일: Lv 숨김으로 라벨 높이 축소 → 겹침 방지 */}
+              {!isMobile && (
+                <div style={{
+                  fontSize: '8px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-faint)',
+                  marginTop: 1,
+                }}>
+                  Lv.{region.requiredLevel}+
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* ━━━ RIGHT: Region Detail ━━━ */}
-      <div style={{
-        width: 260,
-        flexShrink: 0,
-        background: 'var(--bg-panel)',
-        border: '1px solid var(--border-soft)',
-        borderRadius: 'var(--r-md)',
-        padding: 'var(--s-4)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--s-3)',
-        overflow: 'hidden',
-      }}>
-        {selectedRegion ? (
-          <RegionDetail
-            region={selectedRegion}
-            zones={regionZones}
-            currentZoneId={huntZoneId}
-            selectedZoneId={selectedZoneId}
-            onSelectZone={setSelectedZoneId}
-            playerLevel={level}
-            materials={materials}
-            onMove={handleMove}
-            selectedZone={selectedZone}
-          />
-        ) : (
+      {/* ━━━ REGION DETAIL ━━━ */}
+      {isMobile ? (
+        /* ── 모바일: 하단 시트 오버레이 ── */
+        selectedRegion && (
           <div style={{
-            flex: 1,
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            maxHeight: '55%',
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border-soft)',
+            borderBottom: 'none',
+            borderRadius: 'var(--r-md) var(--r-md) 0 0',
+            padding: '0 var(--s-3) var(--s-3)',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-mute)',
-            fontSize: 'var(--fs-sm)',
-            textAlign: 'center',
-            lineHeight: 1.6,
+            flexDirection: 'column',
+            gap: 'var(--s-2)',
+            overflow: 'hidden',
+            zIndex: 20,
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.35)',
           }}>
-            지역을 선택하세요
+            {/* 닫기 핸들 */}
+            <div
+              onClick={() => setSelectedRegionId(null)}
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                padding: '8px 0 4px',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              <div style={{
+                width: 32,
+                height: 4,
+                borderRadius: 2,
+                background: 'var(--border-soft)',
+              }} />
+            </div>
+
+            <RegionDetail
+              region={selectedRegion}
+              zones={regionZones}
+              currentZoneId={huntZoneId}
+              selectedZoneId={selectedZoneId}
+              onSelectZone={setSelectedZoneId}
+              playerLevel={level}
+              materials={materials}
+              onMove={handleMove}
+              selectedZone={selectedZone}
+              compact
+            />
           </div>
-        )}
-      </div>
+        )
+      ) : (
+        /* ── 데스크톱: 우측 패널 ── */
+        <div style={{
+          width: 260,
+          flexShrink: 0,
+          background: 'var(--bg-panel)',
+          border: '1px solid var(--border-soft)',
+          borderRadius: 'var(--r-md)',
+          padding: 'var(--s-4)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--s-3)',
+          overflow: 'hidden',
+        }}>
+          {selectedRegion ? (
+            <RegionDetail
+              region={selectedRegion}
+              zones={regionZones}
+              currentZoneId={huntZoneId}
+              selectedZoneId={selectedZoneId}
+              onSelectZone={setSelectedZoneId}
+              playerLevel={level}
+              materials={materials}
+              onMove={handleMove}
+              selectedZone={selectedZone}
+            />
+          ) : (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-mute)',
+              fontSize: 'var(--fs-sm)',
+              textAlign: 'center',
+              lineHeight: 1.6,
+            }}>
+              지역을 선택하세요
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -322,6 +429,7 @@ function RegionDetail({
   materials,
   onMove,
   selectedZone,
+  compact,
 }: {
   region: WorldRegion;
   zones: typeof HUNT_ZONES;
@@ -332,6 +440,7 @@ function RegionDetail({
   materials: Record<string, number>;
   onMove: () => void;
   selectedZone: (typeof HUNT_ZONES)[number] | null;
+  compact?: boolean;
 }) {
   // 던전 그룹별로 정리
   const { fields, dungeonGroups } = useMemo(() => {
@@ -389,32 +498,36 @@ function RegionDetail({
       {/* Region header */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
-          <span style={{ fontSize: '20px' }}>{region.icon}</span>
+          <span style={{ fontSize: compact ? '16px' : '20px' }}>{region.icon}</span>
           <div>
             <div style={{
               fontWeight: 800,
-              fontSize: 'var(--fs-md)',
+              fontSize: compact ? 'var(--fs-sm)' : 'var(--fs-md)',
               color: region.color,
             }}>
               {region.name}
             </div>
-            <div style={{
-              fontSize: 'var(--fs-2xs)',
-              color: 'var(--text-mute)',
-              fontFamily: 'var(--font-mono)',
-            }}>
-              {region.nameEn}
-            </div>
+            {!compact && (
+              <div style={{
+                fontSize: 'var(--fs-2xs)',
+                color: 'var(--text-mute)',
+                fontFamily: 'var(--font-mono)',
+              }}>
+                {region.nameEn}
+              </div>
+            )}
           </div>
         </div>
-        <div style={{
-          marginTop: 'var(--s-2)',
-          fontSize: 'var(--fs-xs)',
-          color: 'var(--text-dim)',
-          lineHeight: 1.5,
-        }}>
-          {region.description}
-        </div>
+        {!compact && (
+          <div style={{
+            marginTop: 'var(--s-2)',
+            fontSize: 'var(--fs-xs)',
+            color: 'var(--text-dim)',
+            lineHeight: 1.5,
+          }}>
+            {region.description}
+          </div>
+        )}
         {region.underwater && (
           <div style={{
             marginTop: 'var(--s-1)',
@@ -545,7 +658,7 @@ function RegionDetail({
       {selectedZone && (
         <div style={{
           borderTop: '1px solid var(--border-soft)',
-          paddingTop: 'var(--s-3)',
+          paddingTop: 'var(--s-2)',
           display: 'flex',
           flexDirection: 'column',
           gap: 'var(--s-2)',
