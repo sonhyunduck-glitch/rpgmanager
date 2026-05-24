@@ -103,6 +103,12 @@ export function getClassCombatStyle(pc: PlayerClass): CombatStyle {
   return CLASS_CONFIGS[pc].combatStyle;
 }
 
+/** 캐릭터 생성 시 스탯 상한 (base + 투자 합산) — 기사 STR만 20, 나머지 18 */
+export function getStatCap(pc: PlayerClass, stat: StatKey): number {
+  if (pc === 'knight' && stat === 'str') return 20;
+  return 18;
+}
+
 /** 클래스가 해당 장비 타입을 장착할 수 있는지 확인 */
 export function canClassEquip(pc: PlayerClass, eqType: EquipType): boolean {
   // 공용 방어구: 모든 클래스 장착 가능
