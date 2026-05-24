@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.27.1 — CHA 엘릭서 삭제
-export const APP_VERSION = '2.27.1';
+// v2.27.2 — 불필요 물약/소비아이템 정리
+export const APP_VERSION = '2.27.2';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
