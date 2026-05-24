@@ -3,7 +3,7 @@
    ========================================================= */
 import { HUNT_ZONES, getMonstersForRoom } from '../data/gameData';
 import { getClassBaseStats } from '../data/classData';
-import { getAvailableSkills, getSkillSlotCount } from '../data/playerSkillData';
+import { getAvailableSkills, MAX_SKILL_SLOTS } from '../data/playerSkillData';
 import { genLogId } from './helpers';
 import { ROOMS_PER_ZONE } from './storeTypes';
 import { upsertZonePresence, getZonePlayerCount, removeZonePresence } from '../lib/db';
@@ -108,7 +108,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       // 스킬 슬롯 비어있으면 자동 배치
       const afterHunt = get();
       if (!afterHunt.equippedSkills || afterHunt.equippedSkills.filter(id => id > 0).length === 0) {
-        const maxSlots = getSkillSlotCount(afterHunt.level);
+        const maxSlots = MAX_SKILL_SLOTS;
         const available = getAvailableSkills(afterHunt.playerClass, afterHunt.level);
         const buffs = available.filter(s => s.skillType === 'buff').sort((a, b) => b.skillCircle - a.skillCircle);
         const heals = available.filter(s => s.skillType === 'heal').sort((a, b) => b.skillCircle - a.skillCircle);

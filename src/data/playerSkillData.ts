@@ -1231,20 +1231,13 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
 // 헬퍼 함수
 // ---------------------------------------------------------------------------
 
-/**
- * 레벨에 따른 스킬 슬롯 수 (4~8칸)
- * Lv.1: 4칸, Lv.20: 5칸, Lv.30: 6칸, Lv.40: 7칸, Lv.50: 8칸
- */
-export function getSkillSlotCount(level: number): number {
-  if (level >= 50) return 8;
-  if (level >= 40) return 7;
-  if (level >= 30) return 6;
-  if (level >= 20) return 5;
-  return 4;
+/** 스킬 슬롯 수 — 고정 16칸 (레벨 제한 없음) */
+export function getSkillSlotCount(_level: number): number {
+  return 16;
 }
 
 /** 최대 스킬 슬롯 수 */
-export const MAX_SKILL_SLOTS = 8;
+export const MAX_SKILL_SLOTS = 16;
 
 /**
  * 특정 클래스가 해당 레벨에서 사용할 수 있는 모든 스킬 반환

@@ -20,7 +20,7 @@ import type {
   Equipment, HuntSession, ScrollType,
   StatAllocation, ActiveBuff,
 } from '../types';
-import { getAvailableSkills, getSkillSlotCount } from '../data/playerSkillData';
+import { getAvailableSkills, MAX_SKILL_SLOTS } from '../data/playerSkillData';
 
 // ── 분리된 모듈 ──
 import type { GameState } from './storeTypes';
@@ -284,6 +284,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   // ── Skills ──
   equippedSkills: (saved?.equippedSkills as number[]) ?? [],
+  disabledSkills: (saved?.disabledSkills as number[]) ?? [],
 
   // ── Buffs ──
   activeBuffs: (saved?.activeBuffs as ActiveBuff[]) ?? [],
@@ -349,7 +350,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   // ── Skill Actions ──
   equipSkill: (skillId: number, slotIndex: number) => {
     const state = get();
-    const maxSlots = getSkillSlotCount(state.level);
+    const maxSlots = MAX_SKILL_SLOTS;
     if (slotIndex < 0 || slotIndex >= maxSlots) return;
     const available = getAvailableSkills(state.playerClass, state.level);
     if (!available.find(s => s.id === skillId)) return;
@@ -375,7 +376,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   autoEquipSkills: () => {
     const state = get();
-    const maxSlots = getSkillSlotCount(state.level);
+    const maxSlots = MAX_SKILL_SLOTS;
     const available = getAvailableSkills(state.playerClass, state.level);
     // 우선순위: 버프 → 힐 → 공격(높은 서클 우선) → 클래스 전용
     const buffs = available.filter(s => s.skillType === 'buff').sort((a, b) => b.skillCircle - a.skillCircle);
@@ -391,7 +392,20 @@ export const useGameStore = create<GameState>((set, get) => ({
       used.add(skill.id);
     }
     while (newSlots.length < maxSlots) newSlots.push(0);
-    set({ equippedSkills: newSlots });
+    set({ equippedSkills: newSlots, disabledSkills: [] });
+    saveState(get());
+  },
+
+  toggleSkillEnabled: (skillId: number) => {
+    const state = get();
+    const disabled = [...(state.disabledSkills ?? [])];
+    const idx = disabled.indexOf(skillId);
+    if (idx === -1) {
+      disabled.push(skillId);
+    } else {
+      disabled.splice(idx, 1);
+    }
+    set({ disabledSkills: disabled });
     saveState(get());
   },
 

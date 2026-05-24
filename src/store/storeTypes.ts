@@ -109,7 +109,8 @@ export interface GameState {
   lastPotionUsedAt: number;    // 물약 쿨타임 (timestamp)
   potionAutoBuy: boolean;
   // Skills
-  equippedSkills: number[];  // 슬롯에 장착된 스킬 ID 목록 (최대 8)
+  equippedSkills: number[];  // 슬롯에 장착된 스킬 ID 목록 (최대 16)
+  disabledSkills: number[];  // OFF 상태 스킬 ID 목록 (전투 중 자동 시전 안 함)
 
   // Buffs
   activeBuffs: ActiveBuff[];
@@ -199,6 +200,7 @@ export interface GameState {
   equipSkill: (skillId: number, slotIndex: number) => void;
   unequipSkill: (slotIndex: number) => void;
   autoEquipSkills: () => void;
+  toggleSkillEnabled: (skillId: number) => void;
 
   // Profile
   openProfile: (userId: string) => void;

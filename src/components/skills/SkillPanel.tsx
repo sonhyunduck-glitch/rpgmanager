@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import {
-  PLAYER_SKILLS, getAvailableSkills, getSkillSlotCount, MAX_SKILL_SLOTS,
+  PLAYER_SKILLS, getAvailableSkills, MAX_SKILL_SLOTS,
 } from '../../data/playerSkillData';
 import { magicLevel } from '../../data/statFormulas';
 import { PANEL_FULL, LABEL, STAT_VALUE } from '../../styles/shared';
@@ -39,8 +39,7 @@ export default function SkillPanel() {
   const [selectedSkill, setSelectedSkill] = useState<PlayerSkill | null>(null);
   const [dragSkillId, setDragSkillId] = useState<number | null>(null);
 
-  const maxSlots = getSkillSlotCount(level);
-  const nextSlotLevel = level < 20 ? 20 : level < 30 ? 30 : level < 40 ? 40 : level < 50 ? 50 : null;
+  const maxSlots = MAX_SKILL_SLOTS;
   const mlvl = magicLevel(level, playerClass);
   const maxMp = getMaxMp();
 
@@ -357,40 +356,32 @@ export default function SkillPanel() {
             gap: 6,
           }}>
             {slots.map((skillId, idx) => {
-              const locked = idx >= maxSlots;
               const skill = skillId ? PLAYER_SKILLS.find(s => s.id === skillId) : null;
               const meta = skill ? TYPE_META[skill.skillType] : null;
               return (
                 <div
                   key={idx}
-                  onClick={() => !locked && handleSlotClick(idx)}
-                  onDragOver={(e) => { if (!locked) e.preventDefault(); }}
+                  onClick={() => handleSlotClick(idx)}
+                  onDragOver={(e) => { e.preventDefault(); }}
                   onDrop={() => handleSlotDrop(idx)}
                   style={{
                     aspectRatio: '1',
-                    border: locked
-                      ? '1px dashed var(--border-soft)'
-                      : skill
-                        ? `1.5px solid ${meta?.color ?? 'var(--border-soft)'}`
-                        : '1px solid var(--border-soft)',
+                    border: skill
+                      ? `1.5px solid ${meta?.color ?? 'var(--border-soft)'}`
+                      : '1px solid var(--border-soft)',
                     borderRadius: 'var(--r-md)',
-                    background: locked
-                      ? 'var(--bg-sunken)'
-                      : skill
-                        ? `color-mix(in oklch, ${meta?.color ?? 'var(--info)'} 12%, var(--bg-panel))`
-                        : 'var(--bg-panel)',
+                    background: skill
+                      ? `color-mix(in oklch, ${meta?.color ?? 'var(--info)'} 12%, var(--bg-panel))`
+                      : 'var(--bg-panel)',
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', justifyContent: 'center',
                     gap: 2,
-                    cursor: locked ? 'not-allowed' : 'pointer',
-                    opacity: locked ? 0.3 : 1,
+                    cursor: 'pointer',
                     transition: 'all 0.12s ease',
                     position: 'relative',
                     overflow: 'hidden',
                   }}
-                  title={locked
-                    ? `Lv.${[20, 30, 40, 50][idx - 4] ?? '?'}에 해금`
-                    : skill ? `${skill.name} (클릭하여 해제)` : '빈 슬롯 (드래그하여 장착)'}
+                  title={skill ? `${skill.name} (클릭하여 해제)` : '빈 슬롯 (드래그하여 장착)'}
                 >
                   {/* 슬롯 번호 */}
                   <span style={{
@@ -401,9 +392,7 @@ export default function SkillPanel() {
                     {idx + 1}
                   </span>
 
-                  {locked ? (
-                    <span style={{ fontSize: 'var(--fs-base)', color: 'var(--text-mute)' }}>🔒</span>
-                  ) : skill ? (
+                  {skill ? (
                     <>
                       <span style={{ fontSize: '18px' }}>{meta?.icon}</span>
                       <span style={{
@@ -424,15 +413,6 @@ export default function SkillPanel() {
               );
             })}
           </div>
-
-          {nextSlotLevel && (
-            <div style={{
-              fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
-              textAlign: 'center', marginTop: 'var(--s-2)',
-            }}>
-              Lv.{nextSlotLevel}에 슬롯 +1 해금
-            </div>
-          )}
         </div>
       </div>
     </div>

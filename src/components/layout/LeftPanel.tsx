@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
 import { CLASS_CONFIGS } from '../../data/classData';
-import { getSkillSlotCount, PLAYER_SKILLS } from '../../data/playerSkillData';
+import { MAX_SKILL_SLOTS, PLAYER_SKILLS } from '../../data/playerSkillData';
 import { POTIONS, HEAL_POTION_ORDER, xpForLevel, getTransformScrollSpeed } from '../../data/gameData';
 import {
   finalAC, finalMR,
@@ -326,14 +326,12 @@ function EquipRow({ label, equipment }: { label: string; equipment: Equipment | 
    ═══════════════════════════════ */
 function TabSkills() {
   const equippedSkills = useGameStore(s => s.equippedSkills);
-  const level = useGameStore(s => s.level);
+  const disabledSkills = useGameStore(s => s.disabledSkills);
   const hunt = useGameStore(s => s.hunt);
+  const toggleSkillEnabled = useGameStore(s => s.toggleSkillEnabled);
   const cooldowns = hunt.skillCooldowns ?? {};
-  const maxSlots = getSkillSlotCount(level);
+  const maxSlots = MAX_SKILL_SLOTS;
   const filledCount = equippedSkills.filter(id => id > 0).length;
-  const slotLevels = [1, 1, 1, 1, 20, 30, 40, 50];
-  const lockedSlots = [];
-  for (let i = maxSlots; i < 8; i++) lockedSlots.push({ slot: i + 1, reqLevel: slotLevels[i] });
 
   // 쿨다운 진행 중이면 리렌더 (1초마다)
   const hasCooldown = equippedSkills.some(id => id > 0 && (cooldowns[id] ?? 0) > 0);
@@ -346,6 +344,7 @@ function TabSkills() {
         {Array.from({ length: maxSlots }).map((_, i) => {
           const skillId = equippedSkills[i] ?? 0;
           const skill = skillId > 0 ? PLAYER_SKILLS.find(s => s.id === skillId) : null;
+          const isDisabled = skill ? (disabledSkills ?? []).includes(skill.id) : false;
           const cdRemain = skill ? (cooldowns[skill.id] ?? 0) : 0;
           const cdMax = skill ? skill.reuseDelayTicks : 0;
           const onCooldown = cdRemain > 0 && cdMax > 0;
@@ -358,10 +357,10 @@ function TabSkills() {
               padding: '3px 6px', background: 'var(--bg-panel)',
               border: onCooldown ? '1px solid color-mix(in oklch, var(--danger) 60%, transparent)' : '1px solid var(--border-soft)',
               borderRadius: 'var(--r-sm)',
-              opacity: skill ? 1 : 0.5,
+              opacity: skill ? (isDisabled ? 0.45 : 1) : 0.5,
             }}>
               {/* 쿨다운 프로그레스 바 (배경) */}
-              {onCooldown && (
+              {onCooldown && !isDisabled && (
                 <div style={{
                   position: 'absolute', left: 0, top: 0, bottom: 0,
                   width: `${cdPct}%`,
@@ -381,27 +380,47 @@ function TabSkills() {
               <span style={{
                 position: 'relative', zIndex: 1,
                 fontSize: F.value, fontWeight: 600, flex: 1,
-                color: onCooldown ? 'var(--danger)' : skill ? 'var(--text-dim)' : 'var(--text-faint)',
+                color: isDisabled ? 'var(--text-faint)' : onCooldown ? 'var(--danger)' : skill ? 'var(--text-dim)' : 'var(--text-faint)',
                 fontStyle: skill ? 'normal' : 'italic',
+                textDecoration: isDisabled ? 'line-through' : 'none',
               }}>{skill ? skill.name : '—'}</span>
               {skill && (
-                <span style={{
-                  position: 'relative', zIndex: 1,
-                  fontFamily: 'var(--font-mono)', fontSize: F.tiny,
-                  color: onCooldown ? 'var(--danger)' : 'var(--info)',
-                }}>
-                  {onCooldown ? `${cdRemain * 3}s` : `MP ${skill.consumeMp}`}
-                </span>
+                <>
+                  <span style={{
+                    position: 'relative', zIndex: 1,
+                    fontFamily: 'var(--font-mono)', fontSize: F.tiny,
+                    color: isDisabled ? 'var(--text-faint)' : onCooldown ? 'var(--danger)' : 'var(--info)',
+                  }}>
+                    {onCooldown && !isDisabled ? `${cdRemain * 3}s` : `MP ${skill.consumeMp}`}
+                  </span>
+                  {/* ON/OFF 토글 스위치 */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleSkillEnabled(skill.id); }}
+                    style={{
+                      position: 'relative', zIndex: 1,
+                      width: 28, height: 14, borderRadius: 7,
+                      border: 'none', cursor: 'pointer', flexShrink: 0,
+                      background: isDisabled ? 'var(--bg-sunken)' : 'var(--accent)',
+                      transition: 'background 0.15s ease',
+                      padding: 0,
+                    }}
+                    title={isDisabled ? 'OFF — 전투 중 사용 안 함' : 'ON — 전투 중 자동 시전'}
+                  >
+                    <span style={{
+                      display: 'block',
+                      width: 10, height: 10,
+                      borderRadius: '50%',
+                      background: '#fff',
+                      transform: isDisabled ? 'translateX(2px)' : 'translateX(16px)',
+                      transition: 'transform 0.15s ease',
+                    }} />
+                  </button>
+                </>
               )}
             </div>
           );
         })}
       </div>
-      {lockedSlots.length > 0 && (
-        <div style={{ textAlign: 'center', fontSize: F.tiny, color: 'var(--text-faint)', marginTop: '2px', opacity: 0.5 }}>
-          {lockedSlots.map(s => `슬롯${s.slot}(Lv.${s.reqLevel})`).join(' · ')}
-        </div>
-      )}
     </>
   );
 }

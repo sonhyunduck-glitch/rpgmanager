@@ -300,14 +300,15 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         huntMp = Math.min(maxMp, huntMp + regenAmt);
       }
 
-      // ── 스킬 버프 자동 시전 (MP 충분 시, 슬롯 장착 스킬만) ──
+      // ── 스킬 버프 자동 시전 (MP 충분 시, 슬롯 장착 스킬만, OFF 제외) ──
       const equipped = state.equippedSkills ?? [];
+      const disabled = state.disabledSkills ?? [];
       if (huntMp > 0) {
         const activeSkillBuffIds = newActiveBuffs
           .filter(b => b.skillId != null && b.skillId > 0 && b.expiresAt > now)
           .map(b => b.skillId!);
         const buffSkills = getAvailableBuffs(state.playerClass, state.level, huntMp, activeSkillBuffIds)
-          .filter(s => equipped.includes(s.id));
+          .filter(s => equipped.includes(s.id) && !disabled.includes(s.id));
         for (const buff of buffSkills) {
           if (huntMp < buff.consumeMp) continue;
           // 쿨다운 체크
@@ -437,7 +438,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         // ── 마법사: 스킬 기반 마법 공격 (L1J skills.csv) ──
         playerAttackHit = true;
         const spellRaw = getBestAttackSpell(state.playerClass, state.level, huntMp, skillCooldowns);
-        const spell = spellRaw && equipped.includes(spellRaw.id) ? spellRaw : null;
+        const spell = spellRaw && equipped.includes(spellRaw.id) && !disabled.includes(spellRaw.id) ? spellRaw : null;
         if (spell) {
           huntMp -= spell.consumeMp;
           if (spell.reuseDelayTicks > 0) skillCooldowns[spell.id] = spell.reuseDelayTicks;
@@ -530,7 +531,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (monsterHp > 0 && huntMp > 0) {
           const classSkills = getAvailableSkills(state.playerClass, state.level)
             .filter(s => s.skillCircle === 0 && s.skillType === 'attack' && s.consumeMp <= huntMp
-              && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id));
+              && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id));
 
           if (classSkills.length > 0) {
             const classSkill = classSkills[0];
@@ -958,7 +959,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= 30) {
           const healRaw = getBestHealSpell(state.playerClass, state.level, huntMp);
-          const healSpell = healRaw && equipped.includes(healRaw.id) ? healRaw : null;
+          const healSpell = healRaw && equipped.includes(healRaw.id) && !disabled.includes(healRaw.id) ? healRaw : null;
           if (healSpell && (skillCooldowns[healSpell.id] ?? 0) <= 0) {
             huntMp -= healSpell.consumeMp;
             const healAmt = rollSpellDamage(
