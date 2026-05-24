@@ -162,27 +162,20 @@ export default function ProfileModal() {
               </div>
             </div>
 
-            {/* ── 스탯 ── */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
-              gap: 'var(--s-1)',
-            }}>
-              <StatBox label="STR" value={profile.stat_str} color="var(--danger)" />
-              <StatBox label="DEX" value={profile.stat_dex} color="var(--success)" />
-              <StatBox label="CON" value={profile.stat_con} color="var(--info)" />
-              <StatBox label="WIS" value={profile.stat_wis} color="var(--warning)" />
-              <StatBox label="INT" value={profile.stat_int} color="var(--accent)" />
-            </div>
-
-            {/* ── 전투 스탯 ── */}
+            {/* ── 스탯 + 전투 스탯 ── */}
             {(() => {
               const pc = (profile.player_class as PlayerClass) ?? 'knight';
+              const base = CLASS_CONFIGS[pc].baseStats;
+              const eqList = equip?.equipped ?? [];
+              const eqStatBonus = (key: 'str' | 'dex' | 'con' | 'wis' | 'int') =>
+                eqList.reduce((s, eq) => s + (eq.bonuses?.[key] ?? 0), 0);
               const lv = profile.level;
-              const str = profile.stat_str;
-              const dex = profile.stat_dex;
-              const con = profile.stat_con;
-              const wis = profile.stat_wis;
-              const int = profile.stat_int;
+              const str = base.str + profile.stat_str + eqStatBonus('str');
+              const dex = base.dex + profile.stat_dex + eqStatBonus('dex');
+              const con = base.con + profile.stat_con + eqStatBonus('con');
+              const wis = base.wis + profile.stat_wis + eqStatBonus('wis');
+              const int = base.int + profile.stat_int + eqStatBonus('int');
+
               const weapon = equip?.equipped.find(e => e.type === 'weapon' || e.type === 'bow' || e.type === 'staff') ?? null;
               const weaponEnchant = weapon?.enhanceLevel ?? 0;
               const weaponBaseDmgS = weapon?.baseAtk ?? 0;
@@ -207,7 +200,18 @@ export default function ProfileModal() {
               const mpRegenAmt = calcMpRegenAmount(wis);
               const mpRegenSec = calcMpRegenIntervalSec();
 
-              return (
+              return (<>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
+              gap: 'var(--s-1)',
+            }}>
+              <StatBox label="STR" value={str} color="var(--danger)" sub={`${base.str}+${profile.stat_str}`} />
+              <StatBox label="DEX" value={dex} color="var(--success)" sub={`${base.dex}+${profile.stat_dex}`} />
+              <StatBox label="CON" value={con} color="var(--info)" sub={`${base.con}+${profile.stat_con}`} />
+              <StatBox label="WIS" value={wis} color="var(--warning)" sub={`${base.wis}+${profile.stat_wis}`} />
+              <StatBox label="INT" value={int} color="var(--accent)" sub={`${base.int}+${profile.stat_int}`} />
+            </div>
+
                 <div>
                   <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 'var(--s-1)' }}>
                     Combat
@@ -226,7 +230,7 @@ export default function ProfileModal() {
                     <ProfileCombatCell label="MPR" value={`${mpRegenAmt}/${mpRegenSec}s`} color="var(--text-dim)" />
                   </div>
                 </div>
-              );
+              </>);
             })()}
 
             {/* ── 장비 ── */}
@@ -278,7 +282,7 @@ export default function ProfileModal() {
 }
 
 /* ── 스탯 박스 ── */
-function StatBox({ label, value, color }: { label: string; value: number; color: string }) {
+function StatBox({ label, value, color, sub }: { label: string; value: number; color: string; sub?: string }) {
   return (
     <div style={{
       background: 'var(--bg-sunken)',
@@ -289,6 +293,7 @@ function StatBox({ label, value, color }: { label: string; value: number; color:
     }}>
       <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 1 }}>{label}</div>
       <div style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color }}>{value}</div>
+      {sub && <div style={{ fontSize: '9px', color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>({sub})</div>}
     </div>
   );
 }
