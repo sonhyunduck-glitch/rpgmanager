@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.19.0 — 미니맵 사냥시작/부활 오버레이 버튼
-export const APP_VERSION = '2.19.0';
+// v2.20.0 — 버프 유실 방지 (beforeunload 저장) + 합류 몬스터 대미지 공식 수정
+export const APP_VERSION = '2.20.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

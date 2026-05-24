@@ -929,7 +929,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             const { hit: jmHit } = rollD20NpcPcHit(jmHitRate, effectivePlayerAC);
             if (jmHit) {
               const acRed = calcPcDefense(effectivePlayerAC, state.playerClass);
-              const jmFinalDmg = Math.max(1, rawJDmg - acRed);
+              const shackleRedJ = windShackleTicks > 0 ? 0.7 : 1.0;
+              const jmFinalDmg = Math.max(1, Math.floor((rawJDmg - acRed) * shackleRedJ));
               newCurrentHp = Math.max(0, newCurrentHp - jmFinalDmg);
               newLogs.push({
                 id: genLogId(), type: 'hit_taken',

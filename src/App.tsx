@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from './store/gameStore';
+import { saveState as saveStateToLS } from './store/helpers';
 import StatusBar from './components/layout/StatusBar';
 import LeftPanel from './components/layout/LeftPanel';
 import CombatLog from './components/hunt/CombatLog';
@@ -44,6 +45,16 @@ export default function App({ userId }: AppProps) {
       initFromDB(userId);
     }
   }, [userId, initFromDB]);
+
+  // 페이지 이탈 시 상태 저장 (버프 등 유실 방지)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const s = useGameStore.getState();
+      saveStateToLS(s);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

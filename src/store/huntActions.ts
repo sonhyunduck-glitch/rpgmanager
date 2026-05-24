@@ -162,12 +162,14 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
         hunt: { ...s.hunt, status: 'paused' as const },
         zonePlayerCount: 1,
       }));
+      save(get());
     },
 
     resumeHunt: () => {
       const state = get();
       if (state.currentHp <= 0) return;
       set({ hunt: { ...state.hunt, status: 'hunting' } });
+      save(get());
     },
 
     revive: () => {
