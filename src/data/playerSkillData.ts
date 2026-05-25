@@ -8,12 +8,13 @@
  *   0 = 없음, 1 = 땅(earth), 2 = 불(fire), 4 = 물(water),
  *   8 = 바람(wind), 16 = 빛(light)
  *
- * skillCircle: 마법 서클 1~10 (공유 마법), 0 = 클래스 전용 스킬
+ * skillCategory: 'magic' (서클 마법) | 'technique' (기사 전용) | 'spirit' (요정 정령)
+ * skillCircle: 마법 서클 1~10 (마법), 0 = 기술/정령
  * diceCount=0 인 힐: 동적 주사위 = getMagicBonus(int) + magicLevel
  */
 
 import { magicLevel } from './statFormulas';
-import type { PlayerClass } from '../types';
+import type { PlayerClass, SkillCategory } from '../types';
 
 // ---------------------------------------------------------------------------
 // 인터페이스
@@ -22,6 +23,7 @@ import type { PlayerClass } from '../types';
 export interface PlayerSkill {
   id: number;                    // L1J skill id
   name: string;                  // 한글 이름
+  skillCategory: SkillCategory;  // 마법/기술/정령
   skillCircle: number;           // 마법 서클 (1-10), 0 = 클래스 전용
   consumeMp: number;             // MP 소모량
   reuseDelayTicks: number;       // 재사용 대기 (1틱 ≈ 3초)
@@ -60,6 +62,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 4,
     name: '에너지 볼트',
+    skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 3,
     reuseDelayTicks: 0, // L1J reuse_delay: 10ms
@@ -76,6 +79,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 6,
     name: '아이스 대거',
+    skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 4,
     reuseDelayTicks: 0, // L1J reuse_delay: 10ms
@@ -92,6 +96,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 7,
     name: '윈드 커터',
+    skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 4,
     reuseDelayTicks: 0,
@@ -109,6 +114,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 1,
     name: '힐',
+    skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 4,
     reuseDelayTicks: 0, // L1J reuse_delay: 10ms
@@ -126,6 +132,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 3,
     name: '실드',
+    skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 8,
     reuseDelayTicks: 0,
@@ -143,6 +150,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 8,
     name: '홀리 웨폰',
+    skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 10,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -162,6 +170,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 15,
     name: '파이어 애로우',
+    skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 6,
     reuseDelayTicks: 0,
@@ -178,6 +187,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 16,
     name: '스탈락',
+    skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 6,
     reuseDelayTicks: 0,
@@ -195,6 +205,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 10,
     name: '칠 터치',
+    skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 8,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -212,6 +223,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 12,
     name: '인챈트 웨폰',
+    skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 20,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -231,6 +243,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 17,
     name: '라이트닝',
+    skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 20,
     reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
@@ -247,6 +260,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 22,
     name: '프로즌 클라우드',
+    skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 20,
     reuseDelayTicks: 1, // L1J reuse_delay: 300ms
@@ -264,6 +278,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 21,
     name: '블레스드 아머',
+    skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 20,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -282,6 +297,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 19,
     name: '익스트라 힐',
+    skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 15,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -300,6 +316,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 25,
     name: '파이어볼',
+    skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 20,
     reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
@@ -316,6 +333,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 28,
     name: '뱀파이어릭 터치',
+    skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 12,
     reuseDelayTicks: 0, // L1J reuse_delay: 100ms
@@ -332,6 +350,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 30,
     name: '어스 재일',
+    skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 24,
     reuseDelayTicks: 1, // L1J reuse_delay: 400ms
@@ -349,6 +368,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 26,
     name: '인챈트 덱스터리티',
+    skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 50,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -367,6 +387,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 34,
     name: '콜 라이트닝',
+    skillCategory: 'magic',
     skillCircle: 5,
     consumeMp: 18,
     reuseDelayTicks: 1, // L1J reuse_delay: 400ms (콘 오브 콜드와 동일 서클)
@@ -383,6 +404,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 38,
     name: '콘 오브 콜드',
+    skillCategory: 'magic',
     skillCircle: 5,
     consumeMp: 18,
     reuseDelayTicks: 1, // L1J reuse_delay: 400ms
@@ -400,6 +422,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 35,
     name: '그레이터 힐',
+    skillCategory: 'magic',
     skillCircle: 5,
     consumeMp: 20,
     reuseDelayTicks: 0, // L1J reuse_delay: 200ms
@@ -418,6 +441,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 45,
     name: '이럽션',
+    skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 20,
     reuseDelayTicks: 1, // L1J reuse_delay: 400ms
@@ -434,6 +458,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 46,
     name: '선 버스트',
+    skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 20,
     reuseDelayTicks: 1, // L1J reuse_delay: 500ms
@@ -451,6 +476,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 43,
     name: '헤이스트',
+    skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 40,
     reuseDelayTicks: 0,
@@ -468,6 +494,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 42,
     name: '인챈트 마이티',
+    skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 50,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -486,6 +513,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 50,
     name: '아이스 랜스',
+    skillCategory: 'magic',
     skillCircle: 7,
     consumeMp: 36,
     reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
@@ -502,6 +530,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 53,
     name: '토네이도',
+    skillCategory: 'magic',
     skillCircle: 7,
     consumeMp: 40,
     reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
@@ -521,6 +550,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 58,
     name: '파이어월',
+    skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 60,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -537,6 +567,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 59,
     name: '블리자드',
+    skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 60,
     reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
@@ -553,6 +584,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 62,
     name: '어스 퀘이크',
+    skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 40,
     reuseDelayTicks: 1, // L1J reuse_delay: 500ms
@@ -570,6 +602,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 57,
     name: '풀 힐',
+    skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 48,
     reuseDelayTicks: 1, // L1J reuse_delay: 500ms → 1 tick
@@ -588,6 +621,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 65,
     name: '라이트닝 스톰',
+    skillCategory: 'magic',
     skillCircle: 9,
     consumeMp: 48,
     reuseDelayTicks: 1, // L1J reuse_delay: 500ms
@@ -604,6 +638,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 70,
     name: '파이어 스톰',
+    skillCategory: 'magic',
     skillCircle: 9,
     consumeMp: 48,
     reuseDelayTicks: 1, // L1J reuse_delay: 400ms
@@ -622,6 +657,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 74,
     name: '미티어 스트라이크',
+    skillCategory: 'magic',
     skillCircle: 10,
     consumeMp: 60,
     reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
@@ -638,6 +674,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 77,
     name: '디스인티그레이트',
+    skillCategory: 'magic',
     skillCircle: 10,
     consumeMp: 70,
     reuseDelayTicks: 5, // L1J reuse_delay: 5000ms
@@ -653,12 +690,14 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   },
 
   // =========================================================================
-  // 엘프 정령 스킬 (클래스 전용, skillCircle=0)
+  // 엘프 정령 스킬 (클래스 전용, skillCategory='spirit', skillCircle=0)
+  // 바람(attr=8) + 무속성(attr=0) 정령만 유지 — 불/땅/물 속성 정령 제거
   // =========================================================================
 
   {
     id: 129,
     name: '레지스트 매직',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 5,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
@@ -677,6 +716,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 130,
     name: '바디 투 마인드',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 0,
     reuseDelayTicks: 1, // L1J reuse_delay: 400ms
@@ -694,6 +734,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 132,
     name: '트리플 애로우',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
     reuseDelayTicks: 1, // L1J reuse_delay: 400ms
@@ -711,6 +752,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 133,
     name: '엘리멘탈 폴다운',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 10,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -727,6 +769,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 137,
     name: '클리어 마인드',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 10,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
@@ -744,6 +787,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 138,
     name: '레지스트 엘리멘트',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 10,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
@@ -761,6 +805,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 147,
     name: '프로텍션 프롬 엘리멘트',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 6,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
@@ -776,25 +821,9 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     description: '속성 공격으로부터 보호',
   },
   {
-    id: 148,
-    name: '파이어 웨폰',
-    skillCircle: 0,
-    consumeMp: 15,
-    reuseDelayTicks: 0,
-    buffDuration: 1200, // 20분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 2, // 불
-    buffEffect: { fireDmgBonus: 6 },
-    classes: ['elf'],
-    requiredLevel: 32,
-    description: '무기에 불 속성 부여 (+6 화염 대미지)',
-  },
-  {
     id: 149,
     name: '윈드 샷',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
     reuseDelayTicks: 0,
@@ -812,6 +841,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 150,
     name: '윈드 워크',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -826,45 +856,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 28,
     description: '바람의 힘으로 공격 속도 증가',
   },
-  {
-    id: 151,
-    name: '어스 스킨',
-    skillCircle: 0,
-    consumeMp: 15,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 1, // 땅
-    buffEffect: { acBonus: -3 },
-    classes: ['elf'],
-    requiredLevel: 28,
-    description: '대지의 보호로 AC -3',
-  },
-  /** 특수 처리: 디버프 — 몬스터 속박 */
-  {
-    id: 152,
-    name: '인탱글',
-    skillCircle: 0,
-    consumeMp: 20,
-    consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 64,
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 1, // 땅
-    classes: ['elf'],
-    requiredLevel: 28,
-    description: '자연의 덩굴로 적을 속박',
-  },
   /** 특수 처리: 디버프 — 몬스터 버프 제거 */
   {
     id: 153,
     name: '이레이즈 매직',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 18,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
@@ -880,24 +876,9 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     description: '적의 마법 효과를 제거',
   },
   {
-    id: 155,
-    name: '블레스 오브 파이어',
-    skillCircle: 0,
-    consumeMp: 40,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 2, // 불
-    classes: ['elf'],
-    requiredLevel: 36,
-    description: '불의 축복으로 파티원 화염 공격력 증가',
-  },
-  {
     id: 156,
     name: '아이 오브 스톰',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 40,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -912,88 +893,9 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     description: '폭풍의 눈으로 파티원 바람 공격력 증가',
   },
   {
-    id: 158,
-    name: '네이쳐스 터치',
-    skillCircle: 0,
-    consumeMp: 20,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 320,
-    skillType: 'heal',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 4, // 물
-    classes: ['elf'],
-    requiredLevel: 36,
-    description: '자연의 힘으로 지속 회복',
-  },
-  {
-    id: 159,
-    name: '블레스 오브 어스',
-    skillCircle: 0,
-    consumeMp: 40,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 1, // 땅
-    classes: ['elf'],
-    requiredLevel: 40,
-    description: '대지의 축복으로 파티원 땅 공격력 증가',
-  },
-  {
-    id: 160,
-    name: '아쿠아 프로텍트',
-    skillCircle: 0,
-    consumeMp: 30,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 4, // 물
-    classes: ['elf'],
-    requiredLevel: 40,
-    description: '물의 보호로 방어력 증가',
-  },
-  {
-    id: 163,
-    name: '버닝 웨폰',
-    skillCircle: 0,
-    consumeMp: 30,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 2, // 불
-    classes: ['elf'],
-    requiredLevel: 44,
-    description: '무기에 화염을 부여하여 공격력 증가',
-  },
-  {
-    id: 164,
-    name: '네이쳐스 블레싱',
-    skillCircle: 0,
-    consumeMp: 30,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 0,
-    skillType: 'heal',
-    damageValue: 10,
-    damageDice: 12,
-    damageDiceCount: 0, // 동적
-    attr: 4, // 물
-    classes: ['elf'],
-    requiredLevel: 44,
-    description: '자연의 축복으로 파티원 치유',
-  },
-  {
     id: 166,
     name: '스톰 샷',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 30,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms
@@ -1011,6 +913,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 167,
     name: '윈드 셰클',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
@@ -1026,25 +929,9 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     description: '바람의 족쇄로 적의 이동/공격 속도 감소',
   },
   {
-    id: 168,
-    name: '아이언 스킨',
-    skillCircle: 0,
-    consumeMp: 30,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 1, // 땅
-    buffEffect: { acBonus: -5 },
-    classes: ['elf'],
-    requiredLevel: 48,
-    description: '강철의 피부로 AC -5',
-  },
-  {
     id: 174,
     name: '스트라이커 게일',
+    skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
     consumeItemId: 40319, consumeAmount: 3, // 정령옥 ×3
@@ -1062,7 +949,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   },
 
   // =========================================================================
-  // 기사 전투 스킬 (클래스 전용, skillCircle=0)
+  // 기사 기술 스킬 (클래스 전용, skillCategory='technique', skillCircle=0)
   // L1J: 기사는 버프(방어/공속/추타)로 싸우는 물리 클래스
   //       Lv.50부터 마법사 1서클 마법 사용 가능 (magicLevel=1)
   // =========================================================================
@@ -1070,6 +957,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 87,
     name: '쇼크 스턴',
+    skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 15,
     reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
@@ -1087,6 +975,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 88,
     name: '리덕션 아머',
+    skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 7,
     reuseDelayTicks: 4, // L1J reuse_delay: 3000ms
@@ -1104,6 +993,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 89,
     name: '바운스 어택',
+    skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 10,
     reuseDelayTicks: 5, // L1J reuse_delay: 5000ms
@@ -1121,6 +1011,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 90,
     name: '솔리드 캐리지',
+    skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 10,
     reuseDelayTicks: 4, // L1J reuse_delay: 3000ms
@@ -1138,6 +1029,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   {
     id: 91,
     name: '카운터 배리어',
+    skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 10,
     reuseDelayTicks: 0, // L1J reuse_delay: 0ms

@@ -6,6 +6,10 @@
 export type PlayerClass = 'knight' | 'elf' | 'wizard';
 export type CombatStyle = 'melee' | 'ranged_bow' | 'ranged_magic';
 
+// ── Skill Category ──
+/** 마법: 서클 기반 공유 마법 | 기술: 기사 전용 | 정령: 요정 전용 */
+export type SkillCategory = 'magic' | 'technique' | 'spirit';
+
 // ── Player Stats ──
 export type StatKey = 'str' | 'dex' | 'con' | 'wis' | 'int';
 
