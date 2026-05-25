@@ -6,23 +6,22 @@
    스탯 캡: base + 투자 ≤ 18 (기사 STR만 20)
    레벨업 보너스 스탯은 캡 없이 추가 가능
    ========================================================= */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { CLASS_CONFIGS, getStatCap } from '../../data/classData';
 import { supabase } from '../../lib/supabase';
 import type { PlayerClass, StatKey } from '../../types';
 
-/** 가로 모드 감지 (높이 ≤ 500px) */
+/**
+ * 가로 모드 감지 — screen 기준 (가상 키보드에 불변)
+ * window.innerHeight는 키보드 열림/닫힘에 따라 변동하므로
+ * screen의 짧은 변(물리적 크기)으로 판별.
+ */
 function useIsLandscape() {
-  const [v, setV] = useState(() =>
-    typeof window !== 'undefined' && window.innerHeight <= 500,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia('(max-height: 500px)');
-    const h = (e: MediaQueryListEvent) => setV(e.matches);
-    mq.addEventListener('change', h);
-    setV(mq.matches);
-    return () => mq.removeEventListener('change', h);
-  }, []);
+  const [v] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const shortSide = Math.min(window.screen.width, window.screen.height);
+    return shortSide <= 500;
+  });
   return v;
 }
 
