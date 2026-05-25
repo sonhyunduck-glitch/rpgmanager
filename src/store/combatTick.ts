@@ -24,7 +24,7 @@ import {
   rollSpellDamage,
 } from '../data/statFormulas';
 import {
-  getAvailableSkills, getBestAttackSpell, getBestHealSpell, getAvailableBuffs,
+  getAvailableSkills, getBestAttackSpell, getBestHealSpell, getAvailableBuffs, getPassiveBuffs,
 } from '../data/playerSkillData';
 import { secureRandom, secureRandomInt } from '../lib/random';
 import { genLogId, createEquipment } from './helpers';
@@ -258,6 +258,26 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           text: `${p.name} 사용! (${p.buffDuration >= 60 ? `${Math.floor(p.buffDuration / 60)}분` : `${p.buffDuration}초`})`,
           timestamp: now,
         });
+      }
+
+      // ── 패시브 버프 상시 적용 (습득 조건 충족 시 만료 없이 활성) ──
+      const passives = getPassiveBuffs(state.playerClass, state.level);
+      for (const pb of passives) {
+        const already = newActiveBuffs.some(b => b.skillId === pb.id);
+        if (!already) {
+          newActiveBuffs.push({
+            potionId: `passive_${pb.id}`,
+            skillId: pb.id,
+            name: pb.name,
+            expiresAt: now + 999_999_999,
+            atkSpeedMult: pb.buffEffect?.atkSpeedMult ?? 1,
+            moveSpeedMult: 1,
+            acBonus: pb.buffEffect?.acBonus,
+            hitBonus: pb.buffEffect?.hitBonus,
+            dmgBonus: pb.buffEffect?.dmgBonus,
+            fireDmgBonus: pb.buffEffect?.fireDmgBonus,
+          });
+        }
       }
 
       // 지혜의 물약 SP 보너스 (L1J: SP+2, 마법 대미지 계수 증가)

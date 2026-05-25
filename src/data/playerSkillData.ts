@@ -40,6 +40,7 @@ export interface PlayerSkill {
     dmgBonus?: number;           // 추가 대미지
     fireDmgBonus?: number;       // 화염 속성 대미지 추가
   };
+  passive?: boolean;              // true = 패시브 (습득 즉시 상시 적용, MP 0)
   consumeItemId?: number;        // 소모 아이템 ID (40318=마력의돌, 40319=정령옥)
   consumeAmount?: number;        // 소모 수량 (기본 0)
   classes: PlayerClass[];        // 습득 가능 클래스
@@ -134,10 +135,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '실드',
     skillCategory: 'magic',
     skillCircle: 1,
-    consumeMp: 8,
+    consumeMp: 0,
     reuseDelayTicks: 0,
-    buffDuration: 1800, // 30분
+    buffDuration: 0,
     skillType: 'buff',
+    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -152,10 +154,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '홀리 웨폰',
     skillCategory: 'magic',
     skillCircle: 1,
-    consumeMp: 10,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 1200, // 20분
+    consumeMp: 0,
+    reuseDelayTicks: 0,
+    buffDuration: 0,
     skillType: 'buff',
+    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -225,10 +228,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '인챈트 웨폰',
     skillCategory: 'magic',
     skillCircle: 2,
-    consumeMp: 20,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 1800, // 30분
+    consumeMp: 0,
+    reuseDelayTicks: 0,
+    buffDuration: 0,
     skillType: 'buff',
+    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -280,10 +284,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '블레스드 아머',
     skillCategory: 'magic',
     skillCircle: 3,
-    consumeMp: 20,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 1800, // 30분
+    consumeMp: 0,
+    reuseDelayTicks: 0,
+    buffDuration: 0,
     skillType: 'buff',
+    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -370,10 +375,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '인챈트 덱스터리티',
     skillCategory: 'magic',
     skillCircle: 4,
-    consumeMp: 50,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 1200, // 20분
+    consumeMp: 0,
+    reuseDelayTicks: 0,
+    buffDuration: 0,
     skillType: 'buff',
+    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -478,10 +484,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '헤이스트',
     skillCategory: 'magic',
     skillCircle: 6,
-    consumeMp: 40,
+    consumeMp: 0,
     reuseDelayTicks: 0,
-    buffDuration: 1200, // 20분
+    buffDuration: 0,
     skillType: 'buff',
+    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -496,10 +503,11 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '인챈트 마이티',
     skillCategory: 'magic',
     skillCircle: 6,
-    consumeMp: 50,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
-    buffDuration: 1200, // 20분
+    consumeMp: 0,
+    reuseDelayTicks: 0,
+    buffDuration: 0,
     skillType: 'buff',
+    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -1130,8 +1138,20 @@ export function getAvailableBuffs(
   return getAvailableSkills(playerClass, level)
     .filter(s =>
       s.skillType === 'buff' &&
+      !s.passive &&            // 패시브 제외 (상시 적용)
       s.buffDuration > 0 &&
       s.consumeMp <= currentMp &&
       !activeSkillBuffIds.includes(s.id),
     );
+}
+
+/**
+ * 패시브 버프 목록 반환 (습득 조건 충족 시 상시 적용)
+ */
+export function getPassiveBuffs(
+  playerClass: PlayerClass,
+  level: number,
+): PlayerSkill[] {
+  return getAvailableSkills(playerClass, level)
+    .filter(s => s.passive && s.skillType === 'buff');
 }
