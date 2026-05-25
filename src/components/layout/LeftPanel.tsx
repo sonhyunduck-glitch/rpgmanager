@@ -448,6 +448,7 @@ function TabBuffs() {
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {alive.map((b, i) => {
+              const isPassive = b.potionId?.startsWith('passive_');
               const remainSec = Math.max(0, Math.floor((b.expiresAt - now) / 1000));
               const min = Math.floor(remainSec / 60);
               const sec = remainSec % 60;
@@ -461,7 +462,7 @@ function TabBuffs() {
                     {b.name}
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: F.tiny, color: 'var(--text-mute)' }}>
-                    {min}:{sec.toString().padStart(2, '0')}
+                    {isPassive ? '상시' : `${min}:${sec.toString().padStart(2, '0')}`}
                   </span>
                 </div>
               );
