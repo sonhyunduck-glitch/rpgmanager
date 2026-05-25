@@ -101,6 +101,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           skillCooldowns: {},
           monsterStunnedTicks: 0,
           windShackleTicks: 0,
+          regenWaitTicks: 0,
         },
         combatLog: [entry],
       });

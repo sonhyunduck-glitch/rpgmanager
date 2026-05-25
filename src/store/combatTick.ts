@@ -47,6 +47,14 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
       const zone = HUNT_ZONES.find(z => z.id === hunt.zoneId)!;
 
+      // ── 몬스터 리젠 대기 (접속자 수에 따른 딜레이) ──
+      if (hunt.regenWaitTicks > 0) {
+        set({
+          hunt: { ...hunt, regenWaitTicks: hunt.regenWaitTicks - 1 },
+        });
+        return; // 대기 중 — 틱 스킵
+      }
+
       // ── 몬스터 선택 ──
       let monsters = getMonstersForRoom(zone, hunt.currentRoom ?? 1);
       if (monsters.length === 0) monsters = zone.monsters;
@@ -1176,6 +1184,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           skillCooldowns,
           monsterStunnedTicks,
           windShackleTicks,
+          // 킬 후 접속자 수에 따른 리젠 대기 (다른 유저 1명당 1틱 대기)
+          regenWaitTicks: killed ? Math.max(0, state.zonePlayerCount - 1) : hunt.regenWaitTicks,
         },
       });
 

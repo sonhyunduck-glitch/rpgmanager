@@ -213,6 +213,7 @@ export interface HuntSession {
   skillCooldowns: Record<number, number>;  // skillId → remaining cooldown ticks
   monsterStunnedTicks: number; // 몬스터 스턴 남은 틱
   windShackleTicks: number;    // 윈드 셰클 남은 틱 (몬스터 공격속도 감소)
+  regenWaitTicks: number;      // 몬스터 리젠 대기 틱 (접속자 수에 따라 킬 후 대기)
 }
 
 // ── Queue & Log ──
