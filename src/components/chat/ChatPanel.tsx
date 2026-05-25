@@ -1,6 +1,6 @@
 /* =========================================================
    CHAT PANEL — 미니맵 하단 채팅 (Supabase Realtime)
-   컴팩트 레이아웃: 헤더 + 메시지 스크롤 + 입력
+   컴팩트 레이아웃: 헤더(GLOBAL/GUILD 탭) + 메시지 스크롤 + 입력
    ========================================================= */
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
@@ -14,9 +14,10 @@ import type { ChatMessage } from '../../types';
 import { LABEL } from '../../styles/shared';
 import { ClickableName } from '../profile/ClickableName';
 
-const CHANNEL = 'global';
 const MAX_MSG_LENGTH = 200;
 const MAX_DISPLAY = 100;
+
+type ChatTab = 'global' | 'guild';
 
 /* ── 시간 포매터 ── */
 function formatTime(iso: string): string {
@@ -27,7 +28,7 @@ function formatTime(iso: string): string {
 }
 
 /* ── 메시지 라인 (컴팩트) ── */
-function MessageLine({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
+function MessageLine({ msg, isMe, isGuild }: { msg: ChatMessage; isMe: boolean; isGuild: boolean }) {
   return (
     <div style={{ display: 'flex', gap: 4, padding: '1px 0', alignItems: 'baseline' }}>
       <span style={{
@@ -42,13 +43,13 @@ function MessageLine({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
         isMe={isMe}
         style={{
           fontSize: 'var(--fs-xs)', fontWeight: 700,
-          color: isMe ? 'var(--accent)' : 'var(--info)',
+          color: isMe ? 'var(--accent)' : isGuild ? 'var(--success)' : 'var(--info)',
           fontFamily: 'var(--font-display)',
           flexShrink: 0, whiteSpace: 'nowrap',
           maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis',
         }}
       />
-      {msg.guildName && (
+      {!isGuild && msg.guildName && (
         <span style={{
           fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
           flexShrink: 0,
@@ -71,45 +72,60 @@ export default function ChatPanel() {
   const userId = useGameStore((s) => s.authUserId);
   const playerName = useGameStore((s) => s.playerName);
   const level = useGameStore((s) => s.level);
+  const guildId = useGameStore((s) => s.guildId);
+  const guildName = useGameStore((s) => s.guildName);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [activeTab, setActiveTab] = useState<ChatTab>('global');
+  const [globalMessages, setGlobalMessages] = useState<ChatMessage[]>([]);
+  const [guildMessages, setGuildMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [globalLoaded, setGlobalLoaded] = useState(false);
+  const [guildLoaded, setGuildLoaded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // 길드 탈퇴/해체 시 글로벌로 전환
+  useEffect(() => {
+    if (!guildId && activeTab === 'guild') setActiveTab('global');
+  }, [guildId, activeTab]);
+
+  const messages = activeTab === 'guild' ? guildMessages : globalMessages;
+  const loaded = activeTab === 'guild' ? guildLoaded : globalLoaded;
 
   const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
-  // 초기 로드 + Realtime 구독 + 폴링 fallback
-  useEffect(() => {
-    let cancelled = false;
-
-    // 초기 로드
-    (async () => {
-      const recent = await loadRecentMessages(CHANNEL, 50);
-      if (!cancelled) { setMessages(recent); setLoaded(true); }
-    })();
-
-    // Realtime 구독 (Supabase publication 활성화 시 즉시 수신)
-    const sub = subscribeToChannel(CHANNEL, (newMsg) => {
-      setMessages((prev) => {
+  // addMessage helper (dedup + cap)
+  const addMsg = useCallback(
+    (setter: React.Dispatch<React.SetStateAction<ChatMessage[]>>, newMsg: ChatMessage) => {
+      setter((prev) => {
         if (prev.some((m) => m.id === newMsg.id)) return prev;
         const next = [...prev, newMsg];
         return next.length > MAX_DISPLAY ? next.slice(-MAX_DISPLAY) : next;
       });
-    });
+    },
+    [],
+  );
 
-    // 폴링 fallback (10초마다 새 메시지 확인 — Realtime 안 될 때 대비)
+  // ── Global 채널 구독 (항상) ──
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const recent = await loadRecentMessages('global', 50);
+      if (!cancelled) { setGlobalMessages(recent); setGlobalLoaded(true); }
+    })();
+
+    const sub = subscribeToChannel('global', (msg) => addMsg(setGlobalMessages, msg));
+
     const poll = setInterval(async () => {
       if (cancelled) return;
-      const recent = await loadRecentMessages(CHANNEL, 50);
+      const recent = await loadRecentMessages('global', 50);
       if (!cancelled) {
-        setMessages((prev) => {
-          // 새 메시지가 있으면 병합 (id 기반 dedup)
+        setGlobalMessages((prev) => {
           const ids = new Set(prev.map(m => m.id));
           const newOnes = recent.filter(m => !ids.has(m.id));
           if (newOnes.length === 0) return prev;
@@ -120,11 +136,49 @@ export default function ChatPanel() {
     }, 10_000);
 
     return () => { cancelled = true; unsubscribeChannel(sub); clearInterval(poll); };
-  }, []);
+  }, [addMsg]);
 
+  // ── Guild 채널 구독 (guildId 존재 시만) ──
+  useEffect(() => {
+    if (!guildId) {
+      setGuildMessages([]);
+      setGuildLoaded(false);
+      return;
+    }
+    let cancelled = false;
+    const guildChannel = `guild:${guildId}`;
+
+    (async () => {
+      const recent = await loadRecentMessages(guildChannel, 50);
+      if (!cancelled) { setGuildMessages(recent); setGuildLoaded(true); }
+    })();
+
+    const sub = subscribeToChannel(guildChannel, (msg) => addMsg(setGuildMessages, msg));
+
+    const poll = setInterval(async () => {
+      if (cancelled) return;
+      const recent = await loadRecentMessages(guildChannel, 50);
+      if (!cancelled) {
+        setGuildMessages((prev) => {
+          const ids = new Set(prev.map(m => m.id));
+          const newOnes = recent.filter(m => !ids.has(m.id));
+          if (newOnes.length === 0) return prev;
+          const merged = [...prev, ...newOnes];
+          return merged.length > MAX_DISPLAY ? merged.slice(-MAX_DISPLAY) : merged;
+        });
+      }
+    }, 10_000);
+
+    return () => { cancelled = true; unsubscribeChannel(sub); clearInterval(poll); };
+  }, [guildId, addMsg]);
+
+  // 스크롤 자동 하단
   const lastId = messages.length > 0 ? messages[messages.length - 1].id : 0;
   useLayoutEffect(() => { scrollToBottom(); }, [lastId, scrollToBottom]);
   useLayoutEffect(() => { if (loaded) scrollToBottom(); }, [loaded, scrollToBottom]);
+
+  // 탭 전환 시 스크롤 리셋
+  useLayoutEffect(() => { scrollToBottom(); }, [activeTab, scrollToBottom]);
 
   // 전송
   const handleSend = async () => {
@@ -135,13 +189,11 @@ export default function ChatPanel() {
     setSending(true);
     setInput('');
 
-    const sent = await sendMessage(CHANNEL, userId, playerName, level, null, text);
+    const channel = activeTab === 'guild' && guildId ? `guild:${guildId}` : 'global';
+    const sent = await sendMessage(channel, userId, playerName, level, guildName ?? null, text);
     if (sent) {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === sent.id)) return prev;
-        const next = [...prev, sent];
-        return next.length > MAX_DISPLAY ? next.slice(-MAX_DISPLAY) : next;
-      });
+      const setter = activeTab === 'guild' ? setGuildMessages : setGlobalMessages;
+      addMsg(setter, sent);
     } else {
       setInput(text);
     }
@@ -165,24 +217,48 @@ export default function ChatPanel() {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      {/* 헤더 */}
+      {/* 헤더 — 탭 전환 */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 'var(--s-1)',
         flexShrink: 0, marginBottom: 'var(--s-1)',
       }}>
-        <span style={{
-          ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0,
-        }}>
+        <span style={{ ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0 }}>
           Chat
         </span>
-        <span style={{
-          fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
-          color: 'var(--accent)', padding: '0 4px',
-          borderRadius: 'var(--r-xs)',
-          background: 'color-mix(in oklch, var(--accent) 10%, transparent)',
-        }}>
+        {/* GLOBAL 탭 */}
+        <button
+          onClick={() => setActiveTab('global')}
+          style={{
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
+            padding: '0 4px', border: 'none', cursor: 'pointer',
+            borderRadius: 'var(--r-xs)',
+            background: activeTab === 'global'
+              ? 'color-mix(in oklch, var(--accent) 10%, transparent)'
+              : 'transparent',
+            color: activeTab === 'global' ? 'var(--accent)' : 'var(--text-mute)',
+            transition: 'all 0.15s',
+          }}
+        >
           GLOBAL
-        </span>
+        </button>
+        {/* GUILD 탭 (길드 가입 시만) */}
+        {guildId && (
+          <button
+            onClick={() => setActiveTab('guild')}
+            style={{
+              fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
+              padding: '0 4px', border: 'none', cursor: 'pointer',
+              borderRadius: 'var(--r-xs)',
+              background: activeTab === 'guild'
+                ? 'color-mix(in oklch, var(--success) 10%, transparent)'
+                : 'transparent',
+              color: activeTab === 'guild' ? 'var(--success)' : 'var(--text-mute)',
+              transition: 'all 0.15s',
+            }}
+          >
+            GUILD
+          </button>
+        )}
         <span style={{ flex: 1 }} />
         <span style={{
           fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
@@ -209,11 +285,16 @@ export default function ChatPanel() {
             textAlign: 'center', color: 'var(--text-mute)',
             fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
           }}>
-            첫 메시지를 보내보세요!
+            {activeTab === 'guild' ? '길드 첫 메시지를 보내보세요!' : '첫 메시지를 보내보세요!'}
           </div>
         ) : (
           messages.map((msg) => (
-            <MessageLine key={msg.id} msg={msg} isMe={msg.userId === userId} />
+            <MessageLine
+              key={msg.id}
+              msg={msg}
+              isMe={msg.userId === userId}
+              isGuild={activeTab === 'guild'}
+            />
           ))
         )}
       </div>
@@ -230,7 +311,7 @@ export default function ChatPanel() {
           value={input}
           onChange={(e) => setInput(e.target.value.slice(0, MAX_MSG_LENGTH))}
           onKeyDown={handleKeyDown}
-          placeholder="메시지..."
+          placeholder={activeTab === 'guild' ? '길드 메시지...' : '메시지...'}
           maxLength={MAX_MSG_LENGTH}
           style={{
             flex: 1, minWidth: 0,
@@ -244,7 +325,7 @@ export default function ChatPanel() {
             outline: 'none',
             transition: 'border-color 0.15s ease',
           }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = activeTab === 'guild' ? 'var(--success)' : 'var(--accent)'; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border-soft)'; }}
         />
         <button
@@ -256,7 +337,7 @@ export default function ChatPanel() {
             borderRadius: 'var(--r-xs)',
             background: !input.trim() || sending
               ? 'var(--bg-sunken)'
-              : 'var(--accent)',
+              : activeTab === 'guild' ? 'var(--success)' : 'var(--accent)',
             color: !input.trim() || sending ? 'var(--text-mute)' : '#fff',
             fontFamily: 'var(--font-mono)',
             fontSize: 'var(--fs-xs)', fontWeight: 700,

@@ -188,14 +188,20 @@ export default function Minimap() {
   const zonePlayerCount = useGameStore(s => s.zonePlayerCount);
   const zonePlayers = useGameStore(s => s.zonePlayers);
   const authUserId = useGameStore(s => s.authUserId);
+  const myGuildId = useGameStore(s => s.guildId);
   const playerClass = useGameStore(s => s.playerClass);
   const combatStyle: CombatStyle = getClassCombatStyle(playerClass);
   const isRanged = combatStyle === 'ranged_bow' || combatStyle === 'ranged_magic';
 
-  // 존 접속자 수에 따른 몬스터 리젠 수: 8 - (접속자-1), 최소 1
+  // 같은 존 길드원 수 (본인 제외) — 길드원은 몬스터 감소 면제
+  const guildMatesInZone = myGuildId
+    ? zonePlayers.filter(p => p.userId !== authUserId && p.guildId === myGuildId).length
+    : 0;
+  // 존 접속자 수에 따른 몬스터 리젠 수: 8 - strangers, 최소 1 (길드원 제외)
+  const strangersInZone = Math.max(0, zonePlayerCount - 1 - guildMatesInZone);
   const VISIBLE_MONSTERS = Math.max(
     MIN_VISIBLE_MONSTERS,
-    BASE_VISIBLE_MONSTERS - (zonePlayerCount - 1),
+    BASE_VISIBLE_MONSTERS - strangersInZone,
   );
 
   const activeBuffs = useGameStore(s => s.activeBuffs);
@@ -1181,17 +1187,18 @@ export default function Minimap() {
             </div>
             {zonePlayers.map(p => {
               const isMe = p.userId === authUserId;
+              const isGuildMate = !isMe && !!myGuildId && p.guildId === myGuildId;
               const classIcon = p.playerClass === 'knight' ? '⚔️' : p.playerClass === 'elf' ? '🏹' : '🔮';
               return (
                 <div key={p.userId} style={{
                   padding: '3px 8px', fontSize: 'var(--fs-xxs)',
                   display: 'flex', alignItems: 'center', gap: 4,
-                  color: isMe ? 'var(--accent)' : 'var(--text-primary)',
+                  color: isMe ? 'var(--accent)' : isGuildMate ? 'var(--success)' : 'var(--text-primary)',
                   opacity: isMe ? 1 : 0.85,
                 }}>
                   <span>{classIcon}</span>
                   <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {p.name}{isMe ? ' (나)' : ''}
+                    {isGuildMate ? '🏠 ' : ''}{p.name}{isMe ? ' (나)' : ''}
                   </span>
                   <span style={{ color: 'var(--text-secondary)', flexShrink: 0 }}>Lv.{p.level}</span>
                 </div>

@@ -13,6 +13,12 @@ export const RATE_GOLD = 10.0;
 export const RATE_EXP  = 3.0;
 export const RATE_DROP = 5.0;
 
+// ── 길드 동접 보너스 ──
+export const GUILD_BONUS_EXP_PER  = 0.10;  // 길드원 1명당 EXP/골드 +10%
+export const GUILD_BONUS_EXP_MAX  = 0.40;  // 최대 +40%
+export const GUILD_BONUS_DROP_PER = 0.05;  // 길드원 1명당 드롭 +5%
+export const GUILD_BONUS_DROP_MAX = 0.20;  // 최대 +20%
+
 // ── 방(Room) 진행 ──
 export const ROOM_KILL_REQ = 5;
 export const ROOMS_PER_ZONE = 5;
@@ -64,6 +70,8 @@ export interface GameState {
   // Player
   playerClass: PlayerClass;
   playerName: string;
+  guildId: string | null;
+  guildName: string | null;
   level: number;
   exp: number;
   gold: number;

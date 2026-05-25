@@ -31,6 +31,8 @@ import { genLogId, createEquipment } from './helpers';
 import {
   RATE_GOLD, RATE_EXP, RATE_DROP, ROOM_KILL_REQ, ROOMS_PER_ZONE,
   DUNGEON_SCROLL_DROP, DUNGEON_SCROLL_MAX, getAllEquipped,
+  GUILD_BONUS_EXP_PER, GUILD_BONUS_EXP_MAX,
+  GUILD_BONUS_DROP_PER, GUILD_BONUS_DROP_MAX,
 } from './storeTypes';
 import type { LogEntry } from '../types';
 import type { GameState, SetState, GetState } from './storeTypes';
@@ -46,6 +48,14 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       if (state.isPlayerMoving) return;
 
       const zone = HUNT_ZONES.find(z => z.id === hunt.zoneId)!;
+
+      // ── 길드 동접 보너스 계산 (틱당 1회) ──
+      const myGuildId = state.guildId;
+      const guildMatesInZone = myGuildId
+        ? state.zonePlayers.filter(p => p.userId !== state.authUserId && p.guildId === myGuildId).length
+        : 0;
+      const guildExpMult = 1.0 + Math.min(guildMatesInZone * GUILD_BONUS_EXP_PER, GUILD_BONUS_EXP_MAX);
+      const guildDropMult = 1.0 + Math.min(guildMatesInZone * GUILD_BONUS_DROP_PER, GUILD_BONUS_DROP_MAX);
 
       // ── 몬스터 리젠 대기 (접속자 수에 따른 딜레이) ──
       if (hunt.regenWaitTicks > 0) {
@@ -721,13 +731,13 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             : ((hunt.avgKillTime * (newKills - 1)) + thisKillMs) / newKills;
 
           // Gold & EXP
-          const goldDrop = Math.floor((monster.goldReward + secureRandomInt(0, 4)) * RATE_GOLD);
+          const goldDrop = Math.floor((monster.goldReward + secureRandomInt(0, 4)) * RATE_GOLD * guildExpMult);
           newGold += goldDrop;
           huntGold += goldDrop;
           // 훈련소는 Lv.12 이후 경험치 획득 불가
           const isTrainingCapped = zone.id === 'map_training' && newLevel >= 12;
           if (!isTrainingCapped) {
-            newExp += Math.floor(monster.expReward * RATE_EXP);
+            newExp += Math.floor(monster.expReward * RATE_EXP * guildExpMult);
           }
 
           newLogs.push({
@@ -756,12 +766,12 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           // Monster drops (L1J drop_items.csv 기반)
           const monsterDropList = getMonsterDrops(monster.id);
           for (const [gameId, chance, minQty, maxQty] of monsterDropList) {
-            if (secureRandom() >= Math.min(1, chance * RATE_DROP)) continue;
+            if (secureRandom() >= Math.min(1, chance * RATE_DROP * guildDropMult)) continue;
             const qty = minQty + secureRandomInt(0, maxQty - minQty);
 
             if (gameId === '__GOLD__') {
               // 아데나 드롭 → 골드 직접 추가
-              const goldAmt = Math.floor(qty * RATE_GOLD);
+              const goldAmt = Math.floor(qty * RATE_GOLD * guildExpMult);
               newGold += goldAmt;
               huntGold += goldAmt;
             } else if (MATERIALS[gameId]) {
@@ -1185,7 +1195,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           monsterStunnedTicks,
           windShackleTicks,
           // 킬 후 접속자 수에 따른 리젠 대기 (다른 유저 1명당 1틱 대기)
-          regenWaitTicks: killed ? Math.max(0, state.zonePlayerCount - 1) : hunt.regenWaitTicks,
+          regenWaitTicks: killed ? Math.max(0, state.zonePlayerCount - 1 - guildMatesInZone) : hunt.regenWaitTicks,
         },
       });
 

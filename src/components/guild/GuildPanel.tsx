@@ -14,7 +14,7 @@ export default function GuildPanel() {
   const [guildId, setGuildId] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
 
-  // 현재 유저의 길드 확인
+  // 현재 유저의 길드 확인 + gameStore 동기화
   const checkGuild = useCallback(async () => {
     if (!userId) return;
     const { supabase } = await import('../../lib/supabase');
@@ -24,8 +24,18 @@ export default function GuildPanel() {
       .eq('user_id', userId)
       .maybeSingle();
 
-    setGuildId(data?.guild_id ?? null);
+    const newGuildId = data?.guild_id ?? null;
+    setGuildId(newGuildId);
     setChecked(true);
+
+    // gameStore에 guildId/guildName 동기화
+    if (newGuildId) {
+      const { getGuild } = await import('../../lib/guild');
+      const guild = await getGuild(newGuildId);
+      useGameStore.setState({ guildId: newGuildId, guildName: guild?.name ?? null });
+    } else {
+      useGameStore.setState({ guildId: null, guildName: null });
+    }
   }, [userId]);
 
   useEffect(() => { checkGuild(); }, [checkGuild]);
@@ -62,7 +72,10 @@ export default function GuildPanel() {
         <MyGuildView
           userId={userId}
           guildId={guildId}
-          onLeft={() => { setGuildId(null); }}
+          onLeft={() => {
+            setGuildId(null);
+            useGameStore.setState({ guildId: null, guildName: null });
+          }}
         />
       ) : (
         <NoGuildView

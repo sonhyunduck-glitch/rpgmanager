@@ -194,3 +194,29 @@ export async function getGuildMemberCount(guildId: string): Promise<number> {
 
   return count ?? 0;
 }
+
+/** 길드 해산 (멤버 1명=리더만 남았을 때만 가능) */
+export async function dissolveGuild(
+  guildId: string,
+  leaderId: string,
+): Promise<{ error: string | null }> {
+  // 1) 멤버 수 확인 — 1명(리더만)이어야 해체 가능
+  const { count } = await supabase
+    .from('guild_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('guild_id', guildId);
+  if ((count ?? 0) !== 1) return { error: '멤버가 모두 탈퇴한 후 해산할 수 있습니다.' };
+
+  // 2) 리더 프로필 guild_id 초기화
+  await supabase.from('profiles').update({ guild_id: null }).eq('id', leaderId);
+
+  // 3) 길드 삭제 (CASCADE로 guild_members도 삭제)
+  const { error } = await supabase
+    .from('guilds')
+    .delete()
+    .eq('id', guildId)
+    .eq('leader_id', leaderId);
+  if (error) return { error: error.message };
+
+  return { error: null };
+}

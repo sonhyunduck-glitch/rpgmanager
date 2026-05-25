@@ -253,12 +253,13 @@ export async function getZonePlayerCount(zoneId: string): Promise<number> {
   return count ?? 1;
 }
 
-/** 존 접속자 정보 (이름, 레벨, 클래스) */
+/** 존 접속자 정보 (이름, 레벨, 클래스, 길드) */
 export interface ZonePlayer {
   userId: string;
   name: string;
   level: number;
   playerClass: string;
+  guildId: string | null;
 }
 
 /** 특정 존의 활성 접속자 목록 (5분 이내, 최대 20명) */
@@ -276,7 +277,7 @@ export async function getZonePlayers(zoneId: string): Promise<ZonePlayer[]> {
   const userIds = presenceData.map((r: any) => r.user_id);
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
-    .select('id, name, level, player_class')
+    .select('id, name, level, player_class, guild_id')
     .in('id', userIds);
   if (profileError || !profileData) return [];
   return profileData.map((p: any) => ({
@@ -284,6 +285,7 @@ export async function getZonePlayers(zoneId: string): Promise<ZonePlayer[]> {
     name: p.name ?? '???',
     level: p.level ?? 1,
     playerClass: p.player_class ?? 'knight',
+    guildId: p.guild_id ?? null,
   }));
 }
 

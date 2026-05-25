@@ -7,6 +7,7 @@ import {
   getGuildMembers,
   leaveGuild,
   updateGuildNotice,
+  dissolveGuild,
 } from '../../lib/guild';
 import type { GuildRow, GuildMemberRow } from '../../lib/guild';
 import { LABEL } from '../../styles/shared';
@@ -52,9 +53,17 @@ export function MyGuildView({
   useEffect(() => { loadData(); }, [loadData]);
 
   const handleLeave = async () => {
-    if (isLeader) return; // 리더는 탈퇴 불가 (해산 구현은 추후)
+    if (isLeader) return; // 리더는 탈퇴 불가
     const { error } = await leaveGuild(guildId, userId);
     if (!error) onLeft();
+  };
+
+  const handleDissolve = async () => {
+    if (!isLeader || members.length !== 1) return;
+    if (!window.confirm('정말 길드를 해산하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    const { error } = await dissolveGuild(guildId, userId);
+    if (error) { alert(error); return; }
+    onLeft();
   };
 
   const handleSaveNotice = async () => {
@@ -236,7 +245,7 @@ export function MyGuildView({
         })}
       </div>
 
-      {/* 탈퇴 버튼 */}
+      {/* 탈퇴 버튼 (멤버용) */}
       {!isLeader && (
         <button
           onClick={handleLeave}
@@ -253,6 +262,26 @@ export function MyGuildView({
           }}
         >
           Leave Guild
+        </button>
+      )}
+
+      {/* 해산 버튼 (리더 + 멤버 1명일 때만) */}
+      {isLeader && members.length === 1 && (
+        <button
+          onClick={handleDissolve}
+          style={{
+            flexShrink: 0,
+            padding: '4px 0',
+            border: '1px solid var(--danger)',
+            borderRadius: 'var(--r-xs)',
+            background: 'transparent',
+            color: 'var(--danger)',
+            fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          Dissolve Guild
         </button>
       )}
     </div>

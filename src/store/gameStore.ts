@@ -89,6 +89,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         authUserId: userId,
         playerClass: (p.player_class as import('../types').PlayerClass) ?? get().playerClass,
         playerName: p.name ?? get().playerName,
+        guildId: p.guild_id ?? null,
         level: p.level ?? get().level,
         exp: safeNumber(p.exp, get().exp),
         gold: safeNumber(p.gold, get().gold),
@@ -123,6 +124,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         potionAutoThreshold: p.potion_auto_threshold ?? get().potionAutoThreshold,
         potionAutoBuy: p.potion_auto_buy ?? get().potionAutoBuy,
       });
+
+      // 길드 이름 비동기 로드
+      if (p.guild_id) {
+        import('../lib/guild').then(({ getGuild }) =>
+          getGuild(p.guild_id).then(g => set({ guildName: g?.name ?? null }))
+        ).catch(() => {});
+      }
 
       if (!hasDBItems) {
         // ⚠️ DB에 아이템이 없는 신규 캐릭터 — 클래스별 시작 장비 생성
@@ -255,6 +263,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   // ── Player State ──
   playerClass: (saved?.playerClass as import('../types').PlayerClass) ?? 'knight',
   playerName: (saved?.playerName as string) ?? '초보 모험가',
+  guildId: null,
+  guildName: null,
   level: (saved?.level as number) ?? 1,
   exp: (saved?.exp as number) ?? 0,
   gold: (saved?.gold as number) ?? 100,
