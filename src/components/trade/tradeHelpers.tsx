@@ -11,43 +11,52 @@ const TYPE_ICON: Record<string, string> = {
   belt: '🎗️', earring: '✨',
 };
 
-/* ── 강화 등급 색상 ── */
+/* ── 강화 등급 색상 (기존 rarity 토큰 활용) ── */
 function enhColor(level: number): string {
-  if (level >= 9) return 'var(--warning)';
-  if (level >= 7) return '#ff9800';
-  if (level >= 4) return 'var(--accent)';
-  if (level > 0) return 'var(--success)';
+  if (level >= 9) return 'var(--rare-mythic)';
+  if (level >= 7) return 'var(--rare-legendary)';
+  if (level >= 4) return 'var(--rare-rare)';
+  if (level > 0) return 'var(--rare-uncommon)';
   return 'var(--text-mute)';
 }
 
-/* ── 아이템 뱃지 (리디자인) ── */
-export function ItemBadge({ item }: { item: Equipment }) {
+/* ── 아이템 이름 색상 (강화에 따른) ── */
+export function itemNameColor(enh: number): string {
+  if (enh >= 9) return 'var(--rare-mythic)';
+  if (enh >= 7) return 'var(--rare-legendary)';
+  if (enh >= 4) return 'var(--rare-rare)';
+  return 'var(--text)';
+}
+
+/* ── 아이템 썸네일 (L1J 스타일 어두운 사각형) ── */
+export function ItemThumb({ item }: { item: Equipment }) {
   const enh = item.enhanceLevel;
+  const glowBorder = enh >= 7
+    ? `1px solid ${enhColor(enh)}`
+    : '1px solid var(--border-soft)';
+
   return (
     <div style={{
-      width: 38, height: 38, borderRadius: 'var(--r-sm)',
-      background: enh >= 7
-        ? 'linear-gradient(135deg, rgba(255,152,0,0.15), rgba(255,193,7,0.08))'
-        : 'var(--bg-panel)',
-      border: enh >= 7
-        ? '1.5px solid rgba(255,152,0,0.4)'
-        : '1px solid var(--border-soft)',
+      width: 44, height: 44, borderRadius: 'var(--r-sm)',
+      background: 'var(--bg-canvas)',
+      border: glowBorder,
+      boxShadow: enh >= 7
+        ? `0 0 8px -2px ${enhColor(enh)}`
+        : 'none',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       flexShrink: 0, position: 'relative',
+      overflow: 'hidden',
     }}>
-      <span style={{ fontSize: 14, lineHeight: 1 }}>
+      <span style={{ fontSize: 18, lineHeight: 1, filter: enh >= 7 ? 'brightness(1.2)' : 'none' }}>
         {TYPE_ICON[item.type] ?? '📦'}
       </span>
       {enh > 0 && (
         <span style={{
-          position: 'absolute', bottom: -2, right: -2,
+          position: 'absolute', bottom: 1, right: 2,
           fontSize: 9, fontWeight: 800, fontFamily: 'var(--font-mono)',
-          color: '#fff',
-          background: enhColor(enh),
-          borderRadius: 'var(--r-full)',
-          padding: '0 3px', lineHeight: '14px',
-          minWidth: 14, textAlign: 'center',
+          color: enhColor(enh),
+          textShadow: '0 0 4px currentColor',
         }}>
           +{enh}
         </span>
@@ -57,52 +66,43 @@ export function ItemBadge({ item }: { item: Equipment }) {
 }
 
 /* ── 아이템 스탯 라인 ── */
-export function ItemStatLine({ item }: { item: Equipment }) {
+export function ItemStatLine({ item, showType }: { item: Equipment; showType?: boolean }) {
   const isWpn = item.type === 'weapon' || item.type === 'bow' || item.type === 'staff';
-  const enh = item.enhanceLevel;
 
   return (
     <div style={{
       display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap',
       fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
     }}>
+      {showType && (
+        <span style={{ color: 'var(--text-faint)' }}>{equipTypeLabel(item.type)}</span>
+      )}
       {isWpn ? (
-        <>
-          <span>타격 {item.baseAtk}/{item.baseAtkLarge}</span>
-          {enh > 0 && <span style={{ color: enhColor(enh), fontWeight: 700 }}>+{enh}</span>}
-          {item.isTwoHanded && <span style={{ color: 'var(--accent)' }}>양손</span>}
-        </>
+        <span>대미지 {item.baseAtk}/{item.baseAtkLarge}</span>
       ) : (
-        <>
-          <span>AC {item.baseDef}</span>
-          {enh > 0 && <span style={{ color: enhColor(enh), fontWeight: 700 }}>+{enh}</span>}
-        </>
+        <span>AC {item.baseDef}+{item.enhanceLevel}</span>
       )}
       {item.bonusEffects?.length > 0 && (
         <span style={{ color: 'var(--info)' }}>
-          {item.bonusEffects[0].replace(' (미구현)', '')}
-          {item.bonusEffects.length > 1 && ` +${item.bonusEffects.length - 1}`}
+          {item.bonusEffects.map(e => e.replace(' (미구현)', '')).join(', ')}
         </span>
       )}
+      {item.isTwoHanded && <span style={{ color: 'var(--accent)' }}>양손</span>}
     </div>
   );
 }
 
-/* ── 아이템 카드 (거래소 공통) ── */
-export function ItemCard({
-  item, selected, onClick, right, highlight,
+/* ── 아이템 행 (L1J 거래소 스타일 — 가로 한 줄) ── */
+export function ItemRow({
+  item, selected, onClick, right, glow,
 }: {
   item: Equipment;
   selected?: boolean;
   onClick?: () => void;
   right?: React.ReactNode;
-  highlight?: 'accent' | 'info' | 'success' | 'none';
+  glow?: boolean;
 }) {
-  const hl = highlight ?? 'none';
-  const borderColor = selected ? 'var(--accent)'
-    : hl === 'info' ? 'var(--info)'
-    : hl === 'success' ? 'var(--success)'
-    : 'var(--border-soft)';
+  const enh = item.enhanceLevel;
 
   return (
     <div
@@ -111,23 +111,28 @@ export function ItemCard({
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '8px 10px',
         background: selected
-          ? 'radial-gradient(ellipse at 30% 50%, color-mix(in oklch, var(--accent) 8%, var(--bg-panel)), var(--bg-panel))'
-          : hl === 'info'
-            ? 'color-mix(in oklch, var(--info) 4%, var(--bg-sunken))'
-            : 'var(--bg-sunken)',
-        border: `1px solid ${borderColor}`,
+          ? 'color-mix(in oklch, var(--info) 8%, var(--bg-canvas))'
+          : 'var(--bg-canvas)',
+        border: selected
+          ? '1px solid var(--info)'
+          : glow
+            ? '1px solid color-mix(in oklch, var(--info) 40%, transparent)'
+            : '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
         borderRadius: 'var(--r-sm)',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'border-color 0.15s, background 0.15s',
       }}
     >
-      <ItemBadge item={item} />
+      <ItemThumb item={item} />
 
       <div style={{ flex: 1, minWidth: 0 }}>
+        {/* 아이템 이름 (L1J: 강화 높으면 색상 변화) */}
         <div style={{
-          fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text)',
+          fontSize: 'var(--fs-sm)', fontWeight: 700,
+          color: itemNameColor(enh),
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          lineHeight: 1.3,
+          lineHeight: 1.4,
+          textShadow: enh >= 7 ? `0 0 6px ${enhColor(enh)}` : 'none',
         }}>
           {equipDisplayName(item)}
         </div>
@@ -144,7 +149,7 @@ export function LoadingMsg() {
   return (
     <div style={{
       textAlign: 'center', padding: 'var(--s-6)',
-      color: 'var(--text-mute)', fontSize: 'var(--fs-xs)',
+      color: 'var(--text-faint)', fontSize: 'var(--fs-xs)',
       fontFamily: 'var(--font-mono)',
     }}>
       Loading...
@@ -156,7 +161,7 @@ export function EmptyMsg({ text }: { text: string }) {
   return (
     <div style={{
       textAlign: 'center', padding: 'var(--s-6)',
-      color: 'var(--text-mute)', fontSize: 'var(--fs-xs)',
+      color: 'var(--text-faint)', fontSize: 'var(--fs-xs)',
       fontFamily: 'var(--font-mono)',
     }}>
       {text}
@@ -192,3 +197,10 @@ export const TYPE_FILTERS: { key: string; label: string }[] = [
   { key: 'ring', label: '반지' },
   { key: 'belt', label: '벨트' },
 ];
+
+/* ── 가격 포맷 ── */
+export function formatGold(n: number): string {
+  if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}억`;
+  if (n >= 10_000) return `${(n / 10_000).toFixed(n >= 100_000 ? 0 : 1)}만`;
+  return n.toLocaleString();
+}

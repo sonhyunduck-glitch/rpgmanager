@@ -1,10 +1,10 @@
-/* ── 구매 탭: 활성 거래 목록 ── */
+/* ── 검색 탭: 활성 거래 목록 (L1J 거래소 스타일) ── */
 import { useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import type { TradeListing } from '../../types';
 import { getActiveListings, buyListing } from '../../lib/trade';
 import { timeAgo } from '../../lib/utils';
-import { ItemCard, LoadingMsg, EmptyMsg, TYPE_FILTERS } from './tradeHelpers';
+import { ItemRow, LoadingMsg, EmptyMsg, TYPE_FILTERS, formatGold } from './tradeHelpers';
 
 export default function BrowseTab() {
   const userId = useGameStore(s => s.authUserId);
@@ -28,9 +28,7 @@ export default function BrowseTab() {
   useEffect(() => { load(); }, [load]);
 
   const handleBuy = async (listing: TradeListing) => {
-    if (!userId) return;
-    if (gold < listing.price) return;
-    if (inventory.length >= inventoryCapacity) return;
+    if (!userId || gold < listing.price || inventory.length >= inventoryCapacity) return;
 
     setBuying(listing.id);
     const result = await buyListing(listing.id, userId);
@@ -54,41 +52,50 @@ export default function BrowseTab() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
-      {/* 타입 필터 */}
+      {/* ── 카테고리 필터 (L1J 좌측 탭 느낌 → 가로 칩) ── */}
       <div style={{
         display: 'flex', gap: 3, flexWrap: 'wrap', flexShrink: 0,
         alignItems: 'center',
+        paddingBottom: 'var(--s-1)',
+        borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
       }}>
-        {TYPE_FILTERS.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setTypeFilter(f.key)}
-            style={{
-              fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 600,
-              padding: '2px 7px', borderRadius: 'var(--r-full)',
-              border: typeFilter === f.key ? '1px solid var(--accent)' : '1px solid var(--border-soft)',
-              background: typeFilter === f.key ? 'color-mix(in oklch, var(--accent) 12%, transparent)' : 'transparent',
-              color: typeFilter === f.key ? 'var(--accent)' : 'var(--text-mute)',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
-          >
-            {f.label}
-          </button>
-        ))}
+        {TYPE_FILTERS.map(f => {
+          const active = typeFilter === f.key;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setTypeFilter(f.key)}
+              style={{
+                fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 600,
+                padding: '3px 8px', borderRadius: 'var(--r-xs)',
+                border: active ? '1px solid var(--info)' : '1px solid transparent',
+                background: active ? 'color-mix(in oklch, var(--info) 10%, transparent)' : 'transparent',
+                color: active ? 'var(--info)' : 'var(--text-faint)',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              {f.label}
+            </button>
+          );
+        })}
         <button
           onClick={load}
           style={{
-            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
-            background: 'none', border: 'none', color: 'var(--text-mute)',
-            cursor: 'pointer', marginLeft: 'auto', padding: '2px 4px',
+            fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
+            background: 'none', border: 'none',
+            color: 'var(--text-faint)', cursor: 'pointer',
+            marginLeft: 'auto', padding: '2px 6px',
           }}
         >
-          ↻
+          새로 고침
         </button>
       </div>
 
-      {/* 목록 */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* ── 거래 목록 ── */}
+      <div style={{
+        flex: 1, minHeight: 0, overflowY: 'auto',
+        display: 'flex', flexDirection: 'column', gap: 3,
+      }}>
         {loading ? (
           <LoadingMsg />
         ) : listings.length === 0 ? (
@@ -100,40 +107,38 @@ export default function BrowseTab() {
             const isBuying = buying === listing.id;
 
             return (
-              <ItemCard
+              <ItemRow
                 key={listing.id}
                 item={listing.item_data}
-                highlight={isMine ? 'info' : 'none'}
+                glow={isMine}
                 right={
                   <div style={{
                     display: 'flex', flexDirection: 'column',
-                    alignItems: 'flex-end', gap: 4, flexShrink: 0,
+                    alignItems: 'flex-end', gap: 3, flexShrink: 0,
+                    minWidth: 70,
                   }}>
                     {/* 가격 */}
                     <span style={{
                       fontSize: 'var(--fs-sm)', fontWeight: 800,
-                      fontFamily: 'var(--font-mono)',
+                      fontFamily: 'var(--font-display)',
                       color: 'var(--accent)',
+                      fontVariantNumeric: 'tabular-nums',
                     }}>
-                      {listing.price.toLocaleString()}G
+                      {formatGold(listing.price)}G
                     </span>
-                    {/* 판매자 + 시간 */}
+                    {/* 판매자 · 시간 */}
                     <span style={{
-                      fontSize: 9, fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-mute)',
-                      whiteSpace: 'nowrap',
+                      fontSize: 8, fontFamily: 'var(--font-mono)',
+                      color: 'var(--text-faint)', whiteSpace: 'nowrap',
                     }}>
-                      Lv.{listing.seller_level} {listing.seller_name} · {timeAgo(listing.created_at)}
+                      {listing.seller_name} · {timeAgo(listing.created_at)}
                     </span>
-                    {/* 구매/내거래 버튼 */}
+                    {/* 버튼 */}
                     {isMine ? (
                       <span style={{
-                        fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                        fontSize: 'var(--fs-2xs)', fontWeight: 600,
                         fontFamily: 'var(--font-mono)',
-                        color: 'var(--info)',
-                        padding: '1px 6px',
-                        background: 'color-mix(in oklch, var(--info) 8%, transparent)',
-                        borderRadius: 'var(--r-full)',
+                        color: 'var(--info)', opacity: 0.7,
                       }}>
                         내 거래
                       </span>
@@ -144,12 +149,12 @@ export default function BrowseTab() {
                         style={{
                           fontSize: 'var(--fs-2xs)', fontWeight: 700,
                           fontFamily: 'var(--font-mono)',
-                          padding: '3px 12px', borderRadius: 'var(--r-xs)',
+                          padding: '3px 14px', borderRadius: 'var(--r-xs)',
                           border: 'none',
                           background: canBuy
-                            ? 'linear-gradient(135deg, var(--success), oklch(0.66 0.16 135))'
+                            ? 'var(--info)'
                             : 'var(--bg-sunken)',
-                          color: canBuy ? '#fff' : 'var(--text-mute)',
+                          color: canBuy ? '#fff' : 'var(--text-faint)',
                           cursor: canBuy ? 'pointer' : 'not-allowed',
                           opacity: canBuy ? 1 : 0.4,
                           transition: 'all 0.15s',
