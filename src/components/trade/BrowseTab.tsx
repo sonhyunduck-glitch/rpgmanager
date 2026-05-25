@@ -1,11 +1,10 @@
 /* ── 구매 탭: 활성 거래 목록 ── */
 import { useState, useEffect, useCallback } from 'react';
-import { useGameStore, equipDisplayName } from '../../store/gameStore';
-import { STAT_VALUE } from '../../styles/shared';
+import { useGameStore } from '../../store/gameStore';
 import type { TradeListing } from '../../types';
 import { getActiveListings, buyListing } from '../../lib/trade';
 import { timeAgo } from '../../lib/utils';
-import { ItemBadge, LoadingMsg, EmptyMsg, equipTypeLabel, TYPE_FILTERS } from './tradeHelpers';
+import { ItemCard, LoadingMsg, EmptyMsg, TYPE_FILTERS } from './tradeHelpers';
 
 export default function BrowseTab() {
   const userId = useGameStore(s => s.authUserId);
@@ -37,20 +36,18 @@ export default function BrowseTab() {
     const result = await buyListing(listing.id, userId);
 
     if (result.success) {
-      // 로컬 상태 업데이트: 골드 차감 + 아이템 추가
       const state = useGameStore.getState();
       useGameStore.setState({
         gold: state.gold - listing.price,
         inventory: [...state.inventory, listing.item_data],
       });
-      // 목록에서 제거
       setListings(prev => prev.filter(l => l.id !== listing.id));
     } else {
       alert(result.error === 'insufficient_gold' ? '골드가 부족합니다.'
         : result.error === 'not_found' ? '이미 판매된 거래입니다.'
         : result.error === 'own_listing' ? '본인의 거래는 구매할 수 없습니다.'
         : `거래 실패: ${result.error}`);
-      load(); // 새로고침
+      load();
     }
     setBuying(null);
   };
@@ -58,18 +55,21 @@ export default function BrowseTab() {
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
       {/* 타입 필터 */}
-      <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', flexShrink: 0 }}>
+      <div style={{
+        display: 'flex', gap: 3, flexWrap: 'wrap', flexShrink: 0,
+        alignItems: 'center',
+      }}>
         {TYPE_FILTERS.map(f => (
           <button
             key={f.key}
             onClick={() => setTypeFilter(f.key)}
             style={{
-              fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)', fontWeight: 600,
-              padding: '2px 6px', borderRadius: 'var(--r-xs)',
+              fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 600,
+              padding: '2px 7px', borderRadius: 'var(--r-full)',
               border: typeFilter === f.key ? '1px solid var(--accent)' : '1px solid var(--border-soft)',
-              background: typeFilter === f.key ? 'color-mix(in oklch, var(--accent) 15%, transparent)' : 'transparent',
+              background: typeFilter === f.key ? 'color-mix(in oklch, var(--accent) 12%, transparent)' : 'transparent',
               color: typeFilter === f.key ? 'var(--accent)' : 'var(--text-mute)',
-              cursor: 'pointer',
+              cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
             {f.label}
@@ -80,10 +80,10 @@ export default function BrowseTab() {
           style={{
             fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
             background: 'none', border: 'none', color: 'var(--text-mute)',
-            cursor: 'pointer', marginLeft: 'auto',
+            cursor: 'pointer', marginLeft: 'auto', padding: '2px 4px',
           }}
         >
-          Refresh
+          ↻
         </button>
       </div>
 
@@ -94,104 +94,75 @@ export default function BrowseTab() {
         ) : listings.length === 0 ? (
           <EmptyMsg text="등록된 거래가 없습니다." />
         ) : (
-          listings.map(listing => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              isMine={listing.seller_id === userId}
-              canBuy={
-                listing.seller_id !== userId
-                && gold >= listing.price
-                && inventory.length < inventoryCapacity
-              }
-              buying={buying === listing.id}
-              onBuy={() => handleBuy(listing)}
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
+          listings.map(listing => {
+            const isMine = listing.seller_id === userId;
+            const canBuy = !isMine && gold >= listing.price && inventory.length < inventoryCapacity;
+            const isBuying = buying === listing.id;
 
-/* ── 거래 목록 카드 ── */
-function ListingCard({
-  listing, isMine, canBuy, buying, onBuy,
-}: {
-  listing: TradeListing;
-  isMine: boolean;
-  canBuy: boolean;
-  buying: boolean;
-  onBuy: () => void;
-}) {
-  const item = listing.item_data;
-  return (
-    <div style={{
-      padding: '6px 8px',
-      background: isMine
-        ? 'color-mix(in oklch, var(--info) 5%, var(--bg-sunken))'
-        : 'var(--bg-sunken)',
-      border: '1px solid var(--border-soft)',
-      borderRadius: 'var(--r-sm)',
-      display: 'flex', alignItems: 'center', gap: 8,
-    }}>
-      <ItemBadge item={item} />
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text)',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>
-          {equipDisplayName(item)}
-        </div>
-        <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span>{equipTypeLabel(item.type)}</span>
-          <span style={{ color: 'var(--border-soft)' }}>·</span>
-          <span>Lv.{listing.seller_level} {listing.seller_name}</span>
-          <span style={{ color: 'var(--border-soft)' }}>·</span>
-          <span>{timeAgo(listing.created_at)}</span>
-        </div>
-        {/* 아이템 스탯 */}
-        <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', marginTop: 2, display: 'flex', gap: 4 }}>
-          {item.baseAtk > 0 && <span>ATK {item.baseAtk}</span>}
-          {item.baseDef > 0 && <span>DEF {item.baseDef}</span>}
-          {item.enhanceLevel > 0 && <span style={{ color: 'var(--accent)' }}>+{item.enhanceLevel}</span>}
-          {item.bonusEffects?.length > 0 && (
-            <span style={{ color: 'var(--info)' }}>{item.bonusEffects[0]}</span>
-          )}
-        </div>
-      </div>
-
-      {/* 가격 + 구매 */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
-        <span style={{
-          ...STAT_VALUE, fontSize: 'var(--fs-sm)', color: 'var(--accent)',
-        }}>
-          {listing.price.toLocaleString()}G
-        </span>
-        {!isMine && (
-          <button
-            disabled={!canBuy || buying}
-            onClick={onBuy}
-            style={{
-              fontSize: 'var(--fs-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
-              padding: '3px 10px', borderRadius: 'var(--r-xs)',
-              border: canBuy ? '1px solid var(--success)' : '1px solid var(--border-soft)',
-              background: canBuy
-                ? 'color-mix(in oklch, var(--success) 12%, transparent)'
-                : 'transparent',
-              color: canBuy ? 'var(--success)' : 'var(--text-mute)',
-              cursor: canBuy ? 'pointer' : 'not-allowed',
-              opacity: canBuy ? 1 : 0.4,
-            }}
-          >
-            {buying ? '...' : '구매'}
-          </button>
-        )}
-        {isMine && (
-          <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--info)', fontFamily: 'var(--font-mono)' }}>
-            내 거래
-          </span>
+            return (
+              <ItemCard
+                key={listing.id}
+                item={listing.item_data}
+                highlight={isMine ? 'info' : 'none'}
+                right={
+                  <div style={{
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'flex-end', gap: 4, flexShrink: 0,
+                  }}>
+                    {/* 가격 */}
+                    <span style={{
+                      fontSize: 'var(--fs-sm)', fontWeight: 800,
+                      fontFamily: 'var(--font-mono)',
+                      color: 'var(--accent)',
+                    }}>
+                      {listing.price.toLocaleString()}G
+                    </span>
+                    {/* 판매자 + 시간 */}
+                    <span style={{
+                      fontSize: 9, fontFamily: 'var(--font-mono)',
+                      color: 'var(--text-mute)',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      Lv.{listing.seller_level} {listing.seller_name} · {timeAgo(listing.created_at)}
+                    </span>
+                    {/* 구매/내거래 버튼 */}
+                    {isMine ? (
+                      <span style={{
+                        fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                        fontFamily: 'var(--font-mono)',
+                        color: 'var(--info)',
+                        padding: '1px 6px',
+                        background: 'color-mix(in oklch, var(--info) 8%, transparent)',
+                        borderRadius: 'var(--r-full)',
+                      }}>
+                        내 거래
+                      </span>
+                    ) : (
+                      <button
+                        disabled={!canBuy || isBuying}
+                        onClick={(e) => { e.stopPropagation(); handleBuy(listing); }}
+                        style={{
+                          fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                          fontFamily: 'var(--font-mono)',
+                          padding: '3px 12px', borderRadius: 'var(--r-xs)',
+                          border: 'none',
+                          background: canBuy
+                            ? 'linear-gradient(135deg, var(--success), oklch(0.66 0.16 135))'
+                            : 'var(--bg-sunken)',
+                          color: canBuy ? '#fff' : 'var(--text-mute)',
+                          cursor: canBuy ? 'pointer' : 'not-allowed',
+                          opacity: canBuy ? 1 : 0.4,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {isBuying ? '...' : '구매'}
+                      </button>
+                    )}
+                  </div>
+                }
+              />
+            );
+          })
         )}
       </div>
     </div>

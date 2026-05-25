@@ -1,11 +1,91 @@
 /* ── 내거래 탭: 내가 올린 거래 + 상태 ── */
 import { useState, useEffect, useCallback } from 'react';
-import { useGameStore, equipDisplayName } from '../../store/gameStore';
+import { useGameStore } from '../../store/gameStore';
 import { LABEL } from '../../styles/shared';
 import type { TradeListing } from '../../types';
 import { cancelListing, getMyListings } from '../../lib/trade';
 import { timeAgo } from '../../lib/utils';
-import { ItemBadge, LoadingMsg, EmptyMsg } from './tradeHelpers';
+import { ItemCard, LoadingMsg, EmptyMsg } from './tradeHelpers';
+
+/* ── 상태 뱃지 ── */
+function StatusBadge({ listing, cancelling, onCancel }: {
+  listing: TradeListing;
+  cancelling: boolean;
+  onCancel: () => void;
+}) {
+  if (listing.status === 'active') {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'flex-end', gap: 4, flexShrink: 0,
+      }}>
+        <span style={{
+          fontSize: 'var(--fs-sm)', fontWeight: 800,
+          fontFamily: 'var(--font-mono)', color: 'var(--accent)',
+        }}>
+          {listing.price.toLocaleString()}G
+        </span>
+        <span style={{
+          fontSize: 9, fontFamily: 'var(--font-mono)', color: 'var(--text-mute)',
+        }}>
+          {timeAgo(listing.created_at)}
+        </span>
+        <button
+          disabled={cancelling}
+          onClick={(e) => { e.stopPropagation(); onCancel(); }}
+          style={{
+            fontSize: 'var(--fs-2xs)', fontWeight: 700,
+            fontFamily: 'var(--font-mono)',
+            padding: '3px 10px', borderRadius: 'var(--r-xs)',
+            border: '1px solid var(--danger)',
+            background: 'color-mix(in oklch, var(--danger) 8%, transparent)',
+            color: 'var(--danger)',
+            cursor: cancelling ? 'not-allowed' : 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          {cancelling ? '...' : '취소'}
+        </button>
+      </div>
+    );
+  }
+
+  // sold / cancelled
+  const isSold = listing.status === 'sold';
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'flex-end', gap: 4, flexShrink: 0,
+    }}>
+      <span style={{
+        fontSize: 'var(--fs-sm)', fontWeight: 800,
+        fontFamily: 'var(--font-mono)',
+        color: isSold ? 'var(--success)' : 'var(--text-mute)',
+      }}>
+        {listing.price.toLocaleString()}G
+      </span>
+      <span style={{
+        fontSize: 'var(--fs-2xs)', fontWeight: 700,
+        fontFamily: 'var(--font-mono)',
+        padding: '2px 8px', borderRadius: 'var(--r-full)',
+        background: isSold
+          ? 'color-mix(in oklch, var(--success) 10%, transparent)'
+          : 'color-mix(in oklch, var(--text-mute) 6%, transparent)',
+        color: isSold ? 'var(--success)' : 'var(--text-mute)',
+        border: `1px solid ${isSold ? 'var(--success)' : 'var(--border-soft)'}`,
+      }}>
+        {isSold ? '판매완료' : '취소됨'}
+      </span>
+      {isSold && listing.buyer_name && (
+        <span style={{
+          fontSize: 9, fontFamily: 'var(--font-mono)', color: 'var(--text-mute)',
+        }}>
+          → {listing.buyer_name}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function MyTradesTab() {
   const userId = useGameStore(s => s.authUserId);
@@ -29,7 +109,6 @@ export default function MyTradesTab() {
     const result = await cancelListing(listing.id, userId);
 
     if (result.success) {
-      // 아이템 인벤토리에 복원
       const state = useGameStore.getState();
       if (state.inventory.length < state.inventoryCapacity) {
         useGameStore.setState({
@@ -52,10 +131,11 @@ export default function MyTradesTab() {
           onClick={load}
           style={{
             fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
-            background: 'none', border: 'none', color: 'var(--text-mute)', cursor: 'pointer',
+            background: 'none', border: 'none', color: 'var(--text-mute)',
+            cursor: 'pointer', padding: '2px 4px',
           }}
         >
-          Refresh
+          ↻
         </button>
       </div>
 
@@ -66,65 +146,18 @@ export default function MyTradesTab() {
           <EmptyMsg text="거래 내역이 없습니다." />
         ) : (
           listings.map(listing => (
-            <div
+            <ItemCard
               key={listing.id}
-              style={{
-                padding: '6px 8px',
-                background: 'var(--bg-sunken)',
-                border: '1px solid var(--border-soft)',
-                borderRadius: 'var(--r-sm)',
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}
-            >
-              <ItemBadge item={listing.item_data} />
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text)',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
-                  {equipDisplayName(listing.item_data)}
-                </div>
-                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-mute)', display: 'flex', gap: 6 }}>
-                  <span>{listing.price.toLocaleString()}G</span>
-                  <span style={{ color: 'var(--border-soft)' }}>·</span>
-                  <span>{timeAgo(listing.created_at)}</span>
-                </div>
-              </div>
-
-              {/* 상태 */}
-              {listing.status === 'active' ? (
-                <button
-                  disabled={cancelling === listing.id}
-                  onClick={() => handleCancel(listing)}
-                  style={{
-                    fontSize: 'var(--fs-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
-                    padding: '3px 8px', borderRadius: 'var(--r-xs)',
-                    border: '1px solid var(--danger)',
-                    background: 'color-mix(in oklch, var(--danger) 10%, transparent)',
-                    color: 'var(--danger)', cursor: 'pointer',
-                  }}
-                >
-                  {cancelling === listing.id ? '...' : '취소'}
-                </button>
-              ) : (
-                <span style={{
-                  fontSize: 'var(--fs-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
-                  padding: '2px 6px', borderRadius: 'var(--r-xs)',
-                  background: listing.status === 'sold'
-                    ? 'color-mix(in oklch, var(--success) 12%, transparent)'
-                    : 'color-mix(in oklch, var(--text-mute) 8%, transparent)',
-                  color: listing.status === 'sold' ? 'var(--success)' : 'var(--text-mute)',
-                  border: listing.status === 'sold'
-                    ? '1px solid var(--success)'
-                    : '1px solid var(--border-soft)',
-                }}>
-                  {listing.status === 'sold'
-                    ? `판매완료 → ${listing.buyer_name ?? '???'}`
-                    : '취소됨'}
-                </span>
-              )}
-            </div>
+              item={listing.item_data}
+              highlight={listing.status === 'sold' ? 'success' : 'none'}
+              right={
+                <StatusBadge
+                  listing={listing}
+                  cancelling={cancelling === listing.id}
+                  onCancel={() => handleCancel(listing)}
+                />
+              }
+            />
           ))
         )}
       </div>
