@@ -595,7 +595,9 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           const classSkills = getAvailableSkills(state.playerClass, state.level)
             .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
               && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id)
-              && (!s.consumeItemId || (newMaterials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)))
+              && (!s.consumeItemId || (newMaterials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0))
+              // 마법사: getBestAttackSpell()로 이미 서클 마법 시전 → 서클 마법 중복 시전 방지
+              && !(combatStyle === 'ranged_magic' && usedSpellName && s.skillCircle > 0))
             .sort((a, b) => {
               // 서클0(클래스 전용) 최우선
               if (a.skillCircle === 0 && b.skillCircle !== 0) return -1;
