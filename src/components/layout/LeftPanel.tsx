@@ -8,6 +8,9 @@ import {
   finalAC, finalMR,
   meleeHit,
   minDamage, maxDamage,
+  bowMinDamage, bowMaxDamage,
+  calcPlayerHitRate,
+  magicDamageRange,
   hpGainRange,
   calcHpRegenRange, calcHpRegenIntervalSec,
   calcMpRegenAmount, calcBluePotionMpBonus, calcMpRegenIntervalSec,
@@ -161,13 +164,57 @@ function TabStats() {
   const state = useGameStore.getState();
   const allSlots = getAllEquipped(state);
   const bonusHit = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hit ?? 0), 0);
+  const bonusBowHit = allSlots.reduce((s, eq) => s + (eq?.bonuses?.bowHit ?? 0), 0);
+  const bonusBowDmg = allSlots.reduce((s, eq) => s + (eq?.bonuses?.bowDmg ?? 0), 0);
   const bonusExtraDmg = allSlots.reduce((s, eq) => s + (eq?.bonuses?.extraDmg ?? 0), 0);
   const bonusMr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.mr ?? 0), 0);
-  const hit = meleeHit(level, weaponEnchant, str) + bonusHit;
-  const dmgMinS = minDamage(level, weaponEnchant, str) + bonusExtraDmg;
-  const dmgMaxS = maxDamage(weaponBaseDmgS, level, weaponEnchant, str) + bonusExtraDmg;
-  const dmgMinL = minDamage(level, weaponEnchant, str) + bonusExtraDmg;
-  const dmgMaxL = maxDamage(weaponBaseDmgL, level, weaponEnchant, str) + bonusExtraDmg;
+  const bonusSp = allSlots.reduce((s, eq) => s + (eq?.bonuses?.sp ?? 0), 0);
+  const intStat = useGameStore.getState().getInt();
+
+  // ── 클래스별 전투 스탯 분기 ──
+  const combatStyle = CLASS_CONFIGS[playerClass].combatStyle;
+
+  let hit: number;
+  let dmgMinS: number;
+  let dmgMaxS: number;
+  let dmgMinL: number;
+  let dmgMaxL: number;
+  let dmgLabel1: string;
+  let dmgLabel2: string;
+  let hitLabel: string;
+
+  if (combatStyle === 'ranged_bow') {
+    // ── 요정: DEX 기반 활 대미지, D20 hitRate ──
+    hit = calcPlayerHitRate(level, str, dex, weaponEnchant, bonusHit + bonusBowHit);
+    dmgMinS = bowMinDamage(level, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+    dmgMaxS = bowMaxDamage(weaponBaseDmgS, level, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+    dmgMinL = bowMinDamage(level, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+    dmgMaxL = bowMaxDamage(weaponBaseDmgL, level, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+    hitLabel = 'HIT';
+    dmgLabel1 = 'DMG(소)';
+    dmgLabel2 = 'DMG(대)';
+  } else if (combatStyle === 'ranged_magic') {
+    // ── 마법사: INT 기반 마법 대미지, 자동 명중 ──
+    hit = -1; // 자동 명중 표시용
+    const magicRange = magicDamageRange(weaponBaseDmgS, intStat, bonusSp, level, playerClass);
+    dmgMinS = magicRange.min;
+    dmgMaxS = magicRange.max;
+    dmgMinL = dmgMinS; // 마법은 소/대 구분 없음
+    dmgMaxL = dmgMaxS;
+    hitLabel = 'HIT';
+    dmgLabel1 = 'M.DMG';
+    dmgLabel2 = 'SP';
+  } else {
+    // ── 기사: STR 기반 근거리 대미지 ──
+    hit = meleeHit(level, weaponEnchant, str) + bonusHit;
+    dmgMinS = minDamage(level, weaponEnchant, str) + bonusExtraDmg;
+    dmgMaxS = maxDamage(weaponBaseDmgS, level, weaponEnchant, str) + bonusExtraDmg;
+    dmgMinL = minDamage(level, weaponEnchant, str) + bonusExtraDmg;
+    dmgMaxL = maxDamage(weaponBaseDmgL, level, weaponEnchant, str) + bonusExtraDmg;
+    hitLabel = 'HIT';
+    dmgLabel1 = 'DMG(소)';
+    dmgLabel2 = 'DMG(대)';
+  }
   const ac = finalAC(totalDefense, level, dex, playerClass);
   const mr = finalMR(level, wis) + bonusMr;
   const hpRange = hpGainRange(con);
@@ -239,10 +286,19 @@ function TabStats() {
         <CombatCell label="HP" value={`${currentHp}/${maxHp}`}
           color={currentHp > maxHp * 0.6 ? 'var(--success)' : currentHp > maxHp * 0.3 ? 'var(--warning)' : 'var(--danger)'} />
         <CombatCell label="MP" value={`${hunt.currentMp}/${maxMp}`} color="var(--info)" />
-        <CombatCell label="HIT" value={hit} color="var(--text)" />
+        <CombatCell label={hitLabel} value={hit === -1 ? '자동' : hit} color={hit === -1 ? 'var(--info)' : 'var(--text)'} />
         <CombatCell label="AC" value={ac} color="var(--success)" />
-        <CombatCell label="DMG(소)" value={`${dmgMinS}~${dmgMaxS}`} color="var(--warning)" />
-        <CombatCell label="DMG(대)" value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
+        {combatStyle === 'ranged_magic' ? (
+          <>
+            <CombatCell label={dmgLabel1} value={`${dmgMinS}~${dmgMaxS}`} color="var(--info)" />
+            <CombatCell label={dmgLabel2} value={bonusSp} color="var(--info)" />
+          </>
+        ) : (
+          <>
+            <CombatCell label={dmgLabel1} value={`${dmgMinS}~${dmgMaxS}`} color="var(--warning)" />
+            <CombatCell label={dmgLabel2} value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
+          </>
+        )}
         <CombatCell label="MR" value={mr} color="var(--info)" />
         <CombatCell label="LV HP" value={`${hpRange.min}~${hpRange.max}`} color="var(--text-dim)" />
         <CombatCell label="HPR" value={`${hpRegenRange.min + equipHpr}~${hpRegenRange.max + equipHpr}/${hpRegenSec}s`} color="var(--text-dim)" />

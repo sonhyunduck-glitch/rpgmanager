@@ -9,7 +9,9 @@ import type { PlayerProfile, PlayerEquipment } from '../../lib/profile';
 import type { Equipment, EquipType, PlayerClass } from '../../types';
 import { CLASS_CONFIGS } from '../../data/classData';
 import {
-  finalAC, finalMR, meleeHit, minDamage, maxDamage, hpGainRange, calcMaxMp,
+  finalAC, finalMR, meleeHit, minDamage, maxDamage,
+  bowMinDamage, bowMaxDamage, calcPlayerHitRate, magicDamageRange,
+  hpGainRange, calcMaxMp,
   calcHpRegenRange, calcHpRegenIntervalSec, calcMpRegenAmount, calcMpRegenIntervalSec,
 } from '../../data/statFormulas';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
@@ -226,15 +228,50 @@ export default function ProfileModal() {
               const weaponBaseDmgL = weapon?.baseAtkLarge ?? 0;
               const totalDef = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.baseDef ?? 0) + (eq.enhanceLevel > 0 && eq.baseDef > 0 ? eq.enhanceLevel : 0), 0);
               const bonusHit = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.hit ?? 0), 0);
+              const bonusBowHit = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.bowHit ?? 0), 0);
+              const bonusBowDmg = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.bowDmg ?? 0), 0);
               const bonusExtraDmg = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.extraDmg ?? 0), 0);
               const bonusMr = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.mr ?? 0), 0);
               const bonusHp = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.hp ?? 0), 0);
-              const hit = meleeHit(lv, weaponEnchant, str) + bonusHit;
+              const bonusSp = (equip?.equipped ?? []).reduce((s, eq) => s + (eq.bonuses?.sp ?? 0), 0);
+              const pCombatStyle = CLASS_CONFIGS[pc].combatStyle;
+
+              let pHit: number | string;
+              let pDmgMinS: number;
+              let pDmgMaxS: number;
+              let pDmgMinL: number;
+              let pDmgMaxL: number;
+              let pDmgLabel1: string;
+              let pDmgLabel2: string;
+
+              if (pCombatStyle === 'ranged_bow') {
+                pHit = calcPlayerHitRate(lv, str, dex, weaponEnchant, bonusHit + bonusBowHit);
+                pDmgMinS = bowMinDamage(lv, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+                pDmgMaxS = bowMaxDamage(weaponBaseDmgS, lv, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+                pDmgMinL = bowMinDamage(lv, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+                pDmgMaxL = bowMaxDamage(weaponBaseDmgL, lv, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+                pDmgLabel1 = 'DMG(소)';
+                pDmgLabel2 = 'DMG(대)';
+              } else if (pCombatStyle === 'ranged_magic') {
+                pHit = '자동';
+                const mRange = magicDamageRange(weaponBaseDmgS, int, bonusSp, lv, pc);
+                pDmgMinS = mRange.min;
+                pDmgMaxS = mRange.max;
+                pDmgMinL = mRange.min;
+                pDmgMaxL = mRange.max;
+                pDmgLabel1 = 'M.DMG';
+                pDmgLabel2 = 'SP';
+              } else {
+                pHit = meleeHit(lv, weaponEnchant, str) + bonusHit;
+                pDmgMinS = minDamage(lv, weaponEnchant, str) + bonusExtraDmg;
+                pDmgMaxS = maxDamage(weaponBaseDmgS, lv, weaponEnchant, str) + bonusExtraDmg;
+                pDmgMinL = minDamage(lv, weaponEnchant, str) + bonusExtraDmg;
+                pDmgMaxL = maxDamage(weaponBaseDmgL, lv, weaponEnchant, str) + bonusExtraDmg;
+                pDmgLabel1 = 'DMG(소)';
+                pDmgLabel2 = 'DMG(대)';
+              }
+
               const ac = finalAC(totalDef, lv, dex, pc);
-              const dmgMinS = minDamage(lv, weaponEnchant, str) + bonusExtraDmg;
-              const dmgMaxS = maxDamage(weaponBaseDmgS, lv, weaponEnchant, str) + bonusExtraDmg;
-              const dmgMinL = minDamage(lv, weaponEnchant, str) + bonusExtraDmg;
-              const dmgMaxL = maxDamage(weaponBaseDmgL, lv, weaponEnchant, str) + bonusExtraDmg;
               const mr = finalMR(lv, wis) + bonusMr;
               const maxHp = profile.max_hp + bonusHp;
               const maxMp = calcMaxMp(lv, wis, int, pc);
@@ -266,10 +303,19 @@ export default function ProfileModal() {
                     <ProfileCombatCell label="HP" value={`${profile.current_hp}/${maxHp}`}
                       color={profile.current_hp > maxHp * 0.6 ? 'var(--success)' : profile.current_hp > maxHp * 0.3 ? 'var(--warning)' : 'var(--danger)'} />
                     <ProfileCombatCell label="MP" value={`0/${maxMp}`} color="var(--info)" />
-                    <ProfileCombatCell label="HIT" value={`${hit}`} color="var(--text)" />
+                    <ProfileCombatCell label="HIT" value={`${pHit}`} color={pHit === '자동' ? 'var(--info)' : 'var(--text)'} />
                     <ProfileCombatCell label="AC" value={`${ac}`} color="var(--success)" />
-                    <ProfileCombatCell label="DMG(소)" value={`${dmgMinS}~${dmgMaxS}`} color="var(--warning)" />
-                    <ProfileCombatCell label="DMG(대)" value={`${dmgMinL}~${dmgMaxL}`} color="var(--warning)" />
+                    {pCombatStyle === 'ranged_magic' ? (
+                      <>
+                        <ProfileCombatCell label={pDmgLabel1} value={`${pDmgMinS}~${pDmgMaxS}`} color="var(--info)" />
+                        <ProfileCombatCell label={pDmgLabel2} value={`${bonusSp}`} color="var(--info)" />
+                      </>
+                    ) : (
+                      <>
+                        <ProfileCombatCell label={pDmgLabel1} value={`${pDmgMinS}~${pDmgMaxS}`} color="var(--warning)" />
+                        <ProfileCombatCell label={pDmgLabel2} value={`${pDmgMinL}~${pDmgMaxL}`} color="var(--warning)" />
+                      </>
+                    )}
                     <ProfileCombatCell label="MR" value={`${mr}`} color="var(--info)" />
                     <ProfileCombatCell label="LV HP" value={`${hpRange.min}~${hpRange.max}`} color="var(--text-dim)" />
                     <ProfileCombatCell label="HPR" value={`${hpRegenR.min + equipHpr}~${hpRegenR.max + equipHpr}/${hpRegenSec}s`} color="var(--text-dim)" />

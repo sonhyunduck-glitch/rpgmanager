@@ -525,6 +525,20 @@ export function rangedAdditionalDamage(
   return Math.floor(enchantLevel / 2) + Math.floor(level / 10) + dexDmgBonus(dex);
 }
 
+/** 활 대미지 최소값 = 1 + 활 추가 대미지 */
+export function bowMinDamage(
+  level: number, enchantLevel: number, dex: number,
+): number {
+  return 1 + rangedAdditionalDamage(level, enchantLevel, dex);
+}
+
+/** 활 대미지 최대값 = 활 기본타격치 + 활 추가 대미지 */
+export function bowMaxDamage(
+  bowBaseDmg: number, level: number, enchantLevel: number, dex: number,
+): number {
+  return bowBaseDmg + rangedAdditionalDamage(level, enchantLevel, dex);
+}
+
 /** 활 대미지 굴림 = (1 + 추가) ~ (bowBase + 추가) */
 export function rollBowDamage(
   bowBaseDmg: number, level: number, enchantLevel: number, dex: number,
@@ -632,6 +646,25 @@ export function rollMagicDamage(
   }
   total += staffBaseDmg;
   return Math.max(1, Math.floor(total * coeff));
+}
+
+/**
+ * 마법 대미지 범위 (UI 표시용)
+ * 주사위 diceCount개 × d6 + staffBase, × coefficient
+ * min = diceCount × 1 + staffBase → × coeff
+ * max = diceCount × 6 + staffBase → × coeff
+ */
+export function magicDamageRange(
+  staffBaseDmg: number,
+  int: number, sp: number,
+  level: number, playerClass: PlayerClass,
+): { min: number; max: number } {
+  const diceCount = Math.max(1,
+    getMagicBonus(int) + magicLevel(level, playerClass));
+  const coeff = magicCoefficient(int, sp);
+  const min = Math.max(1, Math.floor((diceCount * 1 + staffBaseDmg) * coeff));
+  const max = Math.max(1, Math.floor((diceCount * 6 + staffBaseDmg) * coeff));
+  return { min, max };
 }
 
 /**
