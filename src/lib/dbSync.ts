@@ -3,7 +3,7 @@
    localStorage = 빠른 캐시 / Supabase DB = 원본
    ========================================================= */
 import { supabase } from './supabase';
-import { touchZonePresence, removeZonePresence, getZonePlayerCount } from './db';
+import { touchZonePresence, removeZonePresence, getZonePlayerCount, getZonePlayers } from './db';
 import type { Equipment } from '../types';
 
 let _userId: string | null = null;
@@ -340,15 +340,21 @@ async function heartbeatOnly() {
   } catch { /* ignore */ }
 }
 
-/** 존 접속자 수 갱신 (30초마다 호출) */
+/** 존 접속자 수 + 목록 갱신 (30초마다 호출) */
 async function refreshZonePlayerCount() {
   if (!_userId || !_getState || !_setStore) return;
   const state = _getState() as any;
   const zoneId = state.hunt?.zoneId;
   if (!zoneId || state.hunt?.status !== 'hunting' || zoneId === 'map_training') return;
   try {
-    const count = await getZonePlayerCount(zoneId);
-    _setStore({ zonePlayerCount: Math.max(1, count) });
+    const [count, players] = await Promise.all([
+      getZonePlayerCount(zoneId),
+      getZonePlayers(zoneId),
+    ]);
+    _setStore({
+      zonePlayerCount: Math.max(1, count),
+      zonePlayers: players,
+    });
   } catch { /* ignore */ }
 }
 

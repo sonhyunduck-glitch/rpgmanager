@@ -6,7 +6,7 @@ import type {
   EnhanceResult, ViewMode, ScrollType,
   StatAllocation, StatKey, ActiveBuff, PlayerClass,
 } from '../types';
-import type { OfflineReward } from '../lib/db';
+import type { OfflineReward, ZonePlayer } from '../lib/db';
 
 // ── 획득 배율 (테스트) ──
 export const RATE_GOLD = 10.0;
@@ -100,6 +100,7 @@ export interface GameState {
   hunt: HuntSession;
   combatLog: LogEntry[];
   zonePlayerCount: number;   // 현재 존 접속자 수 (리젠 수 조절용)
+  zonePlayers: ZonePlayer[];  // 현재 존 접속자 목록
 
   // Potions
   potions: Record<string, number>;

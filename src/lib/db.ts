@@ -253,6 +253,40 @@ export async function getZonePlayerCount(zoneId: string): Promise<number> {
   return count ?? 1;
 }
 
+/** 존 접속자 정보 (이름, 레벨, 클래스) */
+export interface ZonePlayer {
+  userId: string;
+  name: string;
+  level: number;
+  playerClass: string;
+}
+
+/** 특정 존의 활성 접속자 목록 (5분 이내, 최대 20명) */
+export async function getZonePlayers(zoneId: string): Promise<ZonePlayer[]> {
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  // 1) zone_presence에서 접속자 user_id 목록 조회
+  const { data: presenceData, error: presenceError } = await supabase
+    .from('zone_presence')
+    .select('user_id')
+    .eq('zone_id', zoneId)
+    .gte('updated_at', fiveMinAgo)
+    .limit(20);
+  if (presenceError || !presenceData || presenceData.length === 0) return [];
+  // 2) profiles에서 이름/레벨/클래스 조회
+  const userIds = presenceData.map((r: any) => r.user_id);
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('id, name, level, player_class')
+    .in('id', userIds);
+  if (profileError || !profileData) return [];
+  return profileData.map((p: any) => ({
+    userId: p.id,
+    name: p.name ?? '???',
+    level: p.level ?? 1,
+    playerClass: p.player_class ?? 'knight',
+  }));
+}
+
 // ── 오프라인 보상 계산 ──
 
 import {

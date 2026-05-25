@@ -186,6 +186,8 @@ export default function Minimap() {
   const resumeHunt = useGameStore(s => s.resumeHunt);
   const revive = useGameStore(s => s.revive);
   const zonePlayerCount = useGameStore(s => s.zonePlayerCount);
+  const zonePlayers = useGameStore(s => s.zonePlayers);
+  const authUserId = useGameStore(s => s.authUserId);
   const playerClass = useGameStore(s => s.playerClass);
   const combatStyle: CombatStyle = getClassCombatStyle(playerClass);
   const isRanged = combatStyle === 'ranged_bow' || combatStyle === 'ranged_magic';
@@ -243,6 +245,12 @@ export default function Minimap() {
   const [projectile, setProjectile] = useState<Projectile | null>(null);
   // 몬스터 스킬 이펙트
   const [skillEffect, setSkillEffect] = useState<SkillEffect | null>(null);
+  const [showPlayerList, setShowPlayerList] = useState(false);
+
+  // 접속자 1명이면 팝업 자동 닫기
+  useEffect(() => {
+    if (zonePlayerCount <= 1) setShowPlayerList(false);
+  }, [zonePlayerCount]);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const prevZoneId = useRef<string | null>(null);
@@ -1145,11 +1153,52 @@ export default function Minimap() {
         <span style={{ position: 'absolute', top: 8, left: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>
           {zone.name}
           {zonePlayerCount > 1 && (
-            <span style={{ marginLeft: 4, color: 'var(--warning)' }}>
+            <span
+              style={{ marginLeft: 4, color: 'var(--warning)', cursor: 'pointer' }}
+              onClick={(e) => { e.stopPropagation(); setShowPlayerList(v => !v); }}
+            >
               👤{zonePlayerCount}
             </span>
           )}
         </span>
+
+        {/* 접속자 목록 팝업 */}
+        {showPlayerList && zonePlayerCount > 1 && zonePlayers.length > 0 && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute', top: 26, left: 12, zIndex: 20,
+              background: 'rgba(0,0,0,0.85)', border: '1px solid var(--border)',
+              borderRadius: 6, padding: '6px 0', minWidth: 140, maxWidth: 180,
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            <div style={{
+              padding: '0 8px 4px', fontSize: 'var(--fs-xxs)', color: 'var(--text-secondary)',
+              borderBottom: '1px solid var(--border)', marginBottom: 2,
+            }}>
+              접속자 ({zonePlayers.length})
+            </div>
+            {zonePlayers.map(p => {
+              const isMe = p.userId === authUserId;
+              const classIcon = p.playerClass === 'knight' ? '⚔️' : p.playerClass === 'elf' ? '🏹' : '🔮';
+              return (
+                <div key={p.userId} style={{
+                  padding: '3px 8px', fontSize: 'var(--fs-xxs)',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  color: isMe ? 'var(--accent)' : 'var(--text-primary)',
+                  opacity: isMe ? 1 : 0.85,
+                }}>
+                  <span>{classIcon}</span>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.name}{isMe ? ' (나)' : ''}
+                  </span>
+                  <span style={{ color: 'var(--text-secondary)', flexShrink: 0 }}>Lv.{p.level}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* 몬스터 수 */}
         <span style={{ position: 'absolute', top: 8, right: 12, ...LABEL, fontSize: 'var(--fs-xs)', opacity: 0.5 }}>

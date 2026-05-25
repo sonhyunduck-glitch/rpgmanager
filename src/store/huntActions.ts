@@ -6,7 +6,7 @@ import { getClassBaseStats } from '../data/classData';
 import { getAvailableSkills, MAX_SKILL_SLOTS } from '../data/playerSkillData';
 import { genLogId } from './helpers';
 import { ROOMS_PER_ZONE } from './storeTypes';
-import { upsertZonePresence, getZonePlayerCount, removeZonePresence } from '../lib/db';
+import { upsertZonePresence, getZonePlayerCount, getZonePlayers, removeZonePresence } from '../lib/db';
 import type { LogEntry } from '../types';
 import type { GameState, SetState, GetState } from './storeTypes';
 
@@ -130,11 +130,11 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       const userId = get().authUserId;
       if (userId && zoneId !== 'map_training') {
         upsertZonePresence(userId, zoneId)
-          .then(() => getZonePlayerCount(zoneId))
-          .then(count => set({ zonePlayerCount: Math.max(1, count) }))
-          .catch(() => set({ zonePlayerCount: 1 }));
+          .then(() => Promise.all([getZonePlayerCount(zoneId), getZonePlayers(zoneId)]))
+          .then(([count, players]) => set({ zonePlayerCount: Math.max(1, count), zonePlayers: players }))
+          .catch(() => set({ zonePlayerCount: 1, zonePlayers: [] }));
       } else {
-        set({ zonePlayerCount: 1 });
+        set({ zonePlayerCount: 1, zonePlayers: [] });
       }
     },
 
@@ -161,6 +161,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       set(s => ({
         hunt: { ...s.hunt, status: 'paused' as const },
         zonePlayerCount: 1,
+        zonePlayers: [],
       }));
       save(get());
     },

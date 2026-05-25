@@ -315,6 +315,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   })(),
   combatLog: [],
   zonePlayerCount: 1,
+  zonePlayers: [],
 
   // ── Queue ──
   queue: (saved?.queue as any[]) ?? [],
