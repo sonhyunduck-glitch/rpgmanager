@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.32.1 — 타인 프로필에서 활/지팡이 무기 표시 수정
-export const APP_VERSION = '2.32.1';
+// v2.32.2 — 동일 기기 계정 간 장비 복사 버그 수정
+export const APP_VERSION = '2.32.2';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

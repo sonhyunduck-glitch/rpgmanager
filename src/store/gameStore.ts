@@ -7,7 +7,7 @@ import { HUNT_ZONES } from '../data/gameData';
 import { BASE_STATS, startingHp } from '../data/statFormulas';
 import {
   loadState, saveState as _saveState, enforceEpochGate,
-  createEquipment,
+  createEquipment, STORAGE_KEY,
 } from './helpers';
 import {
   setSyncUserId, setStateGetter, setStoreSetter, markDirty,
@@ -21,6 +21,7 @@ import type {
   StatAllocation, ActiveBuff,
 } from '../types';
 import { getAvailableSkills, MAX_SKILL_SLOTS } from '../data/playerSkillData';
+import { CLASS_CONFIGS } from '../data/classData';
 
 // ── 분리된 모듈 ──
 import type { GameState } from './storeTypes';
@@ -124,6 +125,30 @@ export const useGameStore = create<GameState>((set, get) => ({
       });
 
       if (!hasDBItems) {
+        // ⚠️ DB에 아이템이 없는 신규 캐릭터 — 클래스별 시작 장비 생성
+        // localStorage에 이전 계정 장비가 남아 있을 수 있으므로 반드시 새로 생성
+        const pc = (p.player_class as import('../types').PlayerClass) ?? 'knight';
+        const gear = CLASS_CONFIGS[pc].startingGear;
+        const freshWeapon = createEquipment(gear.weapon);
+        const freshArmor = gear.armor ? createEquipment(gear.armor) : null;
+        const freshHelmet = gear.helmet ? createEquipment(gear.helmet) : null;
+        const freshShield = gear.shield ? createEquipment(gear.shield) : null;
+
+        set({
+          equippedWeapon: freshWeapon,
+          equippedArmor: freshArmor,
+          equippedHelmet: freshHelmet,
+          equippedShield: freshShield,
+          equippedTshirt: null, equippedCloak: null,
+          equippedGloves: null, equippedBoots: null,
+          equippedNecklace: null, equippedRing: null,
+          equippedRing2: null, equippedBelt: null,
+          equippedEarring: null,
+          inventory: [],
+          materials: {},
+          potions: { potion_hp_minor: 50 },
+        });
+
         const s = get();
         syncAllItems(s.inventory, {
           equippedWeapon: s.equippedWeapon, equippedTshirt: s.equippedTshirt,
@@ -157,7 +182,26 @@ export const useGameStore = create<GameState>((set, get) => ({
         }, { onConflict: 'id' });
       }
 
-      set({ authUserId: userId, playerName: metaName, playerClass: metaClass });
+      // ⚠️ 클래스별 시작 장비로 초기화 — localStorage 잔존 데이터 사용 금지
+      const gear = CLASS_CONFIGS[metaClass].startingGear;
+      const freshWeapon = createEquipment(gear.weapon);
+      const freshArmor = gear.armor ? createEquipment(gear.armor) : null;
+      const freshHelmet = gear.helmet ? createEquipment(gear.helmet) : null;
+      const freshShield = gear.shield ? createEquipment(gear.shield) : null;
+
+      set({
+        authUserId: userId, playerName: metaName, playerClass: metaClass,
+        equippedWeapon: freshWeapon, equippedArmor: freshArmor,
+        equippedHelmet: freshHelmet, equippedShield: freshShield,
+        equippedTshirt: null, equippedCloak: null,
+        equippedGloves: null, equippedBoots: null,
+        equippedNecklace: null, equippedRing: null,
+        equippedRing2: null, equippedBelt: null,
+        equippedEarring: null,
+        inventory: [], materials: {},
+        potions: { potion_hp_minor: 50 },
+      });
+
       const s = get();
       syncAllItems(s.inventory, {
         equippedWeapon: s.equippedWeapon, equippedTshirt: s.equippedTshirt,
@@ -203,6 +247,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   logout: async () => {
     await flushNow();
     setSyncUserId(null);
+    // 로그아웃 시 localStorage 삭제 — 다른 계정 로그인 시 장비 복사 방지
+    localStorage.removeItem(STORAGE_KEY);
     set({ authUserId: null });
   },
 
