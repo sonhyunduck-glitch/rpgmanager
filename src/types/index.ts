@@ -138,6 +138,7 @@ export interface Monster {
   mp: number;
   ac: number;           // AC (낮을수록 회피 높음, 음수 가능)
   mr: number;           // 마법 저항
+  attr: number;         // 속성 약점 (L1J weak_attr: 0=없음, 1=땅, 2=불, 4=물, 8=바람)
   size: MonsterSize;    // 소형/대형 — 무기 데미지 적용 구분
   attackType: MonsterAttackType; // 근거리/마법 — 플레이어 방어 판정 구분
   str: number;          // 근거리 공격력 (소형: lv+5, 대형/전사/골렘: lv+12)

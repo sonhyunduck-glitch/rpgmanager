@@ -21,7 +21,7 @@ import {
   rollBowDamage, rollMagicDamage, rollMagicCritical, consecutiveMagicDecay,
   calcHpRegenIntervalMs, calcHpRegenAmount,
   calcMpRegenAmount, calcBluePotionMpBonus, MP_REGEN_INTERVAL_MS,
-  rollSpellDamage,
+  rollSpellDamage, calcAttrBonus,
 } from '../data/statFormulas';
 import {
   getAvailableSkills, getBestAttackSpell, getBestHealSpell, getAvailableBuffs, getPassiveBuffs,
@@ -489,9 +489,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (spell) {
           huntMp -= spell.consumeMp;
           skillCooldowns[spell.id] = spell.reuseDelayTicks || 1;
+          // 속성 상성 보너스 (L1J attrDefence: 약점 +0.5, 내성 -0.5)
+          const spellAttrBonus = calcAttrBonus(spell.attr, monster.attr);
           const rawMagic = rollSpellDamage(
             spell.damageValue, spell.damageDice, spell.damageDiceCount,
-            playerInt, totalSp, state.level, state.playerClass,
+            playerInt, totalSp, state.level, state.playerClass, spellAttrBonus,
           );
           const { isCrit: magicCrit } = rollMagicCritical();
           isCrit = magicCrit;
@@ -638,9 +640,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               });
             } else if (classSkill.skillCircle > 0 && classSkill.damageDiceCount > 0) {
               // 서클 마법 공격 (기사/요정이 장착한 공격 마법 자동 시전)
+              const classSpellAttrBonus = calcAttrBonus(classSkill.attr, monster.attr);
               const spellDmg = rollSpellDamage(
                 classSkill.damageValue, classSkill.damageDice, classSkill.damageDiceCount,
-                playerInt, totalSp, state.level, state.playerClass,
+                playerInt, totalSp, state.level, state.playerClass, classSpellAttrBonus,
               );
               const afterMr = applyMagicReduction(spellDmg, monster.mr);
               const skillFinalDmg = Math.max(1, afterMr);

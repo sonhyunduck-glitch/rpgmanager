@@ -657,6 +657,45 @@ export function consecutiveMagicDecay(consecutiveHits: number): number {
   return Math.pow(2 / 3, capped);
 }
 
+// ══════════════════════════════════════════════
+// 속성 상성 (L1J L1Magic.java attrDefence 기반)
+// ══════════════════════════════════════════════
+
+/**
+ * L1J 속성 상성표 (AttrType 비트마스크)
+ * 0=없음, 1=땅(earth), 2=불(fire), 4=물(water), 8=바람(wind)
+ *
+ * 상성 사이클: 땅→바람→물→불→땅 (약점 공격 시 +50% 대미지)
+ * 역상성:      불→바람→물→땅→불 (내성 공격 시 -50% 대미지)
+ * 동속성 / 무속성: 0 (보정 없음)
+ *
+ * L1J L1Magic.java: coefficient = 1.0 + attrDefence + ...
+ *   약점 공격: attrDefence = +0.5
+ *   내성 공격: attrDefence = -0.5
+ *   그 외:     attrDefence = 0.0
+ */
+
+/** 약점 매핑: key 속성으로 공격하면 value 속성 몬스터에게 +50% */
+const ATTR_WEAKNESS: Record<number, number> = {
+  1: 8,  // 땅 → 바람에 강함
+  2: 1,  // 불 → 땅에 강함
+  4: 2,  // 물 → 불에 강함
+  8: 4,  // 바람 → 물에 강함
+};
+
+/**
+ * 속성 상성 보너스 계산 (L1J attrDefence)
+ * @param spellAttr 마법 속성 (0/1/2/4/8)
+ * @param monsterAttr 몬스터 약점 속성 (0/1/2/4/8)
+ * @returns +0.5 (약점), -0.5 (내성), 0 (무관)
+ */
+export function calcAttrBonus(spellAttr: number, monsterAttr: number): number {
+  if (spellAttr === 0 || monsterAttr === 0) return 0;
+  if (ATTR_WEAKNESS[spellAttr] === monsterAttr) return 0.5;   // 약점 공격
+  if (ATTR_WEAKNESS[monsterAttr] === spellAttr) return -0.5;  // 내성 공격
+  return 0;
+}
+
 // ── 몬스터 hitRate (D20용) ──
 
 /** 몬스터 hitRate = level + hitup (L1J calcNpcPcHit) */
@@ -813,6 +852,7 @@ export function rollSpellDamage(
   sp: number,
   level: number,
   playerClass: PlayerClass,
+  attrBonus: number = 0,
 ): number {
   let diceCount = damageDiceCount;
   // diceCount=0 → 동적 주사위 (힐 등)
@@ -825,6 +865,6 @@ export function rollSpellDamage(
     total += secureRandomInt(1, damageDice); // 1 ~ damageDice
   }
 
-  const coeff = magicCoefficient(int, sp);
+  const coeff = magicCoefficient(int, sp, attrBonus);
   return Math.max(1, Math.floor(total * coeff));
 }

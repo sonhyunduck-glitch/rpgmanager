@@ -6,6 +6,14 @@ import { HUNT_ZONES } from '../../data/gameData';
 import { LABEL, STAT_VALUE } from '../../styles/shared';
 import { monsterDamageRange } from '../../data/statFormulas';
 
+/** 속성 아이콘/색상 매핑 (L1J AttrType) */
+const ATTR_META: Record<number, { icon: string; label: string; color: string }> = {
+  1: { icon: '🌍', label: '땅', color: '#8D6E63' },
+  2: { icon: '🔥', label: '불', color: '#FF7043' },
+  4: { icon: '💧', label: '물', color: '#42A5F5' },
+  8: { icon: '🌪️', label: '바람', color: '#66BB6A' },
+};
+
 export default function CombatStatus() {
   const hunt = useGameStore((s) => s.hunt);
   const currentHp = useGameStore((s) => s.currentHp);
@@ -114,9 +122,21 @@ export default function CombatStatus() {
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
-            title={monsterName ? `${monsterName} (Lv.${monster?.level})` : ''}
+            title={monsterName ? `${monsterName} (Lv.${monster?.level})${monster?.attr ? ` [${ATTR_META[monster.attr]?.label ?? ''}속성]` : ''}` : ''}
           >
-            {monster ? `${monsterName}` : 'NO TARGET'}
+            {monster ? (
+              <>
+                {monster.attr > 0 && ATTR_META[monster.attr] && (
+                  <span style={{
+                    fontSize: 'var(--fs-2xs)', marginRight: 3,
+                    color: ATTR_META[monster.attr].color,
+                  }}>
+                    {ATTR_META[monster.attr].icon}
+                  </span>
+                )}
+                {monsterName}
+              </>
+            ) : 'NO TARGET'}
           </span>
           {monster ? (
             <span
@@ -144,6 +164,15 @@ export default function CombatStatus() {
             <span style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
               DMG {monsterDmg.min}~{monsterDmg.max}
             </span>
+            {monster.attr > 0 && ATTR_META[monster.attr] && (
+              <span style={{
+                fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                color: ATTR_META[monster.attr].color,
+                fontFamily: 'var(--font-mono)',
+              }}>
+                {ATTR_META[monster.attr].label}
+              </span>
+            )}
           </div>
         )}
       </div>
