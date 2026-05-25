@@ -128,10 +128,10 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
     <div style={containerStyle}>
       <div style={panelStyle}>
         {/* 제목 */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div style={{
             fontFamily: "'Space Grotesk', var(--font-display)",
-            fontSize: 24, fontWeight: 800,
+            fontSize: 20, fontWeight: 800,
             color: 'var(--accent)', letterSpacing: '-0.02em',
           }}>
             캐릭터 생성
@@ -143,9 +143,9 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
 
         {/* 클래스 카드 3개 */}
         <div style={{
-          display: 'flex', gap: 12,
+          display: 'flex', gap: 8,
           justifyContent: 'center', flexWrap: 'wrap',
-          marginBottom: 20,
+          marginBottom: 14,
         }}>
           {CLASSES.map((cls) => {
             const cfg = CLASS_CONFIGS[cls];
@@ -155,8 +155,10 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
                 key={cls}
                 onClick={() => handleSelectClass(cls)}
                 style={{
-                  width: 180,
-                  padding: '16px 14px',
+                  flex: '1 1 0',
+                  minWidth: 130,
+                  maxWidth: 200,
+                  padding: '12px 10px',
                   background: isSelected ? 'color-mix(in oklch, var(--accent) 12%, var(--bg-panel))' : 'var(--bg-panel)',
                   border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border-soft)',
                   borderRadius: 'var(--r-md)',
@@ -167,7 +169,7 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
                   fontFamily: 'var(--font-ui)',
                 }}
               >
-                <div style={{ fontSize: 32, marginBottom: 6 }}>
+                <div style={{ fontSize: 26, marginBottom: 4 }}>
                   {CLASS_ICONS[cls]}
                 </div>
                 <div style={{
@@ -226,8 +228,8 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
           <div style={{
             background: 'var(--bg-sunken)',
             borderRadius: 'var(--r-sm)',
-            padding: '12px 14px',
-            marginBottom: 16,
+            padding: '10px 10px',
+            marginBottom: 12,
           }}>
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -386,23 +388,26 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
 
 const containerStyle: React.CSSProperties = {
   width: '100%',
-  height: '100%',
+  minHeight: '100%',
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   justifyContent: 'center',
   background: 'var(--bg-canvas)',
+  overflowY: 'auto',
+  WebkitOverflowScrolling: 'touch',
+  padding: '12px 0',
+  boxSizing: 'border-box',
 };
 
 const panelStyle: React.CSSProperties = {
   maxWidth: 640,
-  width: '100%',
+  width: 'calc(100% - 24px)',
   background: 'var(--bg-panel)',
   border: '1px solid var(--border-soft)',
   borderRadius: 'var(--r-md)',
-  padding: '28px 24px',
+  padding: '20px 14px',
   boxShadow: 'var(--shadow-lg)',
-  maxHeight: '95vh',
-  overflowY: 'auto',
+  margin: '0 auto',
 };
 
 const inputStyle: React.CSSProperties = {

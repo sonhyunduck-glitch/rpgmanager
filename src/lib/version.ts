@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.30.0 — 몬스터 속성 시스템 + attrDefence 계수 전투 반영
-export const APP_VERSION = '2.30.0';
+// v2.31.0 — 모바일 캐릭터 생성 화면 레이아웃 수정
+export const APP_VERSION = '2.31.0';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
