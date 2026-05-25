@@ -77,6 +77,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           bonusEffects: row.bonus_effects ?? [], sellPrice: row.sell_price,
           weight: row.weight ?? 0,
         };
+        if (row.is_two_handed) eq.isTwoHanded = true;
         if (row.equipped && row.equipped_slot) equipped[row.equipped_slot] = eq;
         else inv.push(eq);
       }

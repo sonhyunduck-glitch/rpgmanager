@@ -40,10 +40,13 @@ CREATE TABLE IF NOT EXISTS items (
   base_atk_large INT DEFAULT 0,
   base_def     INT DEFAULT 0,
   enhance_level INT DEFAULT 0,
+  safe_enchant INT DEFAULT 4,              -- 안전 강화 수치 (무기 6, 방어구 4)
   max_enhance  INT DEFAULT 0,
+  is_two_handed BOOLEAN DEFAULT false,     -- 양손 무기 여부 (L1J is_twohanded)
   bonuses      JSONB DEFAULT '{}'::jsonb,
   bonus_effects JSONB DEFAULT '[]'::jsonb,
   sell_price   INT DEFAULT 0,
+  weight       INT DEFAULT 0,             -- 무게 (L1J 1/10 단위)
   equipped     BOOLEAN DEFAULT false,      -- true = 장착중
   equipped_slot TEXT,                      -- 장착 슬롯 (weapon, armor, etc.)
   created_at   TIMESTAMPTZ DEFAULT now()

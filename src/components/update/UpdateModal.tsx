@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { APP_VERSION } from '../../lib/version';
 import { supabase } from '../../lib/supabase';
+import { flushNow } from '../../lib/dbSync';
 
 interface MetaState {
   latestVersion: string | null;
@@ -67,6 +68,12 @@ export default function UpdateModal() {
   // 강제 업데이트
   async function forceUpdate() {
     setUpdating(true);
+    try {
+      // ⚠️ 업데이트 전 DB에 현재 상태 즉시 동기화 (장비 유실 방지)
+      await flushNow();
+    } catch (e) {
+      console.warn('[Update] DB flush 실패:', e);
+    }
     try {
       // 캐시 정리
       if ('caches' in window) {

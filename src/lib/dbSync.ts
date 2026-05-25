@@ -126,7 +126,9 @@ function equipToRow(eq: Equipment, equipped: boolean, slot: string | null) {
     base_atk_large: eq.baseAtkLarge,
     base_def: eq.baseDef,
     enhance_level: eq.enhanceLevel,
+    safe_enchant: eq.safeEnchant,          // ← 추가: 안전 강화 수치
     max_enhance: eq.maxEnhance,
+    is_two_handed: eq.isTwoHanded ?? false, // ← 추가: 양손 무기 여부
     bonuses: eq.bonuses as Record<string, unknown>,
     bonus_effects: eq.bonusEffects,
     sell_price: eq.sellPrice,
@@ -255,6 +257,14 @@ export async function loadFromDB(): Promise<{
   ]);
 
   if (!profileRes.data) return null;
+
+  // ⚠️ items 쿼리 에러 시 빈 배열 대신 null 반환 → hasDBItems 오판 방지
+  // 네트워크 오류로 data=null이 되면, initFromDB에서 "DB에 아이템 없음"으로 오판하여
+  // 기본 초기 장비가 DB를 덮어쓰는 치명적 버그 발생.
+  if (itemsRes.error) {
+    console.error('[dbSync] items 쿼리 실패 — DB 장비 보존을 위해 null 반환:', itemsRes.error);
+    return null;
+  }
 
   const materials: Record<string, number> = {};
   for (const row of matsRes.data ?? []) {

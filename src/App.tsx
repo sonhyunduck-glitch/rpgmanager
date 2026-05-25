@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from './store/gameStore';
 import { saveState as saveStateToLS } from './store/helpers';
+import { flushNow } from './lib/dbSync';
 import StatusBar from './components/layout/StatusBar';
 import LeftPanel from './components/layout/LeftPanel';
 import CombatStatus from './components/hunt/CombatStatus';
@@ -47,6 +48,8 @@ export default function App({ userId }: AppProps) {
     const handleBeforeUnload = () => {
       const s = useGameStore.getState();
       saveStateToLS(s);
+      // DB에도 동기화 시도 (비동기지만 브라우저가 허용하는 한 실행)
+      flushNow().catch(() => {});
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
