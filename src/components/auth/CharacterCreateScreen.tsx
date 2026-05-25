@@ -6,10 +6,25 @@
    스탯 캡: base + 투자 ≤ 18 (기사 STR만 20)
    레벨업 보너스 스탯은 캡 없이 추가 가능
    ========================================================= */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { CLASS_CONFIGS, getStatCap } from '../../data/classData';
 import { supabase } from '../../lib/supabase';
 import type { PlayerClass, StatKey } from '../../types';
+
+/** 가로 모드 감지 (높이 ≤ 500px) */
+function useIsLandscape() {
+  const [v, setV] = useState(() =>
+    typeof window !== 'undefined' && window.innerHeight <= 500,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(max-height: 500px)');
+    const h = (e: MediaQueryListEvent) => setV(e.matches);
+    mq.addEventListener('change', h);
+    setV(mq.matches);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  return v;
+}
 
 const CLASSES: PlayerClass[] = ['knight', 'elf', 'wizard'];
 const CLASS_ICONS: Record<PlayerClass, string> = {
@@ -36,6 +51,7 @@ interface Props {
 }
 
 export default function CharacterCreateScreen({ userId, onComplete }: Props) {
+  const isLandscape = useIsLandscape();
   const [selectedClass, setSelectedClass] = useState<PlayerClass | null>(null);
   const [alloc, setAlloc] = useState<StatAlloc>({ ...ZERO_ALLOC });
   const [playerName, setPlayerName] = useState('');
@@ -124,51 +140,77 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
     }
   };
 
-  return (
-    <div style={containerStyle}>
-      <div style={panelStyle}>
-        {/* 제목 */}
-        <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <div style={{
-            fontFamily: "'Space Grotesk', var(--font-display)",
-            fontSize: 20, fontWeight: 800,
-            color: 'var(--accent)', letterSpacing: '-0.02em',
-          }}>
-            캐릭터 생성
-          </div>
-          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-mute)', marginTop: 4 }}>
-            클래스를 선택하고 스탯을 배분하세요
-          </div>
-        </div>
+  // ── 공통 서브 컴포넌트 ──
 
-        {/* 클래스 카드 3개 */}
-        <div style={{
-          display: 'flex', gap: 8,
-          justifyContent: 'center', flexWrap: 'wrap',
-          marginBottom: 14,
-        }}>
-          {CLASSES.map((cls) => {
-            const cfg = CLASS_CONFIGS[cls];
-            const isSelected = selectedClass === cls;
-            return (
-              <button
-                key={cls}
-                onClick={() => handleSelectClass(cls)}
-                style={{
-                  flex: '1 1 0',
-                  minWidth: 130,
-                  maxWidth: 200,
-                  padding: '12px 10px',
-                  background: isSelected ? 'color-mix(in oklch, var(--accent) 12%, var(--bg-panel))' : 'var(--bg-panel)',
-                  border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border-soft)',
-                  borderRadius: 'var(--r-md)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.15s',
-                  boxShadow: isSelected ? '0 0 12px color-mix(in oklch, var(--accent) 25%, transparent)' : 'none',
-                  fontFamily: 'var(--font-ui)',
-                }}
-              >
+  const titleBlock = (
+    <div style={{ textAlign: 'center', marginBottom: isLandscape ? 6 : 16 }}>
+      <div style={{
+        fontFamily: "'Space Grotesk', var(--font-display)",
+        fontSize: isLandscape ? 14 : 20, fontWeight: 800,
+        color: 'var(--accent)', letterSpacing: '-0.02em',
+      }}>
+        캐릭터 생성
+      </div>
+      {!isLandscape && (
+        <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-mute)', marginTop: 4 }}>
+          클래스를 선택하고 스탯을 배분하세요
+        </div>
+      )}
+    </div>
+  );
+
+  const classCards = (
+    <div style={{
+      display: 'flex', gap: isLandscape ? 4 : 8,
+      justifyContent: 'center',
+      flexDirection: isLandscape ? 'column' as const : 'row' as const,
+      flexWrap: isLandscape ? 'nowrap' as const : 'wrap' as const,
+      marginBottom: isLandscape ? 0 : 14,
+    }}>
+      {CLASSES.map((cls) => {
+        const cfg = CLASS_CONFIGS[cls];
+        const isSelected = selectedClass === cls;
+        return (
+          <button
+            key={cls}
+            onClick={() => handleSelectClass(cls)}
+            style={{
+              ...(!isLandscape ? { flex: '1 1 0', minWidth: 130, maxWidth: 200 } : {}),
+              padding: isLandscape ? '4px 8px' : '12px 10px',
+              background: isSelected ? 'color-mix(in oklch, var(--accent) 12%, var(--bg-panel))' : 'var(--bg-panel)',
+              border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border-soft)',
+              borderRadius: 'var(--r-md)',
+              cursor: 'pointer',
+              textAlign: isLandscape ? 'left' as const : 'center' as const,
+              transition: 'all 0.15s',
+              boxShadow: isSelected ? '0 0 12px color-mix(in oklch, var(--accent) 25%, transparent)' : 'none',
+              fontFamily: 'var(--font-ui)',
+              ...(isLandscape ? { display: 'flex', alignItems: 'center', gap: 6 } : {}),
+            }}
+          >
+            {isLandscape ? (
+              /* ── 가로 모드: 한 줄 컴팩트 ── */
+              <>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>{CLASS_ICONS[cls]}</span>
+                <span style={{
+                  fontSize: 'var(--fs-sm)', fontWeight: 800,
+                  color: isSelected ? 'var(--accent)' : 'var(--text)',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {cfg.nameKo}
+                </span>
+                <span style={{
+                  fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
+                  marginLeft: 'auto', whiteSpace: 'nowrap',
+                }}>
+                  {cfg.combatStyle === 'melee' ? '근접' : cfg.combatStyle === 'ranged_bow' ? '활' : '마법'}
+                  {' · '}
+                  {STAT_KEYS.map(s => `${STAT_META[s].label}${cfg.baseStats[s]}`).join(' ')}
+                </span>
+              </>
+            ) : (
+              /* ── 세로/데스크톱 모드: 기존 카드 ── */
+              <>
                 <div style={{ fontSize: 26, marginBottom: 4 }}>
                   {CLASS_ICONS[cls]}
                 </div>
@@ -183,7 +225,6 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
                 }}>
                   {cfg.nameEn}
                 </div>
-                {/* 기본 스탯 */}
                 <div style={{
                   display: 'grid', gridTemplateColumns: '1fr 1fr',
                   gap: '2px 8px', fontSize: 'var(--fs-xs)',
@@ -200,7 +241,6 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
                     </div>
                   ))}
                 </div>
-                {/* 전투 방식 */}
                 <div style={{
                   fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
                   borderTop: '1px solid var(--border-soft)',
@@ -218,167 +258,206 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
                 }}>
                   {cfg.description}
                 </div>
-              </button>
-            );
-          })}
-        </div>
+              </>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
 
-        {/* ── 스탯 배분 (클래스 선택 후) ── */}
-        {config && (
-          <div style={{
-            background: 'var(--bg-sunken)',
-            borderRadius: 'var(--r-sm)',
-            padding: '10px 10px',
-            marginBottom: 12,
-          }}>
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              marginBottom: 10,
+  const statBlock = config ? (
+    <div style={{
+      background: 'var(--bg-sunken)',
+      borderRadius: 'var(--r-sm)',
+      padding: isLandscape ? '6px 8px' : '10px 10px',
+      marginBottom: isLandscape ? 6 : 12,
+    }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: isLandscape ? 4 : 10,
+      }}>
+        <span style={{
+          fontSize: 'var(--fs-sm)', fontWeight: 700,
+          color: 'var(--text-dim)',
+        }}>
+          스탯 배분
+        </span>
+        <span style={{
+          fontSize: 'var(--fs-sm)', fontWeight: 700,
+          color: remaining > 0 ? 'var(--accent)' : 'var(--success)',
+        }}>
+          남은: {remaining}
+        </span>
+      </div>
+
+      {!isLandscape && (
+        <div style={{
+          fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
+          marginBottom: 8, textAlign: 'center',
+        }}>
+          추천: <span style={{ color: 'var(--accent)' }}>{config.recommendedStats}</span>
+          {' · '}최대 {selectedClass === 'knight' ? 'STR 20 / 나머지 18' : '18'}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: isLandscape ? 2 : 4 }}>
+        {STAT_KEYS.map((stat) => {
+          const base = config.baseStats[stat];
+          const a = alloc[stat];
+          const total = base + a;
+          const cap = getStatCap(selectedClass!, stat);
+          const atCap = total >= cap;
+          const { label, color } = STAT_META[stat];
+
+          return (
+            <div key={stat} style={{
+              display: 'flex', alignItems: 'center', gap: isLandscape ? 4 : 6,
+              padding: isLandscape ? '2px 6px' : '5px 8px',
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border-soft)',
+              borderRadius: 'var(--r-sm)',
             }}>
               <span style={{
-                fontSize: 'var(--fs-sm)', fontWeight: 700,
-                color: 'var(--text-dim)',
+                fontSize: 'var(--fs-xs)', fontWeight: 700,
+                color, minWidth: 26,
               }}>
-                스탯 배분
+                {label}
               </span>
               <span style={{
-                fontSize: 'var(--fs-sm)', fontWeight: 700,
-                color: remaining > 0 ? 'var(--accent)' : 'var(--success)',
+                fontSize: 'var(--fs-base)', fontWeight: 700,
+                color, minWidth: 20, textAlign: 'center',
               }}>
-                남은 포인트: {remaining}
+                {total}
               </span>
+              <span style={{
+                fontSize: '10px', color: 'var(--text-faint)',
+                minWidth: 36,
+              }}>
+                ({base}{a > 0 ? `+${a}` : ''})
+              </span>
+              <span style={{
+                fontSize: '9px', color: 'var(--text-faint)',
+                minWidth: 22, textAlign: 'right',
+              }}>
+                /{cap}
+              </span>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: isLandscape ? 2 : 4 }}>
+                <button
+                  onClick={() => handleMinus(stat)}
+                  disabled={a <= 0}
+                  style={{
+                    ...statBtnStyle,
+                    ...(isLandscape ? { width: 20, height: 20 } : {}),
+                    borderColor: a > 0 ? color : 'var(--border-soft)',
+                    color: a > 0 ? color : 'var(--border-soft)',
+                    cursor: a > 0 ? 'pointer' : 'not-allowed',
+                    opacity: a > 0 ? 1 : 0.3,
+                  }}
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => handlePlus(stat)}
+                  disabled={remaining <= 0 || atCap}
+                  style={{
+                    ...statBtnStyle,
+                    ...(isLandscape ? { width: 20, height: 20 } : {}),
+                    borderColor: (remaining > 0 && !atCap) ? color : 'var(--border-soft)',
+                    color: (remaining > 0 && !atCap) ? color : 'var(--border-soft)',
+                    cursor: (remaining > 0 && !atCap) ? 'pointer' : 'not-allowed',
+                    opacity: (remaining > 0 && !atCap) ? 1 : 0.3,
+                  }}
+                >
+                  +
+                </button>
+              </div>
             </div>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
 
-            <div style={{
-              fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)',
-              marginBottom: 8, textAlign: 'center',
-            }}>
-              추천: <span style={{ color: 'var(--accent)' }}>{config.recommendedStats}</span>
-              {' · '}최대 {selectedClass === 'knight' ? 'STR 20 / 나머지 18' : '18'}
+  const nicknameBlock = (
+    <div style={{ marginBottom: isLandscape ? 6 : 16 }}>
+      <input
+        type="text"
+        placeholder="닉네임 (2~12자)"
+        value={playerName}
+        onChange={(e) => setPlayerName(e.target.value)}
+        maxLength={12}
+        style={{ ...inputStyle, padding: isLandscape ? '6px 10px' : '10px 12px' }}
+        autoComplete="off"
+      />
+    </div>
+  );
+
+  const errorBlock = error ? (
+    <div style={{
+      fontSize: 'var(--fs-sm)', color: 'var(--danger)',
+      textAlign: 'center', padding: '4px 8px',
+      background: 'color-mix(in oklch, var(--danger) 8%, transparent)',
+      borderRadius: 'var(--r-xs)', marginBottom: isLandscape ? 4 : 12,
+    }}>
+      {error}
+    </div>
+  ) : null;
+
+  const submitBlock = (
+    <button
+      onClick={handleSubmit}
+      disabled={!canSubmit}
+      style={{
+        ...btnStyle,
+        padding: isLandscape ? '8px' : '12px',
+        opacity: canSubmit ? 1 : 0.4,
+        cursor: canSubmit ? 'pointer' : 'not-allowed',
+      }}
+    >
+      {loading ? '생성 중...' : remaining > 0 ? `스탯 ${remaining}포인트 배분 필요` : '모험 시작'}
+    </button>
+  );
+
+  // ── 렌더 ──
+  if (isLandscape) {
+    /* 가로 모드: 좌(클래스 카드) | 우(스탯+닉네임+버튼) 2컬럼 */
+    return (
+      <div style={containerStyle}>
+        <div style={{
+          ...panelStyle,
+          maxWidth: 720,
+          padding: '8px 10px',
+        }}>
+          {titleBlock}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {/* 좌측: 클래스 선택 */}
+            <div style={{ flex: '0 0 auto', minWidth: 160, maxWidth: 220 }}>
+              {classCards}
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {STAT_KEYS.map((stat) => {
-                const base = config.baseStats[stat];
-                const a = alloc[stat];
-                const total = base + a;
-                const cap = getStatCap(selectedClass!, stat);
-                const atCap = total >= cap;
-                const { label, color } = STAT_META[stat];
-
-                return (
-                  <div key={stat} style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '5px 8px',
-                    background: 'var(--bg-panel)',
-                    border: '1px solid var(--border-soft)',
-                    borderRadius: 'var(--r-sm)',
-                  }}>
-                    {/* 라벨 */}
-                    <span style={{
-                      fontSize: 'var(--fs-xs)', fontWeight: 700,
-                      color, minWidth: 30,
-                    }}>
-                      {label}
-                    </span>
-
-                    {/* 총합 */}
-                    <span style={{
-                      fontSize: 'var(--fs-base)', fontWeight: 700,
-                      color, minWidth: 24, textAlign: 'center',
-                    }}>
-                      {total}
-                    </span>
-
-                    {/* 분해 표기 */}
-                    <span style={{
-                      fontSize: '10px', color: 'var(--text-faint)',
-                      minWidth: 40,
-                    }}>
-                      ({base}{a > 0 ? `+${a}` : ''})
-                    </span>
-
-                    {/* 캡 표시 */}
-                    <span style={{
-                      fontSize: '9px', color: 'var(--text-faint)',
-                      minWidth: 28, textAlign: 'right',
-                    }}>
-                      /{cap}
-                    </span>
-
-                    {/* 버튼 */}
-                    <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-                      <button
-                        onClick={() => handleMinus(stat)}
-                        disabled={a <= 0}
-                        style={{
-                          ...statBtnStyle,
-                          borderColor: a > 0 ? color : 'var(--border-soft)',
-                          color: a > 0 ? color : 'var(--border-soft)',
-                          cursor: a > 0 ? 'pointer' : 'not-allowed',
-                          opacity: a > 0 ? 1 : 0.3,
-                        }}
-                      >
-                        −
-                      </button>
-                      <button
-                        onClick={() => handlePlus(stat)}
-                        disabled={remaining <= 0 || atCap}
-                        style={{
-                          ...statBtnStyle,
-                          borderColor: (remaining > 0 && !atCap) ? color : 'var(--border-soft)',
-                          color: (remaining > 0 && !atCap) ? color : 'var(--border-soft)',
-                          cursor: (remaining > 0 && !atCap) ? 'pointer' : 'not-allowed',
-                          opacity: (remaining > 0 && !atCap) ? 1 : 0.3,
-                        }}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* 우측: 스탯 + 닉네임 + 버튼 */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {statBlock}
+              {nicknameBlock}
+              {errorBlock}
+              {submitBlock}
             </div>
           </div>
-        )}
-
-        {/* 닉네임 입력 */}
-        <div style={{ marginBottom: 16 }}>
-          <input
-            type="text"
-            placeholder="닉네임 (2~12자)"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            maxLength={12}
-            style={inputStyle}
-            autoComplete="off"
-          />
         </div>
+      </div>
+    );
+  }
 
-        {/* 에러 */}
-        {error && (
-          <div style={{
-            fontSize: 'var(--fs-sm)', color: 'var(--danger)',
-            textAlign: 'center', padding: '6px 8px',
-            background: 'color-mix(in oklch, var(--danger) 8%, transparent)',
-            borderRadius: 'var(--r-xs)', marginBottom: 12,
-          }}>
-            {error}
-          </div>
-        )}
-
-        {/* 시작 버튼 */}
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          style={{
-            ...btnStyle,
-            opacity: canSubmit ? 1 : 0.4,
-            cursor: canSubmit ? 'pointer' : 'not-allowed',
-          }}
-        >
-          {loading ? '생성 중...' : remaining > 0 ? `스탯 ${remaining}포인트 배분 필요` : '모험 시작'}
-        </button>
+  /* 세로/데스크톱 모드: 기존 세로 레이아웃 */
+  return (
+    <div style={containerStyle}>
+      <div style={panelStyle}>
+        {titleBlock}
+        {classCards}
+        {statBlock}
+        {nicknameBlock}
+        {errorBlock}
+        {submitBlock}
       </div>
     </div>
   );
@@ -387,15 +466,12 @@ export default function CharacterCreateScreen({ userId, onComplete }: Props) {
 // ── Styles ──
 
 const containerStyle: React.CSSProperties = {
-  width: '100%',
-  minHeight: '100%',
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'center',
-  background: 'var(--bg-canvas)',
+  position: 'absolute',
+  inset: 0,
   overflowY: 'auto',
   WebkitOverflowScrolling: 'touch',
-  padding: '12px 0',
+  background: 'var(--bg-canvas)',
+  padding: '8px 0',
   boxSizing: 'border-box',
 };
 
