@@ -24,7 +24,7 @@ import {
   rollSpellDamage, calcAttrBonus,
 } from '../data/statFormulas';
 import {
-  getAvailableSkills, getBestAttackSpell, getBestHealSpell, getAvailableBuffs, getPassiveBuffs,
+  getAvailableSkills, getBestHealSpell, getAvailableBuffs, getPassiveBuffs,
 } from '../data/playerSkillData';
 import { secureRandom, secureRandomInt } from '../lib/random';
 import { genLogId, createEquipment } from './helpers';
@@ -501,37 +501,19 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       let usedSpellName = '';
 
       if (combatStyle === 'ranged_magic') {
-        // ── 마법사: 스킬 기반 마법 공격 (L1J skills.csv) ──
+        // ── 마법사: 에너지 볼트 기본 공격 (MP 미소모, 자동 명중, 매 틱 발동) ──
+        // 스킬 마법은 클래스 스킬 섹션에서 추가로 시전됨
         playerAttackHit = true;
-        const spell = getBestAttackSpell(state.playerClass, state.level, huntMp, skillCooldowns, equipped, disabled);
-        if (spell) {
-          huntMp -= spell.consumeMp;
-          skillCooldowns[spell.id] = spell.reuseDelayTicks || 1;
-          // 속성 상성 보너스 (L1J attrDefence: 약점 +0.5, 내성 -0.5)
-          const spellAttrBonus = calcAttrBonus(spell.attr, monster.attr);
-          const rawMagic = rollSpellDamage(
-            spell.damageValue, spell.damageDice, spell.damageDiceCount,
-            playerInt, totalSp, state.level, state.playerClass, spellAttrBonus,
-          );
-          const { isCrit: magicCrit } = rollMagicCritical();
-          isCrit = magicCrit;
-          const critDmg = isCrit ? Math.floor(rawMagic * 1.5) : rawMagic;
-          const afterMr = applyMagicReduction(critDmg, monster.mr);
-          finalDmg = afterMr + equipBonusMagicDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
-          usedSpellName = spell.name;
-        } else {
-          // 에너지 볼트 — 마법사 기본 공격 (MP 미소모, 자동 명중)
-          const rawMagic = rollMagicDamage(
-            weaponBaseDmg, playerInt, totalSp,
-            state.level, state.playerClass,
-          );
-          const { isCrit: magicCrit } = rollMagicCritical();
-          isCrit = magicCrit;
-          const critDmg = isCrit ? Math.floor(rawMagic * 1.5) : rawMagic;
-          const afterMr = applyMagicReduction(critDmg, monster.mr);
-          finalDmg = afterMr + equipBonusMagicDmg + undeadBonus;
-          usedSpellName = '에너지 볼트';
-        }
+        const rawMagic = rollMagicDamage(
+          weaponBaseDmg, playerInt, totalSp,
+          state.level, state.playerClass,
+        );
+        const { isCrit: magicCrit } = rollMagicCritical();
+        isCrit = magicCrit;
+        const critDmg = isCrit ? Math.floor(rawMagic * 1.5) : rawMagic;
+        const afterMr = applyMagicReduction(critDmg, monster.mr);
+        finalDmg = afterMr + equipBonusMagicDmg + undeadBonus;
+        usedSpellName = '에너지 볼트';
       } else {
         // ── 기사/요정: D20 명중 판정 ──
         usedSpellName = CLASS_CONFIGS[state.playerClass].atkName;
@@ -618,9 +600,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           const classSkills = getAvailableSkills(state.playerClass, state.level)
             .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
               && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id)
-              && (!s.consumeItemId || (newMaterials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0))
-              // 마법사: getBestAttackSpell()로 이미 서클 마법 시전 → 서클 마법 중복 시전 방지
-              && !(combatStyle === 'ranged_magic' && usedSpellName && s.skillCircle > 0))
+              && (!s.consumeItemId || (newMaterials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)))
             .sort((a, b) => {
               // 서클0(클래스 전용) 최우선
               if (a.skillCircle === 0 && b.skillCircle !== 0) return -1;
