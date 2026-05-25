@@ -1,4 +1,4 @@
-/* ── 내거래 탭 (L1J 거래소 스타일) ── */
+/* ── 내거래 탭 (L1J 모바일 거래소 스타일) ── */
 import { useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { LABEL } from '../../styles/shared';
@@ -48,6 +48,7 @@ export default function MyTradesTab() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
+      {/* 상단 헤더 */}
       <div style={{
         display: 'flex', alignItems: 'center', flexShrink: 0,
         paddingBottom: 'var(--s-1)',
@@ -55,12 +56,27 @@ export default function MyTradesTab() {
       }}>
         <span style={{ ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0 }}>내 거래 내역</span>
         <span style={{ flex: 1 }} />
+        {/* 활성 건수 뱃지 */}
+        {!loading && activeListings.length > 0 && (
+          <span style={{
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
+            color: 'var(--info)', fontWeight: 700,
+            background: 'color-mix(in oklch, var(--info) 10%, transparent)',
+            padding: '1px 6px', borderRadius: 'var(--r-xs)',
+            marginRight: 'var(--s-1)',
+          }}>
+            판매중 {activeListings.length}
+          </span>
+        )}
         <button
           onClick={load}
           style={{
-            fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
-            background: 'none', border: 'none',
-            color: 'var(--text-faint)', cursor: 'pointer', padding: '2px 6px',
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
+            fontWeight: 600,
+            background: 'none', border: '1px solid var(--border-soft)',
+            borderRadius: 'var(--r-xs)',
+            color: 'var(--text-faint)', cursor: 'pointer',
+            padding: '3px 8px',
           }}
         >
           새로 고침

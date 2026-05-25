@@ -1,4 +1,4 @@
-/* ── 검색 탭: 활성 거래 목록 (L1J 거래소 스타일) ── */
+/* ── 검색 탭: 활성 거래 목록 (L1J 모바일 거래소 스타일) ── */
 import { useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import type { TradeListing } from '../../types';
@@ -50,14 +50,34 @@ export default function BrowseTab() {
     setBuying(null);
   };
 
+  /* ── 카테고리별 아이콘 ── */
+  const catIcon: Record<string, string> = {
+    all: '📦', weapon: '🗡️', bow: '🏹', staff: '🔮',
+    armor: '🛡️', helmet: '⛑️', cloak: '🧣', gloves: '🧤',
+    boots: '👢', shield: '🛡️', tshirt: '👕', necklace: '📿',
+    ring: '💍', belt: '🎗️',
+  };
+
+  /* ── 필터별 갯수 계산 (로딩 완료 후) ── */
+  const countByType = (key: string) => {
+    if (key === 'all') return listings.length;
+    return listings.filter(l => l.item_data.type === key).length;
+  };
+
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
-      {/* ── 카테고리 필터 (L1J 좌측 탭 느낌 → 가로 칩) ── */}
+    <div style={{
+      flex: 1, minHeight: 0,
+      display: 'flex', gap: 0,
+    }}>
+      {/* ═══ 좌측 카테고리 사이드바 (L1J 모바일 스타일) ═══ */}
       <div style={{
-        display: 'flex', gap: 3, flexWrap: 'wrap', flexShrink: 0,
-        alignItems: 'center',
-        paddingBottom: 'var(--s-1)',
-        borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
+        width: 64, flexShrink: 0,
+        display: 'flex', flexDirection: 'column',
+        borderRight: '1px solid var(--border-soft)',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        background: 'var(--bg-sunken)',
+        borderRadius: 'var(--r-sm) 0 0 var(--r-sm)',
       }}>
         {TYPE_FILTERS.map(f => {
           const active = typeFilter === f.key;
@@ -66,109 +86,160 @@ export default function BrowseTab() {
               key={f.key}
               onClick={() => setTypeFilter(f.key)}
               style={{
-                fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 600,
-                padding: '3px 8px', borderRadius: 'var(--r-xs)',
-                border: active ? '1px solid var(--info)' : '1px solid transparent',
-                background: active ? 'color-mix(in oklch, var(--info) 10%, transparent)' : 'transparent',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                gap: 1,
+                padding: '8px 2px',
+                border: 'none',
+                borderRight: active ? '2px solid var(--info)' : '2px solid transparent',
+                background: active
+                  ? 'color-mix(in oklch, var(--info) 8%, var(--bg-canvas))'
+                  : 'transparent',
                 color: active ? 'var(--info)' : 'var(--text-faint)',
-                cursor: 'pointer', transition: 'all 0.15s',
+                cursor: 'pointer',
+                transition: 'all 0.12s',
+                flexShrink: 0,
               }}
             >
-              {f.label}
+              <span style={{ fontSize: 16, lineHeight: 1 }}>
+                {catIcon[f.key] ?? '📦'}
+              </span>
+              <span style={{
+                fontSize: 9, fontWeight: active ? 700 : 500,
+                fontFamily: 'var(--font-mono)',
+                lineHeight: 1.2,
+              }}>
+                {f.label}
+              </span>
             </button>
           );
         })}
-        <button
-          onClick={load}
-          style={{
-            fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
-            background: 'none', border: 'none',
-            color: 'var(--text-faint)', cursor: 'pointer',
-            marginLeft: 'auto', padding: '2px 6px',
-          }}
-        >
-          새로 고침
-        </button>
       </div>
 
-      {/* ── 거래 목록 ── */}
+      {/* ═══ 우측 거래 목록 ═══ */}
       <div style={{
-        flex: 1, minHeight: 0, overflowY: 'auto',
-        display: 'flex', flexDirection: 'column', gap: 3,
+        flex: 1, minWidth: 0, minHeight: 0,
+        display: 'flex', flexDirection: 'column',
       }}>
-        {loading ? (
-          <LoadingMsg />
-        ) : listings.length === 0 ? (
-          <EmptyMsg text="등록된 거래가 없습니다." />
-        ) : (
-          listings.map(listing => {
-            const isMine = listing.seller_id === userId;
-            const canBuy = !isMine && gold >= listing.price && inventory.length < inventoryCapacity;
-            const isBuying = buying === listing.id;
+        {/* 상단: 현재 카테고리 + 건수 + 새로고침 */}
+        <div style={{
+          display: 'flex', alignItems: 'center',
+          padding: 'var(--s-1) var(--s-2)',
+          borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
+          flexShrink: 0,
+          gap: 'var(--s-1)',
+        }}>
+          <span style={{
+            fontSize: 'var(--fs-sm)', fontWeight: 700,
+            fontFamily: 'var(--font-ui)', color: 'var(--text)',
+          }}>
+            {TYPE_FILTERS.find(f => f.key === typeFilter)?.label ?? '전체'}
+          </span>
+          <span style={{
+            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
+            color: 'var(--text-faint)',
+            background: 'var(--bg-sunken)',
+            padding: '1px 6px', borderRadius: 'var(--r-xs)',
+          }}>
+            {!loading ? countByType(typeFilter) : '…'}건
+          </span>
+          <span style={{ flex: 1 }} />
+          <button
+            onClick={load}
+            style={{
+              fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)',
+              fontWeight: 600,
+              background: 'none', border: '1px solid var(--border-soft)',
+              borderRadius: 'var(--r-xs)',
+              color: 'var(--text-faint)', cursor: 'pointer',
+              padding: '3px 8px',
+              transition: 'all 0.1s',
+            }}
+          >
+            새로 고침
+          </button>
+        </div>
 
-            return (
-              <ItemRow
-                key={listing.id}
-                item={listing.item_data}
-                glow={isMine}
-                right={
-                  <div style={{
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'flex-end', gap: 3, flexShrink: 0,
-                    minWidth: 70,
-                  }}>
-                    {/* 가격 */}
-                    <span style={{
-                      fontSize: 'var(--fs-sm)', fontWeight: 800,
-                      fontFamily: 'var(--font-display)',
-                      color: 'var(--accent)',
-                      fontVariantNumeric: 'tabular-nums',
+        {/* 목록 스크롤 영역 */}
+        <div style={{
+          flex: 1, minHeight: 0, overflowY: 'auto',
+          padding: 'var(--s-1)',
+          display: 'flex', flexDirection: 'column', gap: 3,
+        }}>
+          {loading ? (
+            <LoadingMsg />
+          ) : listings.length === 0 ? (
+            <EmptyMsg text="등록된 거래가 없습니다." />
+          ) : (
+            listings.map(listing => {
+              const isMine = listing.seller_id === userId;
+              const canBuy = !isMine && gold >= listing.price && inventory.length < inventoryCapacity;
+              const isBuying = buying === listing.id;
+
+              return (
+                <ItemRow
+                  key={listing.id}
+                  item={listing.item_data}
+                  glow={isMine}
+                  right={
+                    <div style={{
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'flex-end', gap: 3, flexShrink: 0,
+                      minWidth: 70,
                     }}>
-                      {formatGold(listing.price)}G
-                    </span>
-                    {/* 판매자 · 시간 */}
-                    <span style={{
-                      fontSize: 8, fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-faint)', whiteSpace: 'nowrap',
-                    }}>
-                      {listing.seller_name} · {timeAgo(listing.created_at)}
-                    </span>
-                    {/* 버튼 */}
-                    {isMine ? (
+                      {/* 가격 */}
                       <span style={{
-                        fontSize: 'var(--fs-2xs)', fontWeight: 600,
-                        fontFamily: 'var(--font-mono)',
-                        color: 'var(--info)', opacity: 0.7,
+                        fontSize: 'var(--fs-sm)', fontWeight: 800,
+                        fontFamily: 'var(--font-display)',
+                        color: 'var(--accent)',
+                        fontVariantNumeric: 'tabular-nums',
                       }}>
-                        내 거래
+                        {formatGold(listing.price)}G
                       </span>
-                    ) : (
-                      <button
-                        disabled={!canBuy || isBuying}
-                        onClick={(e) => { e.stopPropagation(); handleBuy(listing); }}
-                        style={{
-                          fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                      {/* 판매자 · 시간 */}
+                      <span style={{
+                        fontSize: 8, fontFamily: 'var(--font-mono)',
+                        color: 'var(--text-faint)', whiteSpace: 'nowrap',
+                      }}>
+                        {listing.seller_name} · {timeAgo(listing.created_at)}
+                      </span>
+                      {/* 버튼 */}
+                      {isMine ? (
+                        <span style={{
+                          fontSize: 'var(--fs-2xs)', fontWeight: 600,
                           fontFamily: 'var(--font-mono)',
-                          padding: '3px 14px', borderRadius: 'var(--r-xs)',
-                          border: 'none',
-                          background: canBuy
-                            ? 'var(--info)'
-                            : 'var(--bg-sunken)',
-                          color: canBuy ? '#fff' : 'var(--text-faint)',
-                          cursor: canBuy ? 'pointer' : 'not-allowed',
-                          opacity: canBuy ? 1 : 0.4,
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        {isBuying ? '...' : '구매'}
-                      </button>
-                    )}
-                  </div>
-                }
-              />
-            );
-          })
-        )}
+                          color: 'var(--info)', opacity: 0.7,
+                        }}>
+                          내 거래
+                        </span>
+                      ) : (
+                        <button
+                          disabled={!canBuy || isBuying}
+                          onClick={(e) => { e.stopPropagation(); handleBuy(listing); }}
+                          style={{
+                            fontSize: 'var(--fs-2xs)', fontWeight: 700,
+                            fontFamily: 'var(--font-mono)',
+                            padding: '3px 14px', borderRadius: 'var(--r-xs)',
+                            border: 'none',
+                            background: canBuy
+                              ? 'var(--info)'
+                              : 'var(--bg-sunken)',
+                            color: canBuy ? '#fff' : 'var(--text-faint)',
+                            cursor: canBuy ? 'pointer' : 'not-allowed',
+                            opacity: canBuy ? 1 : 0.4,
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {isBuying ? '...' : '구매'}
+                        </button>
+                      )}
+                    </div>
+                  }
+                />
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

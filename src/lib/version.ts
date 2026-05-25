@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.34.2 — 거래소 UI L1J 스타일 리디자인
-export const APP_VERSION = '2.34.2';
+// v2.34.3 — 거래소 UI L1J 모바일 스타일 (사이드바 카테고리 + 숫자 키패드)
+export const APP_VERSION = '2.34.3';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
