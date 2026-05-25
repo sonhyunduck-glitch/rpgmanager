@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.29.0 — 스킬 카테고리 재정의 (마법/기술/정령) + 불/땅/물 정령 제거
-export const APP_VERSION = '2.29.0';
+// v2.29.1 — 마법 버프 7종 패시브화 + UI 상시 표시
+export const APP_VERSION = '2.29.1';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
