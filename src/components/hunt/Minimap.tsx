@@ -710,6 +710,28 @@ export default function Minimap() {
       // death: 아무것도 안 함
     }
 
+    // ── 몬스터 → 플레이어 피격 (별도 처리: combatEntry가 battle/kill 등일 때도 hit_taken 표시) ──
+    if (combatEntry?.type !== 'hit_taken') {
+      const hitEntry = newEntries.find(e => e.type === 'hit_taken');
+      if (hitEntry) {
+        const dmg = extractHitDamage(hitEntry.text);
+        if (dmg) {
+          const isMagicHit = hitEntry.text.includes('마법');
+          const isSkillHit = hitEntry.text.includes('!') && !hitEntry.text.includes('공격');
+          if (isMagicHit && currentTarget) {
+            fireMonsterProjectile(currentTarget, 'monster_magic');
+          } else if (isSkillHit && currentTarget) {
+            showSkillEffect(currentTarget, 'physical');
+          }
+          // 피격 데미지 표시를 약간 딜레이 (공격 이벤트와 겹치지 않도록)
+          setTimeout(() => {
+            setEvent({ type: 'hit_taken', pos: playerPos, id: hitEntry.id, dmgText: dmg });
+            setTimeout(() => setEvent(null), 900);
+          }, 500);
+        }
+      }
+    }
+
     // ── 좌표 기반 선공 몬스터 감지: 5m 이내 → 접근 시작 (매 틱 항상 실행) ──
     if (isHunting && !deadSet.has(targetIdx)) {
       const AGGRO_RANGE_M = 5;

@@ -10,7 +10,7 @@ import {
 import { getMonsterDrops } from '../data/dropData';
 import { getMonsterSkills } from '../data/monsterSkillData';
 import { getWeaponSkill } from '../data/weaponSkillData';
-import { getClassCombatStyle, CLASS_CONFIGS } from '../data/classData';
+import { getClassCombatStyle, getClassBaseStats, CLASS_CONFIGS } from '../data/classData';
 import {
   rollDamage, rollHpGain,
   finalAC, finalMR,
@@ -735,7 +735,9 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           while (newExp >= xpForLevel(newLevel)) {
             newExp -= xpForLevel(newLevel);
             newLevel++;
-            const hpGain = rollHpGain(playerCon);
+            // 순수 CON만 사용 (베이스 + 투자 스탯, 장비 CON 제외)
+            const pureCon = getClassBaseStats(state.playerClass).con + state.statAllocation.con;
+            const hpGain = rollHpGain(pureCon);
             newMaxHp += hpGain;
             newCurrentHp = newMaxHp + hpBonus;
             const hasStatPoint = newLevel >= 50;
