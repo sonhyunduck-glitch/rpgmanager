@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.29.1 — 마법 버프 7종 패시브화 + UI 상시 표시
-export const APP_VERSION = '2.29.1';
+// v2.29.2 — 스킬패널 우측 상세 패시브 UI 완성
+export const APP_VERSION = '2.29.2';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
