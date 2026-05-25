@@ -197,12 +197,13 @@ function TabStats() {
     // ── 마법사: INT 기반 마법 대미지, 자동 명중 ──
     hit = -1; // 자동 명중 표시용
     const magicRange = magicDamageRange(weaponBaseDmgS, intStat, bonusSp, level, playerClass);
-    dmgMinS = magicRange.min;
+    const magicAvg = Math.round((magicRange.min + magicRange.max) / 2);
+    dmgMinS = magicAvg; // 평균 대미지 (UI 표시용)
     dmgMaxS = magicRange.max;
-    dmgMinL = dmgMinS; // 마법은 소/대 구분 없음
-    dmgMaxL = dmgMaxS;
+    dmgMinL = magicRange.min; // min~max 범위 보관
+    dmgMaxL = magicRange.max;
     hitLabel = 'HIT';
-    dmgLabel1 = 'M.DMG';
+    dmgLabel1 = 'E.BOLT';
     dmgLabel2 = 'SP';
   } else {
     // ── 기사: STR 기반 근거리 대미지 ──
@@ -290,8 +291,8 @@ function TabStats() {
         <CombatCell label="AC" value={ac} color="var(--success)" />
         {combatStyle === 'ranged_magic' ? (
           <>
-            <CombatCell label={dmgLabel1} value={`${dmgMinS}~${dmgMaxS}`} color="var(--info)" />
-            <CombatCell label={dmgLabel2} value={bonusSp} color="var(--info)" />
+            <CombatCell label={dmgLabel1} value={`~${dmgMinS}`} color="var(--info)" />
+            <CombatCell label={dmgLabel2} value={`+${bonusSp}`} color="var(--info)" />
           </>
         ) : (
           <>

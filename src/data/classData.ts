@@ -29,6 +29,9 @@ export interface ClassConfig {
   // L1J 원본 참조
   acDefenseDivisor: number;  // AC 방어 다이스 제수 (2/3/5) — calcPcDefense
   magicLevelCap: number;     // 마법 레벨 상한
+  // 공격 속도 (기사=1.0 기준)
+  baseAtkSpeedDiv: number;   // 기본 공격 속도 제수 (높을수록 느림: 기사 1.0, 요정 1.2, 마법사 1.3)
+  atkName: string;           // 기본 공격 이름 (로그 표시용)
 }
 
 export const CLASS_CONFIGS: Record<PlayerClass, ClassConfig> = {
@@ -52,6 +55,8 @@ export const CLASS_CONFIGS: Record<PlayerClass, ClassConfig> = {
     initialPoints: 4,
     acDefenseDivisor: 2,
     magicLevelCap: 1,
+    baseAtkSpeedDiv: 1.0,
+    atkName: '공격',
   },
   elf: {
     id: 'elf',
@@ -71,6 +76,8 @@ export const CLASS_CONFIGS: Record<PlayerClass, ClassConfig> = {
     initialPoints: 7,
     acDefenseDivisor: 3,
     magicLevelCap: 6,
+    baseAtkSpeedDiv: 1.2,
+    atkName: '화살',
   },
   wizard: {
     id: 'wizard',
@@ -90,6 +97,8 @@ export const CLASS_CONFIGS: Record<PlayerClass, ClassConfig> = {
     initialPoints: 16,
     acDefenseDivisor: 5,
     magicLevelCap: 10,
+    baseAtkSpeedDiv: 1.3,
+    atkName: '에너지 볼트',
   },
 };
 

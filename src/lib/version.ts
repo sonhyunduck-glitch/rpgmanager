@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.34.4 — 클래스별 전투 스탯 표시 분기 (기사 STR/요정 DEX/마법사 INT)
-export const APP_VERSION = '2.34.4';
+// v2.34.5 — 클래스별 공격 속도 + 전투 로그 스킬명 + E.BOLT 표시
+export const APP_VERSION = '2.34.5';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

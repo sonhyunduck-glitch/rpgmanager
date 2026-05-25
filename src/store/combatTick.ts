@@ -10,7 +10,7 @@ import {
 import { getMonsterDrops } from '../data/dropData';
 import { getMonsterSkills } from '../data/monsterSkillData';
 import { getWeaponSkill } from '../data/weaponSkillData';
-import { getClassCombatStyle } from '../data/classData';
+import { getClassCombatStyle, CLASS_CONFIGS } from '../data/classData';
 import {
   rollDamage, rollHpGain,
   finalAC, finalMR,
@@ -526,10 +526,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             state.level, state.playerClass,
           );
           finalDmg = Math.max(1, Math.floor(rawMagic * 0.3)) + undeadBonus;
-          usedSpellName = '';
+          usedSpellName = '지팡이 타격';
         }
       } else {
         // ── 기사/요정: D20 명중 판정 ──
+        usedSpellName = CLASS_CONFIGS[state.playerClass].atkName;
         const hitBonusForBow = combatStyle === 'ranged_bow' ? equipBonusBowHit : 0;
         const hitRate = calcPlayerHitRate(
           state.level, playerStr, playerDex,
@@ -569,7 +570,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       if (!playerAttackHit) {
         newLogs.push({
           id: genLogId(), type: 'miss',
-          text: `${monster.name}에게 공격이 빗나갔습니다!`,
+          text: `${monster.name}에게 ${usedSpellName || '공격'}이(가) 빗나갔습니다!`,
           timestamp: Date.now(),
         });
       } else {

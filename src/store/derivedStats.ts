@@ -122,6 +122,9 @@ export function createDerivedStats(get: GetState) {
       const now = Date.now();
       const activeBuffs = s.activeBuffs.filter(b => b.expiresAt > now);
 
+      // ── 클래스별 기본 공격 속도 (기사 1.0, 요정 1/1.2, 마법사 1/1.3) ──
+      const classSpeedDiv = CLASS_CONFIGS[s.playerClass].baseAtkSpeedDiv;
+
       // ── 헤이스트 그룹 (L1J: 장비/초록물약/스킬 헤이스트 — 중복 불가, 최대값만 적용) ──
       const equipHaste = getAllEquipped(s).some(eq => eq?.bonuses?.haste) ? 1.33 : 1;
       const hasteBuffMult = activeBuffs
@@ -134,7 +137,7 @@ export function createDerivedStats(get: GetState) {
         .filter(b => b.potionId !== 'green_potion' && !HASTE_SKILL_IDS.has(b.skillId ?? 0))
         .reduce((mult, b) => mult * b.atkSpeedMult, 1);
 
-      return hasteMult * otherMult;
+      return (hasteMult * otherMult) / classSpeedDiv;
     },
 
     getMoveSpeedMult: () => {

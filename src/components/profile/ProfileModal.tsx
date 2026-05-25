@@ -255,11 +255,12 @@ export default function ProfileModal() {
               } else if (pCombatStyle === 'ranged_magic') {
                 pHit = '자동';
                 const mRange = magicDamageRange(weaponBaseDmgS, int, bonusSp, lv, pc);
-                pDmgMinS = mRange.min;
+                const mAvg = Math.round((mRange.min + mRange.max) / 2);
+                pDmgMinS = mAvg;
                 pDmgMaxS = mRange.max;
                 pDmgMinL = mRange.min;
                 pDmgMaxL = mRange.max;
-                pDmgLabel1 = 'M.DMG';
+                pDmgLabel1 = 'E.BOLT';
                 pDmgLabel2 = 'SP';
               } else {
                 pHit = meleeHit(lv, weaponEnchant, str) + bonusHit;
@@ -307,8 +308,8 @@ export default function ProfileModal() {
                     <ProfileCombatCell label="AC" value={`${ac}`} color="var(--success)" />
                     {pCombatStyle === 'ranged_magic' ? (
                       <>
-                        <ProfileCombatCell label={pDmgLabel1} value={`${pDmgMinS}~${pDmgMaxS}`} color="var(--info)" />
-                        <ProfileCombatCell label={pDmgLabel2} value={`${bonusSp}`} color="var(--info)" />
+                        <ProfileCombatCell label={pDmgLabel1} value={`~${pDmgMinS}`} color="var(--info)" />
+                        <ProfileCombatCell label={pDmgLabel2} value={`+${bonusSp}`} color="var(--info)" />
                       </>
                     ) : (
                       <>
