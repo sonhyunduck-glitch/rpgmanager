@@ -520,13 +520,17 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           finalDmg = afterMr + equipBonusMagicDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
           usedSpellName = spell.name;
         } else {
-          // MP 부족 → 지팡이 기본 공격 (약한 물리)
+          // 에너지 볼트 — 마법사 기본 공격 (MP 미소모, 자동 명중)
           const rawMagic = rollMagicDamage(
             weaponBaseDmg, playerInt, totalSp,
             state.level, state.playerClass,
           );
-          finalDmg = Math.max(1, Math.floor(rawMagic * 0.3)) + undeadBonus;
-          usedSpellName = '지팡이 타격';
+          const { isCrit: magicCrit } = rollMagicCritical();
+          isCrit = magicCrit;
+          const critDmg = isCrit ? Math.floor(rawMagic * 1.5) : rawMagic;
+          const afterMr = applyMagicReduction(critDmg, monster.mr);
+          finalDmg = afterMr + equipBonusMagicDmg + undeadBonus;
+          usedSpellName = '에너지 볼트';
         }
       } else {
         // ── 기사/요정: D20 명중 판정 ──

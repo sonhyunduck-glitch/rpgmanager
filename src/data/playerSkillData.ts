@@ -59,24 +59,9 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   // =========================================================================
 
   // ── 서클 1 ────────────────────────────────────────────────────────────────
+  // ⚠️ 에너지 볼트(id:4)는 마법사 기본 공격으로 분리됨 (MP 미소모, classData.atkName)
+  // 스킬 슬롯에 장착하는 시전 마법이 아님
   // 공격
-  {
-    id: 4,
-    name: '에너지 볼트',
-    skillCategory: 'magic',
-    skillCircle: 1,
-    consumeMp: 3,
-    reuseDelayTicks: 0, // L1J reuse_delay: 10ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 8,
-    damageDice: 10,
-    damageDiceCount: 1,
-    attr: 16, // 빛
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '마나를 응축해 발사하는 기본 공격 마법',
-  },
   {
     id: 6,
     name: '아이스 대거',
