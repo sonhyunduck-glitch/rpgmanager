@@ -23,7 +23,7 @@ const CLASS_ICONS: Record<string, string> = {
 
 /* ── 장비 슬롯 순서 ── */
 const EQUIP_SLOTS: { type: EquipType; label: string }[] = [
-  { type: 'weapon', label: '무기' },
+  { type: 'weapon', label: '무기' },  // bow, staff도 이 슬롯에 표시
   { type: 'tshirt', label: '티셔츠' },
   { type: 'helmet', label: '투구' },
   { type: 'armor', label: '갑옷' },
@@ -34,7 +34,11 @@ const EQUIP_SLOTS: { type: EquipType; label: string }[] = [
   { type: 'necklace', label: '목걸이' },
   { type: 'ring', label: '반지' },
   { type: 'belt', label: '벨트' },
+  { type: 'earring', label: '귀걸이' },
 ];
+
+/** 무기 슬롯 타입인지 (weapon, bow, staff 모두 '무기' 슬롯) */
+const WEAPON_TYPES: Set<string> = new Set(['weapon', 'bow', 'staff']);
 
 
 export default function ProfileModal() {
@@ -284,7 +288,9 @@ export default function ProfileModal() {
                 display: 'flex', flexDirection: 'column', gap: 1,
               }}>
                 {EQUIP_SLOTS.map(slot => {
-                  const item = equip?.equipped.find(e => e.type === slot.type);
+                  const item = equip?.equipped.find(e =>
+                    slot.type === 'weapon' ? WEAPON_TYPES.has(e.type) : e.type === slot.type
+                  );
                   return (
                     <EquipSlotRow key={slot.type} label={slot.label} item={item ?? null} />
                   );
