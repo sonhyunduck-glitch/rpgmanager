@@ -64,6 +64,7 @@ export function getAllEquipped(s: GameState): (Equipment | null)[] {
 export interface GameState {
   // Auth
   authUserId: string | null;
+  dbReady: boolean;           // DB 로드 완료 전까지 false — 사냥/세이브 차단
   initFromDB: (userId: string) => Promise<void>;
   logout: () => Promise<void>;
 

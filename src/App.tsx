@@ -31,6 +31,7 @@ export default function App({ userId }: AppProps) {
   const huntStatus = useGameStore(s => s.hunt.status);
   const tickHunt = useGameStore(s => s.tickHunt);
   const getAtkSpeedMult = useGameStore(s => s.getAtkSpeedMult);
+  const dbReady = useGameStore(s => s.dbReady);
 
   const initFromDB = useGameStore(s => s.initFromDB);
   const initDone = useRef(false);
@@ -43,12 +44,12 @@ export default function App({ userId }: AppProps) {
     }
   }, [userId, initFromDB]);
 
-  // 페이지 이탈 시 상태 저장 (버프 등 유실 방지)
+  // 페이지 이탈 시 상태 저장 (DB 로드 완료 후에만 — 구 데이터 덮어쓰기 방지)
   useEffect(() => {
     const handleBeforeUnload = () => {
+      if (!useGameStore.getState().dbReady) return; // DB 미로드 시 세이브 차단
       const s = useGameStore.getState();
       saveStateToLS(s);
-      // DB에도 동기화 시도 (비동기지만 브라우저가 허용하는 한 실행)
       flushNow().catch(() => {});
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -58,8 +59,9 @@ export default function App({ userId }: AppProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 동적 틱: setTimeout 체인 — 버프에 따라 간격이 바뀜
+  // ⚠️ dbReady 전까지 사냥 차단 (기기 이동 시 구 데이터로 전투 방지)
   useEffect(() => {
-    if (huntStatus !== 'hunting') {
+    if (!dbReady || huntStatus !== 'hunting') {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = null;
       return;
@@ -82,13 +84,29 @@ export default function App({ userId }: AppProps) {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [huntStatus, tickHunt, getAtkSpeedMult]);
+  }, [dbReady, huntStatus, tickHunt, getAtkSpeedMult]);
 
   const viewingProfileId = useGameStore(s => s.viewingProfileId);
 
   // 프로필 조회 중이면 우측 패널이 필요하므로 3컬럼
   const hasRightPanel = viewMode === 'main' || !!viewingProfileId;
   const isWideCenter = !hasRightPanel;
+
+  // DB 로드 완료 전 로딩 표시 (기기 이동 시 구 데이터 조작 방지)
+  if (!dbReady) {
+    return (
+      <div style={{
+        width: '100%', height: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--bg-canvas)',
+      }}>
+        <div style={{
+          fontFamily: "'Space Grotesk', var(--font-display)",
+          fontSize: 16, color: 'var(--text-mute)',
+        }}>데이터 동기화 중...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{

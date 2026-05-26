@@ -53,6 +53,7 @@ const initialCurrentHp = (saved?.currentHp as number) ?? initialMaxHp;
 export const useGameStore = create<GameState>((set, get) => ({
   // ── Auth ──
   authUserId: null,
+  dbReady: false,
 
   initFromDB: async (userId: string) => {
     enforceEpochGate();
@@ -249,6 +250,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (reward) set({ offlineReward: reward });
     }
 
+    set({ dbReady: true });
     saveState(get());
   },
 
