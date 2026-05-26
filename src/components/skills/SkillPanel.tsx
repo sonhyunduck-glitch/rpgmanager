@@ -1,31 +1,81 @@
 /* =========================================================
-   SKILL PANEL — 스킬 관리 UI (습득/슬롯 장착)
-   - 레벨 도달 시 자동 해금
-   - 슬롯(4~8칸)에 장착한 스킬만 전투 중 자동 시전
+   SKILL PANEL — 스킬 관리 UI (디자인 핸드오프 기반)
+   좌측: 카테고리 탭 + 검색 + 스킬 리스트 (테이블)
+   우측: 선택 스킬 상세 + 4×4 슬롯 그리드 + MP 게이지
    ========================================================= */
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import {
   PLAYER_SKILLS, getAvailableSkills, MAX_SKILL_SLOTS,
 } from '../../data/playerSkillData';
 import { magicLevel } from '../../data/statFormulas';
-import { PANEL_FULL, LABEL, STAT_VALUE } from '../../styles/shared';
 import type { PlayerSkill } from '../../data/playerSkillData';
 
-/* ── 스킬 타입 아이콘/색상 ── */
-const TYPE_META: Record<string, { icon: string; color: string; label: string }> = {
-  attack: { icon: '🗡️', color: '#ef5350', label: '공격' },
-  heal:   { icon: '💚', color: '#66BB6A', label: '힐' },
-  buff:   { icon: '🛡️', color: '#42A5F5', label: '버프' },
-  passive:{ icon: '✨', color: '#AB47BC', label: '패시브' },
-};
-
-const ATTR_NAMES: Record<number, string> = {
-  0: '', 1: '땅', 2: '불', 4: '물', 8: '바람', 16: '빛',
-};
+/* ══════════════════════════════════════════════
+   상수 & 매핑
+   ══════════════════════════════════════════════ */
 
 type FilterTab = 'all' | 'attack' | 'heal' | 'buff' | 'passive';
 
+const CATS: { id: FilterTab; nm: string; ic: string }[] = [
+  { id: 'all',     nm: '전체',   ic: '▦' },
+  { id: 'attack',  nm: '공격',   ic: '⚔' },
+  { id: 'heal',    nm: '힐',     ic: '✚' },
+  { id: 'buff',    nm: '버프',   ic: '✦' },
+  { id: 'passive', nm: '패시브', ic: '◯' },
+];
+
+/** 스킬 타입 아이콘 (심플 텍스트) */
+const KIND_ICON: Record<string, string> = {
+  attack: '⚔', heal: '✚', buff: '✦', passive: '◯',
+};
+
+/** 스킬 타입 색상 */
+const KIND_COLOR: Record<string, string> = {
+  attack: 'var(--danger)', heal: 'var(--success)', buff: 'oklch(0.68 0.20 305)', passive: 'var(--accent)',
+};
+
+/** 서클 뱃지 색상 */
+const CIRCLE_STYLE: Record<number, { color: string; bg: string }> = {
+  0: { color: 'var(--text-mute)', bg: 'var(--bg-sunken)' },
+  1: { color: 'oklch(0.78 0.14 195)', bg: 'oklch(0.78 0.14 195 / 0.08)' },
+  2: { color: 'var(--success)',       bg: 'color-mix(in oklch, var(--success) 8%, transparent)' },
+  3: { color: 'var(--info)',          bg: 'color-mix(in oklch, var(--info) 8%, transparent)' },
+  4: { color: 'oklch(0.68 0.20 305)', bg: 'oklch(0.68 0.20 305 / 0.08)' },
+  5: { color: 'oklch(0.72 0.18 350)', bg: 'oklch(0.72 0.18 350 / 0.08)' },
+  6: { color: 'var(--accent)',        bg: 'color-mix(in oklch, var(--accent) 8%, transparent)' },
+  7: { color: 'var(--danger)',        bg: 'color-mix(in oklch, var(--danger) 8%, transparent)' },
+  8: { color: 'var(--danger)',        bg: 'color-mix(in oklch, var(--danger) 10%, transparent)' },
+  9: { color: 'var(--danger)',        bg: 'color-mix(in oklch, var(--danger) 12%, transparent)' },
+  10:{ color: 'var(--danger)',        bg: 'color-mix(in oklch, var(--danger) 14%, transparent)' },
+};
+
+/** 속성 라벨/색상 */
+const ATTR_LABEL: Record<number, string> = {
+  0: '', 1: '땅', 2: '불', 4: '물', 8: '바람', 16: '빛',
+};
+const ATTR_COLOR: Record<number, string> = {
+  1: 'var(--accent)', 2: 'var(--danger)', 4: 'var(--info)',
+  8: 'var(--success)', 16: 'oklch(0.68 0.20 305)',
+};
+
+/* ══════════════════════════════════════════════
+   버프 효과 포맷
+   ══════════════════════════════════════════════ */
+function formatBuffEffect(skill: PlayerSkill): string {
+  if (!skill.buffEffect) return '-';
+  const parts: string[] = [];
+  if (skill.buffEffect.acBonus) parts.push(`AC ${skill.buffEffect.acBonus}`);
+  if (skill.buffEffect.atkSpeedMult) parts.push(`공속 x${skill.buffEffect.atkSpeedMult}`);
+  if (skill.buffEffect.hitBonus) parts.push(`명중 +${skill.buffEffect.hitBonus}`);
+  if (skill.buffEffect.dmgBonus) parts.push(`추타 +${skill.buffEffect.dmgBonus}`);
+  if (skill.buffEffect.fireDmgBonus) parts.push(`화염 +${skill.buffEffect.fireDmgBonus}`);
+  return parts.join(', ') || '-';
+}
+
+/* ══════════════════════════════════════════════
+   메인 컴포넌트
+   ══════════════════════════════════════════════ */
 export default function SkillPanel() {
   const playerClass = useGameStore(s => s.playerClass);
   const level = useGameStore(s => s.level);
@@ -37,65 +87,89 @@ export default function SkillPanel() {
   const getMaxMp = useGameStore(s => s.getMaxMp);
 
   const [filterTab, setFilterTab] = useState<FilterTab>('all');
-  const [selectedSkill, setSelectedSkill] = useState<PlayerSkill | null>(null);
+  const [search, setSearch] = useState('');
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dragSkillId, setDragSkillId] = useState<number | null>(null);
 
   const maxSlots = MAX_SKILL_SLOTS;
   const mlvl = magicLevel(level, playerClass);
   const maxMp = getMaxMp();
+  const currentMp = hunt.currentMp;
+  const mpPct = maxMp > 0 ? Math.min(100, (currentMp / maxMp) * 100) : 0;
 
-  // 해금된 스킬
+  // 해금/잠긴 스킬
   const unlockedSkills = getAvailableSkills(playerClass, level);
-  // 아직 잠긴 스킬 (다음에 해금될 후보)
   const lockedSkills = PLAYER_SKILLS.filter(s => {
     if (!s.classes.includes(playerClass)) return false;
     return !unlockedSkills.find(u => u.id === s.id);
   }).sort((a, b) => a.skillCircle - b.skillCircle || a.requiredLevel - b.requiredLevel);
 
-  // 필터링
-  const filteredUnlocked = filterTab === 'all'
-    ? unlockedSkills
-    : filterTab === 'passive'
-      ? unlockedSkills.filter(s => s.passive)
-      : unlockedSkills.filter(s => s.skillType === filterTab && !s.passive);
-
-  // 슬롯 배열 (패딩)
-  const slots: number[] = [];
-  for (let i = 0; i < MAX_SKILL_SLOTS; i++) {
-    slots.push(equippedSkills[i] ?? 0);
-  }
-
-  const isEquipped = (skillId: number) => equippedSkills.includes(skillId);
-
-  // 빈 슬롯 찾기
-  const findEmptySlot = (): number => {
-    for (let i = 0; i < maxSlots; i++) {
-      if (!slots[i]) return i;
+  // 필터
+  const filteredUnlocked = useMemo(() => {
+    let r = filterTab === 'all'
+      ? unlockedSkills
+      : filterTab === 'passive'
+        ? unlockedSkills.filter(s => s.passive)
+        : unlockedSkills.filter(s => s.skillType === filterTab && !s.passive);
+    if (search) {
+      const q = search.toLowerCase();
+      r = r.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        ATTR_LABEL[s.attr]?.includes(q) ||
+        s.description.toLowerCase().includes(q)
+      );
     }
-    return -1;
-  };
+    return r.sort((a, b) => a.skillCircle - b.skillCircle || a.id - b.id);
+  }, [unlockedSkills, filterTab, search]);
 
-  const handleEquip = (skill: PlayerSkill) => {
+  // 카테고리 카운트
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: unlockedSkills.length };
+    for (const s of unlockedSkills) {
+      if (s.passive) { c.passive = (c.passive || 0) + 1; }
+      else { c[s.skillType] = (c[s.skillType] || 0) + 1; }
+    }
+    return c;
+  }, [unlockedSkills]);
+
+  // 슬롯 배열
+  const slots: number[] = [];
+  for (let i = 0; i < maxSlots; i++) slots.push(equippedSkills[i] ?? 0);
+  const isEquipped = (skillId: number) => equippedSkills.includes(skillId);
+  const filledSlots = slots.filter(x => x > 0).length;
+
+  const selectedSkill = selectedId
+    ? (PLAYER_SKILLS.find(s => s.id === selectedId) ?? null)
+    : null;
+
+  // 핸들러
+  const handleToggleSlot = (skill: PlayerSkill) => {
     if (isEquipped(skill.id)) {
       const idx = slots.indexOf(skill.id);
       if (idx !== -1) unequipSkill(idx);
     } else {
-      const emptySlot = findEmptySlot();
+      const emptySlot = slots.indexOf(0);
       if (emptySlot !== -1) equipSkill(skill.id, emptySlot);
     }
   };
 
   const handleSlotClick = (slotIdx: number) => {
-    if (slotIdx >= maxSlots) return;
     if (slots[slotIdx]) {
-      unequipSkill(slotIdx);
+      setSelectedId(slots[slotIdx]);
     }
   };
 
-  const handleDragStart = (skillId: number) => {
-    setDragSkillId(skillId);
+  const handleSlotRemove = (slotIdx: number) => {
+    if (slots[slotIdx]) unequipSkill(slotIdx);
   };
 
+  const clearSlots = () => {
+    for (let i = 0; i < maxSlots; i++) {
+      if (slots[i]) unequipSkill(i);
+    }
+  };
+
+  const handleDragStart = (skillId: number) => setDragSkillId(skillId);
   const handleSlotDrop = (slotIdx: number) => {
     if (slotIdx >= maxSlots || !dragSkillId) return;
     equipSkill(dragSkillId, slotIdx);
@@ -104,458 +178,666 @@ export default function SkillPanel() {
 
   return (
     <div style={{
-      display: 'flex', gap: 'var(--s-4)', height: '100%', overflow: 'hidden',
+      height: '100%', overflow: 'hidden',
+      display: 'grid',
+      gridTemplateColumns: 'minmax(0, 1fr) 320px',
+      gridTemplateRows: 'auto 1fr',
+      gap: '14px 18px',
+      padding: '18px 22px 24px',
     }}>
-      {/* ── 좌측: 스킬 목록 ── */}
-      <div style={{ ...PANEL_FULL, flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        {/* 헤더 */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: 'var(--s-3)', flexShrink: 0,
+      {/* ━━━ BREADCRUMB ━━━ */}
+      <div style={{
+        gridColumn: '1 / -1',
+        display: 'flex', alignItems: 'center', gap: 14,
+        paddingBottom: 12,
+        borderBottom: '1px solid var(--border-soft)',
+      }}>
+        <span style={{
+          fontSize: 17, fontWeight: 600, color: 'var(--text)',
+          display: 'inline-flex', alignItems: 'baseline', gap: 10,
         }}>
-          <div style={{ fontWeight: 700, fontSize: 'var(--fs-lg)' }}>
-            스킬 목록
-            <span style={{
-              ...LABEL, marginLeft: 12, color: 'var(--text-dim)',
-              fontSize: 'var(--fs-sm)',
-            }}>
-              {unlockedSkills.length}개 해금 · 마법 서클 {mlvl}
+          스킬 목록
+          <span style={{
+            display: 'inline-flex', gap: 14,
+            fontFamily: 'var(--font-mono)', fontSize: 11.5,
+            color: 'var(--text-mute)',
+          }}>
+            <span><b style={{ color: 'var(--text)' }}>{unlockedSkills.length}개</b> 해금</span>
+            <span style={{ color: 'oklch(0.68 0.20 305)' }}>
+              마법 서클 <b style={{ color: 'oklch(0.68 0.20 305)' }}>{mlvl}</b>
             </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-2)' }}>
-            {maxMp > 0 && (
-              <span style={{
-                fontSize: 'var(--fs-sm)', fontFamily: 'var(--font-mono)',
-                fontWeight: 700, color: '#6BA3FF',
-              }}>
-                MP {hunt.currentMp}/{maxMp}
-              </span>
-            )}
-          </div>
-        </div>
+          </span>
+        </span>
+        {maxMp > 0 && (
+          <span style={{
+            marginLeft: 'auto',
+            fontFamily: 'var(--font-mono)', fontSize: 12,
+            color: 'var(--info)',
+          }}>
+            MP <span style={{ fontWeight: 600 }}>{currentMp}</span>
+            <span style={{ color: 'var(--text-mute)' }}>/{maxMp}</span>
+          </span>
+        )}
+      </div>
 
-        {/* 필터 탭 */}
-        <div style={{ display: 'flex', gap: 'var(--s-2)', marginBottom: 'var(--s-3)', flexShrink: 0 }}>
-          {(['all', 'attack', 'heal', 'buff', 'passive'] as FilterTab[]).map(tab => {
-            const labels: Record<FilterTab, string> = { all: '전체', attack: '공격', heal: '힐', buff: '버프', passive: '패시브' };
-            const isActive = filterTab === tab;
+      {/* ━━━ LEFT: SKILL LIST ━━━ */}
+      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden' }}>
+        {/* Category tabs */}
+        <div style={{
+          display: 'flex', gap: 4,
+          marginBottom: 14,
+          borderBottom: '1px solid var(--border-soft)',
+        }}>
+          {CATS.map(c => {
+            const active = filterTab === c.id;
             return (
               <button
-                key={tab}
-                onClick={() => setFilterTab(tab)}
+                key={c.id}
+                onClick={() => setFilterTab(c.id)}
                 style={{
-                  padding: '6px 16px',
-                  border: isActive ? '1px solid var(--accent)' : '1px solid var(--border-soft)',
-                  borderRadius: 'var(--r-sm)',
-                  background: isActive ? 'var(--bg-elevated)' : 'transparent',
-                  color: isActive ? 'var(--accent)' : 'var(--text-dim)',
-                  fontFamily: 'var(--font-ui)', fontSize: 'var(--fs-base)',
-                  fontWeight: isActive ? 700 : 500,
-                  cursor: 'pointer', transition: 'all 0.15s ease',
+                  padding: '9px 18px',
+                  color: active ? 'var(--accent)' : 'var(--text-mute)',
+                  fontSize: 12.5, fontWeight: 500,
+                  borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
+                  marginBottom: -1,
+                  background: 'none', border: 'none',
+                  borderBottomStyle: 'solid',
+                  cursor: 'pointer',
+                  transition: 'color 0.12s, border-color 0.12s',
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
                 }}
               >
-                {labels[tab]}
+                <span style={{ fontSize: 14, opacity: 0.7 }}>{c.ic}</span>
+                {c.nm}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10,
+                  padding: '0 5px',
+                  background: active
+                    ? 'color-mix(in oklch, var(--accent) 12%, transparent)'
+                    : 'var(--bg-elevated)',
+                  color: active ? 'var(--accent)' : 'var(--text-mute)',
+                  borderRadius: 100,
+                }}>
+                  {counts[c.id] ?? 0}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* 스킬 리스트 */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        {/* Toolbar */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          marginBottom: 12,
+        }}>
+          {/* Search */}
+          <div style={{
+            flex: 1, maxWidth: 320,
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '7px 12px',
+            background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
+          }}>
+            <span style={{ color: 'var(--text-faint)', fontSize: 13, lineHeight: 1 }}>🔍</span>
+            <input
+              placeholder="스킬 검색 (이름/속성)"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                flex: 1, fontSize: 12.5,
+                background: 'transparent', border: 'none', outline: 'none',
+                color: 'var(--text)', fontFamily: 'var(--font-ui)',
+              }}
+            />
+          </div>
+          <button
+            onClick={clearSlots}
+            style={{
+              padding: '7px 11px',
+              background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
+              fontSize: 11.5, color: 'var(--text-mute)', cursor: 'pointer',
+            }}
+          >
+            슬롯 초기화
+          </button>
+          <button
+            onClick={autoEquipSkills}
+            style={{
+              padding: '7px 11px',
+              background: 'color-mix(in oklch, var(--accent) 5%, transparent)',
+              border: '1px solid color-mix(in oklch, var(--accent) 40%, transparent)',
+              borderRadius: 6,
+              fontSize: 11.5, color: 'var(--accent)', cursor: 'pointer',
+            }}
+          >
+            자동 배치
+          </button>
+        </div>
+
+        {/* Skill list */}
+        <div style={{
+          flex: 1, minHeight: 0, overflowY: 'auto',
+          border: '1px solid var(--border-soft)', borderRadius: 8,
+          background: 'var(--bg-panel)', overflow: 'hidden auto',
+        }}>
           {/* 해금된 스킬 */}
           {filteredUnlocked.map(skill => {
             const isPassive = !!skill.passive;
-            const meta = isPassive ? TYPE_META.passive : TYPE_META[skill.skillType];
             const equipped = isEquipped(skill.id);
+            const isSelected = selectedId === skill.id;
+            const slotIdx = slots.indexOf(skill.id);
+            const kindColor = KIND_COLOR[isPassive ? 'passive' : skill.skillType];
+            const cs = CIRCLE_STYLE[skill.skillCircle] ?? CIRCLE_STYLE[0];
+
             return (
               <div
                 key={skill.id}
                 draggable={!isPassive}
                 onDragStart={() => !isPassive && handleDragStart(skill.id)}
-                onClick={() => setSelectedSkill(skill)}
+                onClick={() => setSelectedId(skill.id)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 12px', marginBottom: 3,
-                  borderRadius: 'var(--r-sm)',
-                  background: selectedSkill?.id === skill.id
-                    ? 'color-mix(in oklch, var(--accent) 15%, transparent)'
-                    : isPassive ? 'color-mix(in oklch, #AB47BC 6%, transparent)'
-                    : equipped ? 'color-mix(in oklch, var(--info) 8%, transparent)' : 'transparent',
-                  border: isPassive ? '1px solid color-mix(in oklch, #AB47BC 20%, transparent)'
-                    : equipped ? '1px solid color-mix(in oklch, var(--info) 30%, transparent)' : '1px solid transparent',
+                  display: 'grid',
+                  gridTemplateColumns: '28px 38px 1fr 60px 60px 80px 24px',
+                  alignItems: 'center',
+                  columnGap: 12,
+                  padding: isSelected ? '9px 12px 9px 12px' : '9px 14px',
+                  borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
                   cursor: 'pointer',
-                  transition: 'all 0.12s ease',
+                  transition: 'background 0.1s',
+                  background: isSelected
+                    ? 'color-mix(in oklch, var(--accent) 5%, transparent)'
+                    : 'transparent',
+                  borderLeft: isSelected ? '2px solid var(--accent)' : '2px solid transparent',
                 }}
               >
-                {/* 타입 아이콘 */}
-                <span style={{ fontSize: 'var(--fs-base)', flexShrink: 0 }}>{meta.icon}</span>
-
-                {/* 서클 뱃지 */}
-                <span style={{
-                  fontSize: 'var(--fs-xs)', fontWeight: 800, fontFamily: 'var(--font-mono)',
-                  color: isPassive ? '#AB47BC' : skill.skillCircle === 0 ? meta.color : 'var(--text-mute)',
+                {/* Icon */}
+                <div style={{
+                  width: 26, height: 26, borderRadius: 5,
+                  display: 'grid', placeItems: 'center',
                   background: 'var(--bg-sunken)',
-                  padding: '2px 6px', borderRadius: 4, flexShrink: 0,
-                  minWidth: 28, textAlign: 'center',
+                  border: `1px solid color-mix(in oklch, ${kindColor} 30%, transparent)`,
+                  fontFamily: 'var(--font-mono)', fontSize: 13,
+                  color: kindColor,
+                }}>
+                  {KIND_ICON[isPassive ? 'passive' : skill.skillType]}
+                </div>
+
+                {/* Circle badge */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 11,
+                  padding: '2px 8px', borderRadius: 4, textAlign: 'center',
+                  fontWeight: 600,
+                  color: cs.color, background: cs.bg,
                 }}>
                   {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
                 </span>
 
-                {/* 이름 */}
-                <span style={{
-                  flex: 1, minWidth: 0,
-                  fontSize: 'var(--fs-base)', fontWeight: 600,
-                  color: isPassive ? '#CE93D8' : equipped ? 'var(--info)' : 'var(--text)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                {/* Name + element tag */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  minWidth: 0,
                 }}>
-                  {skill.name}
+                  <span style={{
+                    fontSize: 13, fontWeight: 500, color: 'var(--text)',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {skill.name}
+                  </span>
+                  {isPassive ? (
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                      padding: '1px 6px', borderRadius: 3,
+                      color: 'var(--accent)',
+                      background: 'color-mix(in oklch, var(--accent) 6%, transparent)',
+                    }}>
+                      상시
+                    </span>
+                  ) : skill.attr > 0 && ATTR_LABEL[skill.attr] ? (
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                      padding: '1px 6px', borderRadius: 3,
+                      color: ATTR_COLOR[skill.attr] ?? 'var(--text-mute)',
+                      background: `color-mix(in oklch, ${ATTR_COLOR[skill.attr] ?? 'var(--text-mute)'} 8%, transparent)`,
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                    }}>
+                      <span style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: ATTR_COLOR[skill.attr],
+                        display: 'inline-block',
+                      }} />
+                      {ATTR_LABEL[skill.attr]}
+                    </span>
+                  ) : null}
+                </div>
+
+                {/* MP */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                  color: 'var(--info)', textAlign: 'right',
+                }}>
+                  {isPassive ? '—' : `${skill.consumeMp} MP`}
                 </span>
 
-                {/* 속성 */}
-                {skill.attr > 0 && (
-                  <span style={{
-                    fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
-                    fontFamily: 'var(--font-mono)',
-                  }}>
-                    {ATTR_NAMES[skill.attr]}
-                  </span>
-                )}
+                {/* Cooldown */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                  color: 'var(--text-mute)', textAlign: 'right',
+                }}>
+                  {isPassive ? '상시' : skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'}
+                </span>
 
-                {/* 패시브 뱃지 또는 MP */}
-                {isPassive ? (
-                  <span style={{
-                    fontSize: 'var(--fs-xs)', fontWeight: 700,
-                    color: '#AB47BC', background: 'color-mix(in oklch, #AB47BC 15%, transparent)',
-                    padding: '2px 8px', borderRadius: 4, flexShrink: 0,
-                  }}>
-                    상시
-                  </span>
-                ) : (
-                  <span style={{
-                    fontSize: 'var(--fs-sm)', fontWeight: 700,
-                    fontFamily: 'var(--font-mono)', color: '#6BA3FF',
-                    flexShrink: 0, minWidth: 30, textAlign: 'right',
-                  }}>
-                    {skill.consumeMp}
-                  </span>
-                )}
+                {/* Damage/Heal */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10,
+                  textAlign: 'right',
+                }}>
+                  {skill.skillType === 'attack' && skill.damageValue > 0 ? (
+                    <span style={{ color: 'var(--danger)' }}>DMG {skill.damageValue}{skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}</span>
+                  ) : skill.skillType === 'heal' && skill.damageValue > 0 ? (
+                    <span style={{ color: 'var(--success)' }}>HEAL {skill.damageValue}+</span>
+                  ) : skill.skillType === 'buff' ? (
+                    <span style={{ color: 'oklch(0.68 0.20 305)' }}>{formatBuffEffect(skill).slice(0, 12)}</span>
+                  ) : (
+                    <span style={{ color: 'var(--text-faint)' }}>—</span>
+                  )}
+                </span>
 
-                {/* 장착 버튼 (패시브는 숨김) */}
-                {!isPassive && (
+                {/* Slot toggle */}
+                {!isPassive ? (
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleEquip(skill); }}
+                    onClick={e => { e.stopPropagation(); handleToggleSlot(skill); }}
                     style={{
-                      width: 28, height: 28,
-                      borderRadius: 'var(--r-sm)',
-                      border: equipped ? '1.5px solid var(--info)' : '1.5px solid var(--border-soft)',
-                      background: equipped ? 'color-mix(in oklch, var(--info) 20%, transparent)' : 'transparent',
-                      color: equipped ? 'var(--info)' : 'var(--text-mute)',
-                      fontSize: 'var(--fs-sm)', fontWeight: 800,
-                      cursor: 'pointer', transition: 'all 0.12s ease',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      padding: 0, flexShrink: 0,
+                      width: 22, height: 22, borderRadius: 5,
+                      border: equipped
+                        ? '1px solid var(--success)'
+                        : '1px solid var(--border-strong)',
+                      background: equipped
+                        ? 'color-mix(in oklch, var(--success) 25%, transparent)'
+                        : 'transparent',
+                      color: equipped ? '#ddffe7' : 'var(--text-mute)',
+                      display: 'grid', placeItems: 'center',
+                      fontSize: 13, cursor: 'pointer',
+                      transition: 'all 0.1s',
                     }}
-                    title={equipped ? '슬롯에서 해제' : '슬롯에 장착'}
+                    title={equipped ? `슬롯 #${slotIdx + 1}` : '슬롯에 추가'}
                   >
                     {equipped ? '✓' : '+'}
                   </button>
+                ) : (
+                  <span style={{
+                    color: 'var(--accent)', fontFamily: 'var(--font-mono)',
+                    fontSize: 10, textAlign: 'center',
+                  }}>★</span>
                 )}
               </div>
             );
           })}
 
-          {/* 잠긴 스킬 (미리보기) */}
+          {/* 잠긴 스킬 */}
           {filterTab === 'all' && lockedSkills.length > 0 && (
             <>
               <div style={{
-                ...LABEL, fontSize: 'var(--fs-sm)', marginTop: 'var(--s-4)',
-                marginBottom: 'var(--s-2)', color: 'var(--text-mute)',
+                padding: '12px 14px 6px',
+                fontFamily: 'var(--font-mono)', fontSize: 10,
+                color: 'var(--text-mute)', textTransform: 'uppercase' as const,
+                letterSpacing: '0.12em',
+                borderTop: '1px solid var(--border-soft)',
               }}>
                 미해금 ({lockedSkills.length})
               </div>
-              {lockedSkills.slice(0, 10).map(skill => {
-                const meta = TYPE_META[skill.skillType];
+              {lockedSkills.slice(0, 8).map(skill => {
+                const cs = CIRCLE_STYLE[skill.skillCircle] ?? CIRCLE_STYLE[0];
+                const kindColor = KIND_COLOR[skill.skillType];
                 const needCircle = skill.skillCircle > 0 && skill.skillCircle > mlvl;
                 return (
                   <div
                     key={skill.id}
-                    onClick={() => setSelectedSkill(skill)}
+                    onClick={() => setSelectedId(skill.id)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '8px 12px', marginBottom: 3,
-                      borderRadius: 'var(--r-sm)',
-                      background: selectedSkill?.id === skill.id
-                        ? 'color-mix(in oklch, var(--text-mute) 10%, transparent)' : 'transparent',
-                      border: '1px solid transparent',
-                      cursor: 'pointer', opacity: 0.45,
+                      display: 'grid',
+                      gridTemplateColumns: '28px 38px 1fr auto',
+                      alignItems: 'center', columnGap: 12,
+                      padding: '7px 14px',
+                      borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 30%, transparent)',
+                      cursor: 'pointer', opacity: 0.4,
                     }}
                   >
-                    <span style={{ fontSize: 'var(--fs-base)' }}>{meta.icon}</span>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: 5,
+                      display: 'grid', placeItems: 'center',
+                      background: 'var(--bg-sunken)',
+                      border: `1px solid color-mix(in oklch, ${kindColor} 20%, transparent)`,
+                      fontFamily: 'var(--font-mono)', fontSize: 13,
+                      color: kindColor,
+                    }}>
+                      {KIND_ICON[skill.skillType]}
+                    </div>
                     <span style={{
-                      fontSize: 'var(--fs-xs)', fontWeight: 800, fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-mute)', background: 'var(--bg-sunken)',
-                      padding: '2px 6px', borderRadius: 4, minWidth: 28, textAlign: 'center',
+                      fontFamily: 'var(--font-mono)', fontSize: 11,
+                      padding: '2px 8px', borderRadius: 4, textAlign: 'center',
+                      fontWeight: 600, color: cs.color, background: cs.bg,
                     }}>
                       {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
                     </span>
                     <span style={{
-                      flex: 1, minWidth: 0, fontSize: 'var(--fs-base)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      color: 'var(--text-mute)',
+                      fontSize: 13, color: 'var(--text-mute)',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>
                       {skill.name}
                     </span>
                     <span style={{
-                      fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)', color: 'var(--warning)',
+                      fontFamily: 'var(--font-mono)', fontSize: 10,
+                      color: 'var(--warning)',
                     }}>
-                      {needCircle ? `서클 ${skill.skillCircle} 필요` : `Lv.${skill.requiredLevel}`}
+                      {needCircle ? `서클 ${skill.skillCircle}` : `Lv.${skill.requiredLevel}`}
                     </span>
                   </div>
                 );
               })}
-              {lockedSkills.length > 10 && (
+              {lockedSkills.length > 8 && (
                 <div style={{
-                  fontSize: 'var(--fs-sm)', color: 'var(--text-mute)',
-                  textAlign: 'center', padding: 'var(--s-3)',
+                  padding: 12, textAlign: 'center',
+                  fontSize: 11, color: 'var(--text-mute)',
                 }}>
-                  +{lockedSkills.length - 10}개 더...
+                  +{lockedSkills.length - 8}개 더...
                 </div>
               )}
             </>
           )}
+
+          {filteredUnlocked.length === 0 && filterTab !== 'all' && (
+            <div style={{
+              padding: 40, textAlign: 'center',
+              color: 'var(--text-faint)',
+            }}>
+              {search ? '검색 결과가 없습니다.' : '해당 카테고리의 스킬이 없습니다.'}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── 우측: 스킬 상세 + 슬롯 ── */}
+      {/* ━━━ RIGHT SIDEBAR ━━━ */}
       <div style={{
-        ...PANEL_FULL, width: 320, flexShrink: 0,
-        display: 'flex', flexDirection: 'column', gap: 'var(--s-4)',
+        alignSelf: 'start',
+        position: 'sticky', top: 14,
+        display: 'flex', flexDirection: 'column', gap: 12,
+        maxHeight: 'calc(100vh - 120px)',
+        overflowY: 'auto',
       }}>
-        {/* 스킬 상세 */}
+        {/* Skill detail */}
         {selectedSkill ? (
           <SkillDetail skill={selectedSkill} mlvl={mlvl} level={level} />
         ) : (
           <div style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-mute)', fontSize: 'var(--fs-base)',
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border-soft)',
+            borderRadius: 8,
+            padding: 40,
+            textAlign: 'center',
+            color: 'var(--text-mute)', fontSize: 12,
           }}>
             스킬을 선택하세요
           </div>
         )}
 
-        {/* 슬롯 영역 */}
-        <div style={{ flexShrink: 0 }}>
+        {/* Slot grid */}
+        <div style={{
+          background: 'var(--bg-panel)',
+          border: '1px solid var(--border-soft)',
+          borderRadius: 8, overflow: 'hidden',
+        }}>
           <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            marginBottom: 'var(--s-2)',
+            margin: 0, padding: '11px 14px',
+            fontFamily: 'var(--font-mono)', fontSize: 10,
+            color: 'var(--text-mute)',
+            letterSpacing: '0.12em', textTransform: 'uppercase' as const, fontWeight: 600,
+            borderBottom: '1px solid var(--border-soft)',
+            display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <span style={{ ...LABEL, fontSize: 'var(--fs-sm)' }}>
-              스킬 슬롯 ({maxSlots}/{MAX_SKILL_SLOTS})
+            스킬 슬롯
+            <span style={{
+              color: 'var(--text-mute)', textTransform: 'none' as const,
+              letterSpacing: 0, fontWeight: 400, fontSize: 10,
+            }}>
+              ({filledSlots}/{maxSlots})
             </span>
             <button
               onClick={autoEquipSkills}
               style={{
-                padding: '5px 14px',
-                border: '1px solid var(--border-soft)',
-                borderRadius: 'var(--r-sm)',
-                background: 'transparent',
+                marginLeft: 'auto',
+                fontFamily: 'var(--font-mono)', fontSize: 10,
                 color: 'var(--accent)',
-                fontSize: 'var(--fs-sm)', fontWeight: 700,
-                cursor: 'pointer', transition: 'all 0.15s ease',
+                padding: '2px 8px',
+                border: '1px solid color-mix(in oklch, var(--accent) 30%, transparent)',
+                borderRadius: 4, background: 'none',
+                textTransform: 'none' as const, letterSpacing: 0,
+                fontWeight: 500, cursor: 'pointer',
               }}
-              title="추천 스킬을 자동으로 슬롯에 배치"
             >
               자동 배치
             </button>
           </div>
 
           <div style={{
+            padding: 12,
             display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 6,
           }}>
             {slots.map((skillId, idx) => {
               const skill = skillId ? PLAYER_SKILLS.find(s => s.id === skillId) : null;
-              const meta = skill ? TYPE_META[skill.skillType] : null;
+              const kindColor = skill ? KIND_COLOR[skill.skillType] : undefined;
+
               return (
                 <div
                   key={idx}
-                  onClick={() => handleSlotClick(idx)}
-                  onDragOver={(e) => { e.preventDefault(); }}
+                  onClick={() => skill ? handleSlotClick(idx) : undefined}
+                  onContextMenu={e => { e.preventDefault(); handleSlotRemove(idx); }}
+                  onDragOver={e => e.preventDefault()}
                   onDrop={() => handleSlotDrop(idx)}
                   style={{
                     aspectRatio: '1',
+                    background: 'var(--bg-elevated)',
                     border: skill
-                      ? `1.5px solid ${meta?.color ?? 'var(--border-soft)'}`
+                      ? `1px solid color-mix(in oklch, ${kindColor} 40%, transparent)`
                       : '1px solid var(--border-soft)',
-                    borderRadius: 'var(--r-md)',
-                    background: skill
-                      ? `color-mix(in oklch, ${meta?.color ?? 'var(--info)'} 12%, var(--bg-panel))`
-                      : 'var(--bg-panel)',
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center',
-                    gap: 2,
-                    cursor: 'pointer',
-                    transition: 'all 0.12s ease',
+                    borderRadius: 6,
+                    display: 'grid', placeItems: 'center',
                     position: 'relative',
-                    overflow: 'hidden',
+                    cursor: skill ? 'pointer' : 'default',
+                    transition: 'all 0.12s',
                   }}
-                  title={skill ? `${skill.name} (클릭하여 해제)` : '빈 슬롯 (드래그하여 장착)'}
+                  title={skill ? `${skill.name} (우클릭 해제)` : '빈 슬롯'}
                 >
-                  {/* 슬롯 번호 */}
+                  {/* Slot number */}
                   <span style={{
-                    position: 'absolute', top: 2, left: 4,
-                    fontSize: 'var(--fs-2xs)', fontWeight: 700, fontFamily: 'var(--font-mono)',
-                    color: 'var(--text-mute)', opacity: 0.5,
+                    position: 'absolute', top: 3, left: 5,
+                    fontFamily: 'var(--font-mono)', fontSize: 9,
+                    color: 'var(--text-faint)',
                   }}>
                     {idx + 1}
                   </span>
 
                   {skill ? (
                     <>
-                      <span style={{ fontSize: '18px' }}>{meta?.icon}</span>
                       <span style={{
-                        fontSize: 'var(--fs-2xs)', fontWeight: 700,
-                        color: meta?.color ?? 'var(--text)',
-                        maxWidth: '100%', overflow: 'hidden',
-                        textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        padding: '0 3px', textAlign: 'center',
-                        lineHeight: 1.2,
+                        fontFamily: 'var(--font-mono)', fontSize: 18,
+                        color: kindColor,
+                      }}>
+                        {KIND_ICON[skill.skillType]}
+                      </span>
+                      <span style={{
+                        position: 'absolute', bottom: 2, left: 0, right: 0,
+                        textAlign: 'center', fontSize: 9,
+                        color: 'var(--text)',
+                        padding: '0 2px',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>
                         {skill.name.length > 5 ? skill.name.slice(0, 5) + '..' : skill.name}
                       </span>
                     </>
                   ) : (
-                    <span style={{ fontSize: 'var(--fs-base)', color: 'var(--text-mute)', opacity: 0.4 }}>+</span>
+                    <span style={{ color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontSize: 18 }}>+</span>
                   )}
                 </div>
               );
             })}
           </div>
         </div>
+
+        {/* MP gauge */}
+        {maxMp > 0 && (
+          <div style={{
+            padding: '10px 14px',
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border-soft)',
+            borderRadius: 8,
+          }}>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between',
+              fontFamily: 'var(--font-mono)', fontSize: 11,
+              color: 'var(--text-mute)',
+            }}>
+              <span>MP</span>
+              <span>
+                <b style={{ color: 'var(--text)' }}>{currentMp}</b> / {maxMp}
+              </span>
+            </div>
+            <div style={{
+              marginTop: 6, height: 4,
+              background: 'var(--bg-sunken)',
+              borderRadius: 2, overflow: 'hidden',
+              position: 'relative',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                width: `${mpPct}%`,
+                background: 'linear-gradient(90deg, var(--info), oklch(0.78 0.14 195))',
+                boxShadow: mpPct > 0 ? '0 0 6px color-mix(in oklch, var(--info) 30%, transparent)' : 'none',
+                transition: 'width 0.3s',
+              }} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-/* ── 스킬 상세 카드 ── */
+/* ══════════════════════════════════════════════
+   스킬 상세 카드
+   ══════════════════════════════════════════════ */
 function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number; level: number }) {
   const isPassive = !!skill.passive;
-  const meta = isPassive ? TYPE_META.passive : TYPE_META[skill.skillType];
+  const kindColor = KIND_COLOR[isPassive ? 'passive' : skill.skillType];
   const isUnlocked = (() => {
     if (skill.requiredLevel > level) return false;
     if (skill.skillCircle > 0 && skill.skillCircle > mlvl) return false;
     return true;
   })();
 
+  const kindLabel = skill.skillType === 'attack' ? '공격'
+    : skill.skillType === 'heal' ? '힐' : '버프';
+
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', gap: 'var(--s-3)',
+      background: 'var(--bg-panel)',
+      border: '1px solid var(--border-soft)',
+      borderRadius: 8, overflow: 'hidden',
     }}>
-      {/* 이름 + 타입 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)' }}>
-        <span style={{ fontSize: '24px' }}>{meta.icon}</span>
+      {/* Head */}
+      <div style={{
+        padding: 14,
+        borderBottom: '1px solid var(--border-soft)',
+        display: 'flex', alignItems: 'center', gap: 12,
+      }}>
+        <div style={{
+          width: 42, height: 42, borderRadius: 5,
+          display: 'grid', placeItems: 'center',
+          background: 'var(--bg-sunken)',
+          border: `1px solid color-mix(in oklch, ${kindColor} 30%, transparent)`,
+          fontFamily: 'var(--font-mono)', fontSize: 18,
+          color: kindColor,
+        }}>
+          {KIND_ICON[isPassive ? 'passive' : skill.skillType]}
+        </div>
         <div>
-          <div style={{
-            fontWeight: 700, fontSize: 'var(--fs-lg)',
-            color: isUnlocked ? 'var(--text)' : 'var(--text-mute)',
-          }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
             {skill.name}
           </div>
           <div style={{
-            fontSize: 'var(--fs-sm)', color: meta.color, fontWeight: 600,
-            marginTop: 2,
+            fontFamily: 'var(--font-mono)', fontSize: 10.5,
+            color: 'var(--text-mute)', marginTop: 2,
           }}>
-            {meta.label}
-            {skill.skillCircle > 0 && ` · 서클 ${skill.skillCircle}`}
-            {skill.skillCircle === 0 && ' · 클래스 전용'}
-            {skill.attr > 0 && ` · ${ATTR_NAMES[skill.attr]}속성`}
+            <span style={{ color: kindColor }}>{isPassive ? '패시브' : kindLabel}</span>
+            <span style={{ color: 'var(--text-faint)', margin: '0 4px' }}>·</span>
+            <span>서클 {skill.skillCircle || 'EX'}</span>
+            {skill.attr > 0 && ATTR_LABEL[skill.attr] && (
+              <>
+                <span style={{ color: 'var(--text-faint)', margin: '0 4px' }}>·</span>
+                <span style={{ color: ATTR_COLOR[skill.attr] }}>{ATTR_LABEL[skill.attr]} 속성</span>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* 설명 */}
-      <div style={{
-        fontSize: 'var(--fs-base)', color: 'var(--text-dim)',
-        lineHeight: 1.6, padding: 'var(--s-1) 0',
-      }}>
-        {skill.description}
-      </div>
-
-      {/* 패시브 — 상시 적용 안내 + 효과 */}
-      {isPassive ? (
-        <div style={{
-          background: 'color-mix(in oklch, #AB47BC 8%, var(--bg-sunken))',
-          border: '1px solid color-mix(in oklch, #AB47BC 25%, transparent)',
-          borderRadius: 'var(--r-md)',
-          padding: 'var(--s-3)',
-          display: 'flex', flexDirection: 'column', gap: 'var(--s-2)',
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <span style={{
-              fontSize: 'var(--fs-xs)', fontWeight: 700,
-              color: '#AB47BC', background: 'color-mix(in oklch, #AB47BC 18%, transparent)',
-              padding: '3px 10px', borderRadius: 4,
-            }}>
-              상시 적용
-            </span>
-            <span style={{
-              fontSize: 'var(--fs-xs)', color: 'var(--text-mute)',
-            }}>
-              슬롯 등록 없이 자동 발동
-            </span>
-          </div>
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1fr 1fr',
-            gap: 'var(--s-2)', marginTop: 'var(--s-1)',
-          }}>
-            <DetailStat label="MP 소모" value="없음" color="#AB47BC" />
-            <DetailStat label="지속" value="영구" color="#AB47BC" />
-            <DetailStat label="효과" value={formatBuffEffect(skill)} color="#CE93D8" />
-            <DetailStat label="조건" value={`Lv.${skill.requiredLevel}+`} color="var(--text-dim)" />
-          </div>
+      {/* Body */}
+      <div style={{ padding: '12px 14px' }}>
+        {/* Description */}
+        <div style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.5 }}>
+          {skill.description}
         </div>
-      ) : (
-        /* 일반 스킬 — 스탯 그리드 */
+
+        {/* Stats */}
         <div style={{
+          marginTop: 12, paddingTop: 12,
+          borderTop: '1px dashed var(--border-soft)',
           display: 'grid', gridTemplateColumns: '1fr 1fr',
-          gap: 'var(--s-2)',
-          background: 'var(--bg-sunken)',
-          borderRadius: 'var(--r-md)',
-          padding: 'var(--s-3)',
+          columnGap: 16, rowGap: 5,
         }}>
-          <DetailStat label="MP 소모" value={skill.consumeMp} color="#6BA3FF" />
-          <DetailStat label="쿨타운" value={skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'} color="var(--text-dim)" />
-          {skill.skillType === 'attack' && (
-            <>
-              <DetailStat label="고정 대미지" value={skill.damageValue || '-'} color="var(--danger)" />
-              <DetailStat label="주사위" value={skill.damageDiceCount > 0 ? `${skill.damageDiceCount}d${skill.damageDice}` : '동적'} color="var(--warning)" />
-            </>
+          <StatRow label="MP 소모" value={isPassive ? '상시' : String(skill.consumeMp)} color="var(--info)" />
+          <StatRow
+            label="쿨타임"
+            value={isPassive ? '—' : skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'}
+            color="var(--accent)"
+          />
+          {skill.skillType === 'attack' && skill.damageValue > 0 && (
+            <StatRow
+              label="데미지"
+              value={`${skill.damageValue}${skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}`}
+              color="var(--danger)"
+            />
           )}
-          {skill.skillType === 'heal' && (
-            <>
-              <DetailStat label="기본 회복" value={skill.damageValue || '-'} color="var(--success)" />
-              <DetailStat label="주사위" value={skill.damageDiceCount > 0 ? `${skill.damageDiceCount}d${skill.damageDice}` : '동적'} color="var(--success)" />
-            </>
+          {skill.skillType === 'heal' && skill.damageValue > 0 && (
+            <StatRow
+              label="회복량"
+              value={`${skill.damageValue}${skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}`}
+              color="var(--success)"
+            />
+          )}
+          {skill.skillType === 'buff' && (
+            <StatRow label="효과" value={formatBuffEffect(skill)} color="oklch(0.68 0.20 305)" />
           )}
           {skill.skillType === 'buff' && skill.buffDuration > 0 && (
+            <StatRow label="지속" value={`${Math.floor(skill.buffDuration / 60)}분`} color="var(--info)" />
+          )}
+          {isPassive && (
             <>
-              <DetailStat label="지속시간" value={`${Math.floor(skill.buffDuration / 60)}분`} color="var(--info)" />
-              <DetailStat label="효과" value={formatBuffEffect(skill)} color="var(--info)" />
+              <StatRow label="효과" value={formatBuffEffect(skill)} color="var(--accent)" />
+              <StatRow label="조건" value={`Lv.${skill.requiredLevel}+`} color="var(--text-dim)" />
             </>
           )}
         </div>
-      )}
+      </div>
 
-      {/* 해금 조건 */}
+      {/* Unlock requirement */}
       {!isUnlocked && (
         <div style={{
+          margin: '0 14px 12px',
           background: 'color-mix(in oklch, var(--warning) 10%, transparent)',
           border: '1px solid color-mix(in oklch, var(--warning) 30%, transparent)',
-          borderRadius: 'var(--r-sm)',
-          padding: 'var(--s-3)',
-          fontSize: 'var(--fs-sm)', color: 'var(--warning)',
+          borderRadius: 4,
+          padding: '8px 12px',
+          fontSize: 11, color: 'var(--warning)',
           textAlign: 'center',
         }}>
           {skill.requiredLevel > level
@@ -567,22 +849,14 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
   );
 }
 
-function DetailStat({ label, value, color }: { label: string; value: string | number; color: string }) {
+function StatRow({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ ...LABEL, fontSize: 'var(--fs-xs)' }}>{label}</span>
-      <span style={{ ...STAT_VALUE, fontSize: 'var(--fs-base)', color }}>{value}</span>
+    <div style={{
+      display: 'flex', justifyContent: 'space-between',
+      fontFamily: 'var(--font-mono)', fontSize: 11,
+    }}>
+      <span style={{ color: 'var(--text-mute)' }}>{label}</span>
+      <span style={{ color, fontWeight: 600 }}>{value}</span>
     </div>
   );
-}
-
-function formatBuffEffect(skill: PlayerSkill): string {
-  if (!skill.buffEffect) return '-';
-  const parts: string[] = [];
-  if (skill.buffEffect.acBonus) parts.push(`AC ${skill.buffEffect.acBonus}`);
-  if (skill.buffEffect.atkSpeedMult) parts.push(`공속 x${skill.buffEffect.atkSpeedMult}`);
-  if (skill.buffEffect.hitBonus) parts.push(`명중 +${skill.buffEffect.hitBonus}`);
-  if (skill.buffEffect.dmgBonus) parts.push(`추타 +${skill.buffEffect.dmgBonus}`);
-  if (skill.buffEffect.fireDmgBonus) parts.push(`화염 +${skill.buffEffect.fireDmgBonus}`);
-  return parts.join(', ') || '-';
 }

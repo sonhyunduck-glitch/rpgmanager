@@ -11,6 +11,7 @@ import {
   cancelListing, getMyListings,
 } from '../../lib/trade';
 import { timeAgo } from '../../lib/utils';
+import { useCompact } from '../../lib/useCompact';
 // shared styles not needed — all inline
 
 /* ─── 타입 ─── */
@@ -223,21 +224,23 @@ function SearchToolbar({
   query, onQuery,
   enhOnly, onEnhOnly,
   sortVal, onSort,
+  compact,
 }: {
   query: string; onQuery: (v: string) => void;
   enhOnly: boolean; onEnhOnly: () => void;
   sortVal: string; onSort: (v: string) => void;
+  compact?: boolean;
 }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      marginBottom: 12, flexWrap: 'wrap',
+      display: 'flex', alignItems: 'center', gap: compact ? 6 : 10,
+      marginBottom: compact ? 6 : 12, flexWrap: 'wrap',
     }}>
       {/* 검색 박스 */}
       <div style={{
         flex: 1, minWidth: 160,
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '8px 12px',
+        padding: compact ? '6px 10px' : '8px 12px',
         background: 'var(--bg-panel)',
         border: '1px solid var(--border-soft)',
         borderRadius: 6,
@@ -255,7 +258,7 @@ function SearchToolbar({
           value={query}
           onChange={e => onQuery(e.target.value)}
           style={{
-            flex: 1, fontSize: 12.5, fontFamily: 'var(--font-ui)',
+            flex: 1, fontSize: compact ? 11 : 12.5, fontFamily: 'var(--font-ui)',
             background: 'transparent', border: 'none', outline: 'none',
             color: 'var(--text)',
           }}
@@ -267,7 +270,7 @@ function SearchToolbar({
         onClick={onEnhOnly}
         style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
-          padding: '7px 11px',
+          padding: compact ? '5px 8px' : '7px 11px',
           background: enhOnly
             ? 'color-mix(in oklch, var(--accent) 5%, transparent)'
             : 'var(--bg-panel)',
@@ -275,7 +278,7 @@ function SearchToolbar({
             ? '1px solid color-mix(in oklch, var(--accent) 40%, transparent)'
             : '1px solid var(--border-soft)',
           borderRadius: 6,
-          fontSize: 11.5, fontFamily: 'var(--font-ui)',
+          fontSize: compact ? 10 : 11.5, fontFamily: 'var(--font-ui)',
           color: enhOnly ? 'var(--accent)' : 'var(--text-mute)',
           cursor: 'pointer',
           transition: 'all 0.12s',
@@ -289,11 +292,11 @@ function SearchToolbar({
         value={sortVal}
         onChange={e => onSort(e.target.value)}
         style={{
-          padding: '7px 28px 7px 11px',
+          padding: compact ? '5px 20px 5px 8px' : '7px 28px 7px 11px',
           background: 'var(--bg-panel)',
           border: '1px solid var(--border-soft)',
           borderRadius: 6,
-          fontSize: 11.5, fontFamily: 'var(--font-mono)',
+          fontSize: compact ? 10 : 11.5, fontFamily: 'var(--font-mono)',
           color: 'var(--text)',
           appearance: 'none',
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237c8696' d='M1.5 3.5L5 7l3.5-3.5z'/%3E%3C/svg%3E")`,
@@ -315,7 +318,7 @@ function SearchToolbar({
    ═══════════════════════════════════════════════════════════ */
 function ListRow({
   listing, selected, isMine, canBuy, buying,
-  onSelect, onBuy,
+  onSelect, onBuy, compact,
 }: {
   listing: TradeListing;
   selected: boolean;
@@ -324,6 +327,7 @@ function ListRow({
   buying: boolean;
   onSelect: () => void;
   onBuy: () => void;
+  compact?: boolean;
 }) {
   const eq = listing.item_data;
   const enh = eq.enhanceLevel;
@@ -334,9 +338,9 @@ function ListRow({
       onClick={onSelect}
       style={{
         display: 'grid',
-        gridTemplateColumns: '36px 2.2fr 1.3fr 60px 1fr 110px 80px',
+        gridTemplateColumns: compact ? '24px 1fr 60px' : '36px 2.2fr 1.3fr 60px 1fr 110px 80px',
         alignItems: 'center',
-        columnGap: 12, padding: '9px 14px',
+        columnGap: compact ? 6 : 12, padding: compact ? '5px 8px' : '9px 14px',
         borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
         cursor: 'pointer',
         transition: 'background 0.1s',
@@ -346,12 +350,12 @@ function ListRow({
       }}
     >
       {/* 아이콘 */}
-      <ItemIcon item={eq} size={28} />
+      <ItemIcon item={eq} size={compact ? 20 : 28} />
 
       {/* 이름 + 메타 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
         <span style={{
-          fontSize: 12.5, fontWeight: 500,
+          fontSize: compact ? 11 : 12.5, fontWeight: 500,
           color: nameColor(enh),
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           textShadow: enh >= 9 ? `0 0 8px color-mix(in oklch, ${enhColor(enh)} 40%, transparent)` : 'none',
@@ -374,52 +378,58 @@ function ListRow({
       </div>
 
       {/* 옵션 */}
-      <div style={{
-        fontFamily: 'var(--font-mono)', fontSize: 10.5,
-        color: 'var(--text-mute)',
-        display: 'flex', flexDirection: 'column', gap: 1,
-      }}>
-        {opts.slice(0, 3).map((o, i) => (
-          <span key={i} style={{
-            color: o.positive ? 'var(--success)' : 'var(--danger)',
-          }}>
-            {o.label} {o.value}
-          </span>
-        ))}
-        {opts.length === 0 && <span style={{ color: 'var(--text-faint)' }}>-</span>}
-      </div>
+      {!compact && (
+        <div style={{
+          fontFamily: 'var(--font-mono)', fontSize: 10.5,
+          color: 'var(--text-mute)',
+          display: 'flex', flexDirection: 'column', gap: 1,
+        }}>
+          {opts.slice(0, 3).map((o, i) => (
+            <span key={i} style={{
+              color: o.positive ? 'var(--success)' : 'var(--danger)',
+            }}>
+              {o.label} {o.value}
+            </span>
+          ))}
+          {opts.length === 0 && <span style={{ color: 'var(--text-faint)' }}>-</span>}
+        </div>
+      )}
 
       {/* 강화 */}
-      <span style={{
-        fontFamily: 'var(--font-mono)', fontSize: 11.5,
-        color: enh > 0 ? 'var(--accent)' : 'var(--text-faint)',
-        fontWeight: enh > 0 ? 600 : 400,
-      }}>
-        +{enh}
-        <span style={{ color: 'var(--text-faint)' }}>/{eq.maxEnhance}</span>
-      </span>
+      {!compact && (
+        <span style={{
+          fontFamily: 'var(--font-mono)', fontSize: 11.5,
+          color: enh > 0 ? 'var(--accent)' : 'var(--text-faint)',
+          fontWeight: enh > 0 ? 600 : 400,
+        }}>
+          +{enh}
+          <span style={{ color: 'var(--text-faint)' }}>/{eq.maxEnhance}</span>
+        </span>
+      )}
 
       {/* 판매자 */}
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 1,
-        fontFamily: 'var(--font-mono)', fontSize: 10.5, minWidth: 0,
-      }}>
-        <span style={{
-          color: isMine ? 'var(--info)' : 'var(--text)',
-          fontSize: 11,
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+      {!compact && (
+        <div style={{
+          display: 'flex', flexDirection: 'column', gap: 1,
+          fontFamily: 'var(--font-mono)', fontSize: 10.5, minWidth: 0,
         }}>
-          {listing.seller_name}
-        </span>
-        <span style={{ color: 'var(--text-faint)', fontSize: 10 }}>
-          {timeAgo(listing.created_at)}
-        </span>
-      </div>
+          <span style={{
+            color: isMine ? 'var(--info)' : 'var(--text)',
+            fontSize: 11,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {listing.seller_name}
+          </span>
+          <span style={{ color: 'var(--text-faint)', fontSize: 10 }}>
+            {timeAgo(listing.created_at)}
+          </span>
+        </div>
+      )}
 
       {/* 가격 */}
       <span style={{
         textAlign: 'right', fontFamily: 'var(--font-mono)',
-        fontSize: 12.5, color: 'var(--accent)', fontWeight: 600,
+        fontSize: compact ? 11 : 12.5, color: 'var(--accent)', fontWeight: 600,
       }}>
         {fmtG(listing.price)}
         <span style={{
@@ -428,7 +438,7 @@ function ListRow({
       </span>
 
       {/* 구매 버튼 */}
-      {isMine ? (
+      {!compact && (isMine ? (
         <span style={{
           textAlign: 'center',
           fontSize: 10, fontFamily: 'var(--font-mono)',
@@ -457,7 +467,7 @@ function ListRow({
         >
           {buying ? '...' : '구매'}
         </button>
-      )}
+      ))}
     </div>
   );
 }
@@ -842,6 +852,7 @@ function BuyModal({
    검색 탭 (Browse)
    ═══════════════════════════════════════════════════════════ */
 function BrowseSection() {
+  const compact   = useCompact();
   const userId    = useGameStore(s => s.authUserId);
   const gold      = useGameStore(s => s.gold);
   const inventory = useGameStore(s => s.inventory);
@@ -942,19 +953,40 @@ function BrowseSection() {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '56px 1fr',
+      gridTemplateColumns: compact ? '1fr' : '56px 1fr',
       gap: '0 14px',
       flex: 1, minHeight: 0,
     }}>
       {/* 카테고리 레일 */}
-      <div style={{ overflowY: 'auto', overflowX: 'hidden' }}>
-        <CategoryRail active={cat} onPick={setCat} counts={counts} />
-      </div>
+      {!compact && (
+        <div style={{ overflowY: 'auto', overflowX: 'hidden' }}>
+          <CategoryRail active={cat} onPick={setCat} counts={counts} />
+        </div>
+      )}
 
       {/* 메인 영역 */}
       <div style={{
         display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0,
       }}>
+        {/* 모바일 카테고리 스크롤 스트립 */}
+        {compact && (
+          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', marginBottom: 6, flexShrink: 0 }}>
+            {CATEGORIES.map(c => (
+              <button key={c.id} onClick={() => setCat(c.id)}
+                style={{
+                  padding: '3px 8px', borderRadius: 100, whiteSpace: 'nowrap',
+                  fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: cat === c.id ? 700 : 500,
+                  background: cat === c.id ? 'color-mix(in oklch, var(--accent) 10%, transparent)' : 'transparent',
+                  border: cat === c.id ? '1px solid color-mix(in oklch, var(--accent) 40%, transparent)' : '1px solid var(--border-soft)',
+                  color: cat === c.id ? 'var(--accent)' : 'var(--text-mute)',
+                  cursor: 'pointer',
+                }}>
+                {c.icon} {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* 브레드크럼 */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10,
@@ -962,7 +994,7 @@ function BrowseSection() {
           borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
         }}>
           <span style={{
-            fontSize: 17, fontWeight: 600, color: 'var(--text)',
+            fontSize: compact ? 13 : 17, fontWeight: 600, color: 'var(--text)',
             display: 'inline-flex', alignItems: 'baseline', gap: 8,
             fontFamily: 'var(--font-ui)',
           }}>
@@ -1000,12 +1032,13 @@ function BrowseSection() {
           query={query} onQuery={setQuery}
           enhOnly={enhOnly} onEnhOnly={() => setEnhOnly(v => !v)}
           sortVal={sortVal} onSort={setSortVal}
+          compact={compact}
         />
 
         {/* 리스트 + 디테일 패널 (2컬럼) */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: selected ? 'minmax(0,1fr) 320px' : '1fr',
+          gridTemplateColumns: compact ? '1fr' : (selected ? 'minmax(0,1fr) 320px' : '1fr'),
           gap: 12,
           flex: 1, minHeight: 0, overflow: 'hidden',
         }}>
@@ -1020,8 +1053,8 @@ function BrowseSection() {
             {/* 헤더 */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '36px 2.2fr 1.3fr 60px 1fr 110px 80px',
-              alignItems: 'center', columnGap: 12, padding: '9px 14px',
+              gridTemplateColumns: compact ? '24px 1fr 60px' : '36px 2.2fr 1.3fr 60px 1fr 110px 80px',
+              alignItems: 'center', columnGap: compact ? 6 : 12, padding: compact ? '5px 8px' : '9px 14px',
               background: 'var(--bg-sunken)',
               borderBottom: '1px solid var(--border-soft)',
               fontFamily: 'var(--font-mono)', fontSize: 10,
@@ -1031,11 +1064,11 @@ function BrowseSection() {
             }}>
               <span />
               <span>아이템</span>
-              <span>옵션</span>
-              <span>강화</span>
-              <span>판매자</span>
+              {!compact && <span>옵션</span>}
+              {!compact && <span>강화</span>}
+              {!compact && <span>판매자</span>}
               <span style={{ textAlign: 'right' }}>가격</span>
-              <span style={{ textAlign: 'center' }}>액션</span>
+              {!compact && <span style={{ textAlign: 'center' }}>액션</span>}
             </div>
 
             {/* 행들 */}
@@ -1070,6 +1103,7 @@ function BrowseSection() {
                       buying={buying === l.id}
                       onSelect={() => setSelected(selected === l.id ? null : l.id)}
                       onBuy={() => setBuyTarget(l)}
+                      compact={compact}
                     />
                   );
                 })
@@ -1078,7 +1112,7 @@ function BrowseSection() {
           </div>
 
           {/* 디테일 패널 */}
-          {selected && (
+          {selected && !compact && (
             <DetailPane
               listing={selectedListing}
               canBuy={
@@ -1111,6 +1145,7 @@ function BrowseSection() {
    판매 등록 탭 (Register)
    ═══════════════════════════════════════════════════════════ */
 function RegisterSection() {
+  const compact    = useCompact();
   const userId     = useGameStore(s => s.authUserId);
   const playerName = useGameStore(s => s.playerName);
   const level      = useGameStore(s => s.level);
@@ -1180,7 +1215,7 @@ function RegisterSection() {
           borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
         }}>
           <span style={{
-            fontSize: 17, fontWeight: 600, color: 'var(--text)',
+            fontSize: compact ? 13 : 17, fontWeight: 600, color: 'var(--text)',
             fontFamily: 'var(--font-ui)',
             display: 'inline-flex', alignItems: 'baseline', gap: 8,
           }}>
@@ -1225,10 +1260,10 @@ function RegisterSection() {
                     transition: 'border-color 0.12s',
                   }}
                 >
-                  <ItemIcon item={item} size={36} />
+                  <ItemIcon item={item} size={compact ? 28 : 36} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: 12.5, fontWeight: 600,
+                      fontSize: compact ? 11 : 12.5, fontWeight: 600,
                       color: nameColor(enh),
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>
@@ -1281,7 +1316,7 @@ function RegisterSection() {
       {/* 2컬럼 */}
       <div style={{
         flex: 1, minHeight: 0,
-        display: 'flex', gap: 'var(--s-3)',
+        display: 'flex', flexDirection: compact ? 'column' : 'row', gap: 'var(--s-3)',
       }}>
         {/* 좌: 아이템 정보 + 가격 */}
         <div style={{
@@ -1382,8 +1417,8 @@ function RegisterSection() {
 
         {/* 우: 키패드 */}
         <div style={{
-          width: 140, flexShrink: 0,
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+          ...(compact ? {} : { width: 140 }), flexShrink: 0,
+          display: 'grid', gridTemplateColumns: compact ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
           gap: 4, alignContent: 'start',
         }}>
           {['1','2','3','4','5','6','7','8','9'].map(k => (
@@ -1482,6 +1517,7 @@ function RegisterSection() {
    내거래 탭 (MyTrades)
    ═══════════════════════════════════════════════════════════ */
 function MyTradesSection() {
+  const compact = useCompact();
   const userId = useGameStore(s => s.authUserId);
   const [listings, setListings] = useState<TradeListing[]>([]);
   const [loading, setLoading]   = useState(true);
@@ -1533,7 +1569,7 @@ function MyTradesSection() {
         borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
       }}>
         <span style={{
-          fontSize: 17, fontWeight: 600, color: 'var(--text)',
+          fontSize: compact ? 13 : 17, fontWeight: 600, color: 'var(--text)',
           fontFamily: 'var(--font-ui)',
           display: 'inline-flex', alignItems: 'baseline', gap: 8,
         }}>
@@ -1573,38 +1609,38 @@ function MyTradesSection() {
           gap: 10, flexShrink: 0,
         }}>
           <div style={{
-            padding: 14, background: 'var(--bg-panel)',
+            padding: compact ? 8 : 14, background: 'var(--bg-panel)',
             border: '1px solid color-mix(in oklch, var(--border-soft) 60%, transparent)',
             borderRadius: 8,
           }}>
             <div style={{
-              fontSize: 10.5, color: 'var(--text-mute)',
+              fontSize: compact ? 9 : 10.5, color: 'var(--text-mute)',
               fontFamily: 'var(--font-mono)', letterSpacing: '0.1em',
               textTransform: 'uppercase',
             }}>
               판매중
             </div>
             <div style={{
-              fontFamily: 'var(--font-mono)', fontSize: 20,
+              fontFamily: 'var(--font-mono)', fontSize: compact ? 14 : 20,
               fontWeight: 700, color: 'var(--info)', marginTop: 4,
             }}>
               {active.length}
             </div>
           </div>
           <div style={{
-            padding: 14, background: 'var(--bg-panel)',
+            padding: compact ? 8 : 14, background: 'var(--bg-panel)',
             border: '1px solid color-mix(in oklch, var(--border-soft) 60%, transparent)',
             borderRadius: 8,
           }}>
             <div style={{
-              fontSize: 10.5, color: 'var(--text-mute)',
+              fontSize: compact ? 9 : 10.5, color: 'var(--text-mute)',
               fontFamily: 'var(--font-mono)', letterSpacing: '0.1em',
               textTransform: 'uppercase',
             }}>
               총 판매
             </div>
             <div style={{
-              fontFamily: 'var(--font-mono)', fontSize: 20,
+              fontFamily: 'var(--font-mono)', fontSize: compact ? 14 : 20,
               fontWeight: 700, color: 'var(--accent)', marginTop: 4,
             }}>
               {sold.length}
@@ -1617,19 +1653,19 @@ function MyTradesSection() {
             </div>
           </div>
           <div style={{
-            padding: 14, background: 'var(--bg-panel)',
+            padding: compact ? 8 : 14, background: 'var(--bg-panel)',
             border: '1px solid color-mix(in oklch, var(--border-soft) 60%, transparent)',
             borderRadius: 8,
           }}>
             <div style={{
-              fontSize: 10.5, color: 'var(--text-mute)',
+              fontSize: compact ? 9 : 10.5, color: 'var(--text-mute)',
               fontFamily: 'var(--font-mono)', letterSpacing: '0.1em',
               textTransform: 'uppercase',
             }}>
               수수료
             </div>
             <div style={{
-              fontFamily: 'var(--font-mono)', fontSize: 20,
+              fontFamily: 'var(--font-mono)', fontSize: compact ? 14 : 20,
               fontWeight: 700, color: 'var(--danger)', marginTop: 4,
             }}>
               -{fmtG(Math.round(totalSold * 0.05))}
@@ -1810,6 +1846,7 @@ function MyTradesSection() {
    ═══════════════════════════════════════════════════════════ */
 export default function TradePanel() {
   const [tab, setTab] = useState<TradeTab>('browse');
+  const compact = useCompact();
   return (
     <div style={{
       height: '100%',
@@ -1819,14 +1856,14 @@ export default function TradePanel() {
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
       boxShadow: 'var(--shadow-sm)',
-      padding: '18px 22px 32px',
+      padding: compact ? '6px 8px 10px' : '18px 22px 32px',
     }}>
       {/* ── 탭 바 (3탭, 밑줄 활성) ── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr 1fr',
         borderBottom: '1px solid var(--border-soft)',
-        marginBottom: 14,
+        marginBottom: compact ? 6 : 14,
         flexShrink: 0,
       }}>
         {TABS.map(t => {
@@ -1836,9 +1873,9 @@ export default function TradePanel() {
               key={t.key}
               onClick={() => setTab(t.key)}
               style={{
-                padding: '12px 8px', textAlign: 'center',
+                padding: compact ? '6px 4px' : '12px 8px', textAlign: 'center',
                 color: active ? 'var(--accent)' : 'var(--text-mute)',
-                fontSize: 13, fontWeight: active ? 700 : 500,
+                fontSize: compact ? 10 : 13, fontWeight: active ? 700 : 500,
                 fontFamily: 'var(--font-ui)',
                 borderBottom: active
                   ? '2px solid var(--accent)'

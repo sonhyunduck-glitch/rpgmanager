@@ -20,6 +20,7 @@ import {
 import type { GuildRow, GuildMemberRow } from '../../lib/guild';
 import { ClickableName } from '../profile/ClickableName';
 import { timeAgo, dateFmt } from '../../lib/utils';
+import { useCompact } from '../../lib/useCompact';
 
 /* ═══════════════════════════════════════════════════════════
    상수 & 헬퍼
@@ -68,7 +69,7 @@ function fmtG(n: number): string {
    ═══════════════════════════════════════════════════════════ */
 function GuildBanner({
   guild, memberCount, onlineCount, isLeader, isSoleMember,
-  onLeave, onDissolve,
+  onLeave, onDissolve, compact,
 }: {
   guild: GuildRow;
   memberCount: number;
@@ -77,23 +78,24 @@ function GuildBanner({
   isSoleMember: boolean;
   onLeave: () => void;
   onDissolve: () => void;
+  compact?: boolean;
 }) {
   const initial = guild.name.charAt(0).toUpperCase();
 
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '80px 1fr auto',
-      gap: 16,
+      gridTemplateColumns: compact ? '48px 1fr' : '80px 1fr auto',
+      gap: compact ? 10 : 16,
       alignItems: 'center',
-      padding: '18px 20px',
+      padding: compact ? '10px 12px' : '18px 20px',
       background: `
         radial-gradient(ellipse 60% 100% at 20% 50%, color-mix(in oklch, ${PURPLE} 8%, transparent), transparent 70%),
         linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-sunken) 100%)
       `,
       border: '1px solid var(--border-soft)',
-      borderRadius: 10,
-      marginBottom: 16,
+      borderRadius: compact ? 8 : 10,
+      marginBottom: compact ? 10 : 16,
       position: 'relative' as const,
       overflow: 'hidden',
     }}>
@@ -107,40 +109,42 @@ function GuildBanner({
 
       {/* 엠블럼 */}
       <div style={{
-        width: 80, height: 80, borderRadius: 10,
+        width: compact ? 48 : 80, height: compact ? 48 : 80, borderRadius: compact ? 7 : 10,
         background: `conic-gradient(from 45deg at 50% 50%, #2a1a3e, #4a2570, #2a1a3e)`,
         border: `2px solid color-mix(in oklch, ${PURPLE} 50%, transparent)`,
         boxShadow: `0 0 20px color-mix(in oklch, ${PURPLE} 20%, transparent)`,
         display: 'grid', placeItems: 'center',
-        fontFamily: 'var(--font-mono)', fontSize: 32,
+        fontFamily: 'var(--font-mono)', fontSize: compact ? 20 : 32,
         color: '#fff',
         textShadow: `0 0 12px color-mix(in oklch, ${PURPLE} 80%, transparent)`,
         position: 'relative',
       }}>
         {initial}
-        <span style={{
-          position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
-          fontSize: 7, fontWeight: 700, letterSpacing: '0.15em',
-          color: 'rgba(255,255,255,0.6)',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          maxWidth: '90%',
-        }}>
-          {guild.name.toUpperCase()}
-        </span>
+        {!compact && (
+          <span style={{
+            position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
+            fontSize: 7, fontWeight: 700, letterSpacing: '0.15em',
+            color: 'rgba(255,255,255,0.6)',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            maxWidth: '90%',
+          }}>
+            {guild.name.toUpperCase()}
+          </span>
+        )}
       </div>
 
       {/* 길드 정보 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 2 : 3, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 10 }}>
           <span style={{
-            fontSize: 22, fontWeight: 700, color: 'var(--text)',
+            fontSize: compact ? 16 : 22, fontWeight: 700, color: 'var(--text)',
             fontFamily: 'var(--font-display)', letterSpacing: '-0.01em',
           }}>
             {guild.name}
           </span>
           <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: 11,
-            padding: '3px 10px', borderRadius: 100,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11,
+            padding: compact ? '2px 7px' : '3px 10px', borderRadius: 100,
             background: 'color-mix(in oklch, var(--accent) 10%, transparent)',
             color: 'var(--accent)',
             border: '1px solid color-mix(in oklch, var(--accent) 30%, transparent)',
@@ -148,7 +152,7 @@ function GuildBanner({
             Lv.{guild.level}
           </span>
         </div>
-        {guild.notice && (
+        {guild.notice && !compact && (
           <div style={{
             color: 'var(--text-mute)', fontSize: 12.5,
             fontStyle: 'italic', marginTop: 2,
@@ -157,71 +161,112 @@ function GuildBanner({
           </div>
         )}
         <div style={{
-          display: 'flex', gap: 18, marginTop: 8,
-          fontFamily: 'var(--font-mono)', fontSize: 11,
+          display: 'flex', gap: compact ? 12 : 18, marginTop: compact ? 4 : 8,
+          fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11,
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <span style={{ color: 'var(--text-mute)', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ color: 'var(--text-mute)', fontSize: compact ? 8 : 9.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               {'멤버'}
             </span>
-            <span style={{ color: 'var(--text)', fontSize: 14, fontWeight: 600 }}>
+            <span style={{ color: 'var(--text)', fontSize: compact ? 12 : 14, fontWeight: 600 }}>
               {memberCount}/{guild.max_members}
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <span style={{ color: 'var(--text-mute)', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ color: 'var(--text-mute)', fontSize: compact ? 8 : 9.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               {'접속중'}
             </span>
-            <span style={{ color: 'var(--success)', fontSize: 14, fontWeight: 600 }}>
+            <span style={{ color: 'var(--success)', fontSize: compact ? 12 : 14, fontWeight: 600 }}>
               {onlineCount}
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <span style={{ color: 'var(--text-mute)', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              {'창립'}
-            </span>
-            <span style={{ color: 'var(--text)', fontSize: 12, fontWeight: 600 }}>
-              {dateFmt(guild.created_at)}
-            </span>
-          </div>
+          {!compact && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <span style={{ color: 'var(--text-mute)', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                {'창립'}
+              </span>
+              <span style={{ color: 'var(--text)', fontSize: 12, fontWeight: 600 }}>
+                {dateFmt(guild.created_at)}
+              </span>
+            </div>
+          )}
         </div>
+        {/* 액션 버튼 — inline on compact */}
+        {compact && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            {!isLeader && (
+              <button
+                onClick={onLeave}
+                style={{
+                  padding: '4px 10px',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
+                  color: 'var(--danger)',
+                  borderRadius: 4, fontSize: 10,
+                  fontFamily: 'var(--font-ui)', fontWeight: 600,
+                  cursor: 'pointer', transition: 'all 0.12s',
+                }}
+              >
+                {'클랜 탈퇴'}
+              </button>
+            )}
+            {isLeader && isSoleMember && (
+              <button
+                onClick={onDissolve}
+                style={{
+                  padding: '4px 10px',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
+                  color: 'var(--danger)',
+                  borderRadius: 4, fontSize: 10,
+                  fontFamily: 'var(--font-ui)', fontWeight: 600,
+                  cursor: 'pointer', transition: 'all 0.12s',
+                }}
+              >
+                {'길드 해산'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* 액션 버튼 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
-        {!isLeader && (
-          <button
-            onClick={onLeave}
-            style={{
-              padding: '7px 14px',
-              background: 'var(--bg-elevated)',
-              border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
-              color: 'var(--danger)',
-              borderRadius: 5, fontSize: 11.5,
-              fontFamily: 'var(--font-ui)', fontWeight: 600,
-              cursor: 'pointer', transition: 'all 0.12s',
-            }}
-          >
-            {'클랜 탈퇴'}
-          </button>
-        )}
-        {isLeader && isSoleMember && (
-          <button
-            onClick={onDissolve}
-            style={{
-              padding: '7px 14px',
-              background: 'var(--bg-elevated)',
-              border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
-              color: 'var(--danger)',
-              borderRadius: 5, fontSize: 11.5,
-              fontFamily: 'var(--font-ui)', fontWeight: 600,
-              cursor: 'pointer', transition: 'all 0.12s',
-            }}
-          >
-            {'길드 해산'}
-          </button>
-        )}
-      </div>
+      {/* 액션 버튼 — separate column on desktop */}
+      {!compact && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+          {!isLeader && (
+            <button
+              onClick={onLeave}
+              style={{
+                padding: '7px 14px',
+                background: 'var(--bg-elevated)',
+                border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
+                color: 'var(--danger)',
+                borderRadius: 5, fontSize: 11.5,
+                fontFamily: 'var(--font-ui)', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.12s',
+              }}
+            >
+              {'클랜 탈퇴'}
+            </button>
+          )}
+          {isLeader && isSoleMember && (
+            <button
+              onClick={onDissolve}
+              style={{
+                padding: '7px 14px',
+                background: 'var(--bg-elevated)',
+                border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
+                color: 'var(--danger)',
+                borderRadius: 5, fontSize: 11.5,
+                fontFamily: 'var(--font-ui)', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.12s',
+              }}
+            >
+              {'길드 해산'}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -230,10 +275,11 @@ function GuildBanner({
    탭 바
    ═══════════════════════════════════════════════════════════ */
 function ClanTabBar({
-  tab, setTab, memberCount,
+  tab, setTab, memberCount, compact,
 }: {
   tab: ClanTab; setTab: (t: ClanTab) => void;
   memberCount: number;
+  compact?: boolean;
 }) {
   const tabs: { key: ClanTab; label: string; badge?: string }[] = [
     { key: 'overview', label: '개요' },
@@ -243,7 +289,7 @@ function ClanTabBar({
 
   return (
     <div style={{
-      display: 'flex', gap: 4, marginBottom: 16,
+      display: 'flex', gap: compact ? 2 : 4, marginBottom: compact ? 10 : 16,
       borderBottom: '1px solid var(--border-soft)',
     }}>
       {tabs.map(t => (
@@ -251,9 +297,9 @@ function ClanTabBar({
           key={t.key}
           onClick={() => setTab(t.key)}
           style={{
-            padding: '10px 18px',
+            padding: compact ? '7px 12px' : '10px 18px',
             color: tab === t.key ? 'var(--accent)' : 'var(--text-mute)',
-            fontSize: 13, fontWeight: 500,
+            fontSize: compact ? 11.5 : 13, fontWeight: 500,
             fontFamily: 'var(--font-ui)',
             borderBottom: `2px solid ${tab === t.key ? 'var(--accent)' : 'transparent'}`,
             marginBottom: -1,
@@ -261,14 +307,14 @@ function ClanTabBar({
             borderBottomStyle: 'solid', borderBottomWidth: 2,
             borderBottomColor: tab === t.key ? 'var(--accent)' : 'transparent',
             cursor: 'pointer', transition: 'color 0.12s',
-            display: 'flex', alignItems: 'center', gap: 6,
+            display: 'flex', alignItems: 'center', gap: compact ? 4 : 6,
           }}
         >
           {t.label}
           {t.badge && (
             <span style={{
-              fontFamily: 'var(--font-mono)', fontSize: 10,
-              padding: '1px 6px', borderRadius: 100,
+              fontFamily: 'var(--font-mono)', fontSize: compact ? 9 : 10,
+              padding: compact ? '1px 5px' : '1px 6px', borderRadius: 100,
               background: tab === t.key
                 ? 'color-mix(in oklch, var(--accent) 15%, transparent)'
                 : 'var(--bg-elevated)',
@@ -287,26 +333,26 @@ function ClanTabBar({
    통계 카드
    ═══════════════════════════════════════════════════════════ */
 function StatCard({
-  label, value, color,
+  label, value, color, compact,
 }: {
-  label: string; value: string; color?: string;
+  label: string; value: string; color?: string; compact?: boolean;
 }) {
   return (
     <div style={{
       background: 'var(--bg-elevated)',
       border: '1px solid var(--border-soft)',
-      borderRadius: 6, padding: '12px 14px',
+      borderRadius: compact ? 5 : 6, padding: compact ? '8px 10px' : '12px 14px',
     }}>
       <div style={{
-        fontFamily: 'var(--font-mono)', fontSize: 9.5,
+        fontFamily: 'var(--font-mono)', fontSize: compact ? 8 : 9.5,
         color: 'var(--text-mute)', textTransform: 'uppercase',
         letterSpacing: '0.1em',
       }}>
         {label}
       </div>
       <div style={{
-        fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700,
-        marginTop: 4, color: color ?? 'var(--text)',
+        fontFamily: 'var(--font-mono)', fontSize: compact ? 15 : 20, fontWeight: 700,
+        marginTop: compact ? 2 : 4, color: color ?? 'var(--text)',
       }}>
         {value}
       </div>
@@ -320,7 +366,7 @@ function StatCard({
 function OverviewTab({
   guild, members, userId,
   editingNotice, setEditingNotice, noticeText, setNoticeText,
-  onSaveNotice,
+  onSaveNotice, compact,
 }: {
   guild: GuildRow;
   members: GuildMemberRow[];
@@ -330,6 +376,7 @@ function OverviewTab({
   noticeText: string;
   setNoticeText: (v: string) => void;
   onSaveNotice: () => void;
+  compact?: boolean;
 }) {
   const isLeader = guild.leader_id === userId;
   const onlineMembers = members.filter(m => isOnline(m.last_active_at));
@@ -340,8 +387,8 @@ function OverviewTab({
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '1.4fr 1fr',
-      gap: 14,
+      gridTemplateColumns: compact ? '1fr' : '1.4fr 1fr',
+      gap: compact ? 10 : 14,
       alignItems: 'start',
     }}>
       {/* 좌측 */}
@@ -349,17 +396,17 @@ function OverviewTab({
         {/* 공지사항 */}
         <div style={{
           borderLeft: '3px solid var(--accent)',
-          padding: '10px 14px',
+          padding: compact ? '8px 10px' : '10px 14px',
           background: 'color-mix(in oklch, var(--accent) 4%, transparent)',
           borderRadius: '0 4px 4px 0',
-          marginBottom: 12,
+          marginBottom: compact ? 8 : 12,
         }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
             marginBottom: 4,
           }}>
             <span style={{
-              fontFamily: 'var(--font-mono)', fontSize: 9.5,
+              fontFamily: 'var(--font-mono)', fontSize: compact ? 8.5 : 9.5,
               color: 'var(--accent)', letterSpacing: '0.12em',
               textTransform: 'uppercase', fontWeight: 600,
             }}>
@@ -369,7 +416,7 @@ function OverviewTab({
               <button
                 onClick={() => setEditingNotice(true)}
                 style={{
-                  fontSize: 10, fontFamily: 'var(--font-mono)',
+                  fontSize: compact ? 9 : 10, fontFamily: 'var(--font-mono)',
                   background: 'none', border: 'none',
                   color: 'var(--accent)', cursor: 'pointer',
                   marginLeft: 'auto',
@@ -387,12 +434,12 @@ function OverviewTab({
                 onKeyDown={(e) => e.key === 'Enter' && onSaveNotice()}
                 maxLength={100}
                 style={{
-                  flex: 1, minWidth: 0, padding: '5px 8px',
+                  flex: 1, minWidth: 0, padding: compact ? '4px 6px' : '5px 8px',
                   border: '1px solid var(--border-soft)',
                   borderRadius: 4,
                   background: 'var(--bg-panel)',
                   color: 'var(--text)', fontFamily: 'var(--font-mono)',
-                  fontSize: 12, outline: 'none',
+                  fontSize: compact ? 11 : 12, outline: 'none',
                 }}
               />
               <button
@@ -419,7 +466,7 @@ function OverviewTab({
           ) : (
             <div style={{
               color: guild.notice ? 'var(--text)' : 'var(--text-mute)',
-              fontSize: 12.5, lineHeight: 1.5,
+              fontSize: compact ? 11.5 : 12.5, lineHeight: 1.5,
               fontStyle: guild.notice ? 'normal' : 'italic',
               wordBreak: 'break-word',
             }}>
@@ -438,13 +485,13 @@ function OverviewTab({
 
         {/* 통계 카드 그리드 */}
         <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
-          gap: 10, marginBottom: 16,
+          display: 'grid', gridTemplateColumns: compact ? '1fr 1fr' : '1fr 1fr 1fr 1fr',
+          gap: compact ? 6 : 10, marginBottom: compact ? 10 : 16,
         }}>
-          <StatCard label={'멤버'} value={`${members.length}/${guild.max_members}`} color="var(--text)" />
-          <StatCard label={'길드 레벨'} value={`Lv.${guild.level}`} color="var(--accent)" />
-          <StatCard label={'접속중'} value={String(onlineMembers.length)} color="var(--success)" />
-          <StatCard label={'평균 레벨'} value={`Lv.${avgLevel}`} color={PURPLE} />
+          <StatCard label={'멤버'} value={`${members.length}/${guild.max_members}`} color="var(--text)" compact={compact} />
+          <StatCard label={'길드 레벨'} value={`Lv.${guild.level}`} color="var(--accent)" compact={compact} />
+          <StatCard label={'접속중'} value={String(onlineMembers.length)} color="var(--success)" compact={compact} />
+          <StatCard label={'평균 레벨'} value={`Lv.${avgLevel}`} color={PURPLE} compact={compact} />
         </div>
 
         {/* 멤버 레벨 분포 (간단 요약) */}
@@ -623,10 +670,11 @@ function OverviewTab({
    멤버 탭
    ═══════════════════════════════════════════════════════════ */
 function MembersTab({
-  members, userId,
+  members, userId, compact,
 }: {
   members: GuildMemberRow[];
   userId: string;
+  compact?: boolean;
 }) {
   const [q, setQ] = useState('');
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
@@ -658,14 +706,16 @@ function MembersTab({
     <>
       {/* 툴바 */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        marginBottom: 14,
+        display: 'flex', alignItems: 'center', gap: compact ? 6 : 10,
+        marginBottom: compact ? 8 : 14,
+        flexWrap: compact ? 'wrap' as const : 'nowrap' as const,
       }}>
         {/* 검색 */}
         <div style={{
-          flex: 1, maxWidth: 320,
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 12px',
+          flex: 1, maxWidth: compact ? undefined : 320,
+          minWidth: compact ? '100%' : undefined,
+          display: 'flex', alignItems: 'center', gap: compact ? 6 : 8,
+          padding: compact ? '5px 8px' : '7px 12px',
           background: 'var(--bg-panel)',
           border: '1px solid var(--border-soft)',
           borderRadius: 6,
@@ -679,7 +729,7 @@ function MembersTab({
             onChange={(e) => setQ(e.target.value)}
             style={{
               flex: 1, background: 'none', border: 'none', outline: 'none',
-              fontSize: 12.5, color: 'var(--text)',
+              fontSize: compact ? 11 : 12.5, color: 'var(--text)',
               fontFamily: 'var(--font-ui)',
             }}
           />
@@ -693,14 +743,14 @@ function MembersTab({
             setRoleFilter(cycle[(idx + 1) % cycle.length]);
           }}
           style={{
-            padding: '7px 11px',
+            padding: compact ? '5px 8px' : '7px 11px',
             background: roleFilter
               ? 'color-mix(in oklch, var(--accent) 5%, transparent)'
               : 'var(--bg-panel)',
             border: `1px solid ${roleFilter
               ? 'color-mix(in oklch, var(--accent) 40%, transparent)'
               : 'var(--border-soft)'}`,
-            borderRadius: 6, fontSize: 11.5,
+            borderRadius: 6, fontSize: compact ? 10 : 11.5,
             color: roleFilter ? 'var(--accent)' : 'var(--text-mute)',
             cursor: 'pointer', fontFamily: 'var(--font-ui)',
             display: 'flex', alignItems: 'center', gap: 4,
@@ -719,10 +769,10 @@ function MembersTab({
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as SortKey)}
           style={{
-            padding: '7px 28px 7px 11px',
+            padding: compact ? '5px 24px 5px 8px' : '7px 28px 7px 11px',
             background: 'var(--bg-panel)',
             border: '1px solid var(--border-soft)',
-            borderRadius: 6, fontSize: 11.5,
+            borderRadius: 6, fontSize: compact ? 10 : 11.5,
             color: 'var(--text)', fontFamily: 'var(--font-mono)',
             appearance: 'none',
             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237c8696' d='M1.5 3.5L5 7l3.5-3.5z'/%3E%3C/svg%3E")`,
@@ -747,21 +797,21 @@ function MembersTab({
         {/* 헤더 */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '24px 1.6fr 80px 80px 1fr 90px',
-          alignItems: 'center', columnGap: 14,
-          padding: '9px 16px',
+          gridTemplateColumns: compact ? '20px 1fr 50px' : '24px 1.6fr 80px 80px 1fr 90px',
+          alignItems: 'center', columnGap: compact ? 8 : 14,
+          padding: compact ? '7px 10px' : '9px 16px',
           background: 'var(--bg-sunken)',
           borderBottom: '1px solid var(--border-soft)',
-          fontFamily: 'var(--font-mono)', fontSize: 10,
+          fontFamily: 'var(--font-mono)', fontSize: compact ? 9 : 10,
           textTransform: 'uppercase', letterSpacing: '0.08em',
           fontWeight: 600, color: 'var(--text-mute)',
         }}>
           <span />
           <span>{'이름'}</span>
-          <span>{'클래스'}</span>
+          {!compact && <span>{'클래스'}</span>}
           <span>{'레벨'}</span>
-          <span>{'마지막 접속'}</span>
-          <span style={{ textAlign: 'right' }}>{'액션'}</span>
+          {!compact && <span>{'마지막 접속'}</span>}
+          {!compact && <span style={{ textAlign: 'right' }}>{'액션'}</span>}
         </div>
 
         {/* 행 */}
@@ -776,15 +826,15 @@ function MembersTab({
               key={m.user_id}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '24px 1.6fr 80px 80px 1fr 90px',
-                alignItems: 'center', columnGap: 14,
-                padding: '9px 16px',
+                gridTemplateColumns: compact ? '20px 1fr 50px' : '24px 1.6fr 80px 80px 1fr 90px',
+                alignItems: 'center', columnGap: compact ? 8 : 14,
+                padding: compact ? '7px 10px' : '9px 16px',
                 borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
                 transition: 'background 0.1s',
                 ...(isMe ? {
                   background: 'color-mix(in oklch, var(--accent) 4%, transparent)',
                   borderLeft: '2px solid var(--accent)',
-                  paddingLeft: 14,
+                  paddingLeft: compact ? 8 : 14,
                 } : {}),
               }}
               onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
@@ -792,21 +842,21 @@ function MembersTab({
             >
               {/* 상태 닷 */}
               <span style={{
-                width: 8, height: 8, borderRadius: '50%',
+                width: compact ? 6 : 8, height: compact ? 6 : 8, borderRadius: '50%',
                 background: online ? 'var(--success)' : 'var(--text-faint)',
                 boxShadow: online ? '0 0 6px var(--success)' : 'none',
               }} />
 
               {/* 이름 + 역할 */}
               <span style={{
-                display: 'flex', alignItems: 'center', gap: 10, minWidth: 0,
+                display: 'flex', alignItems: 'center', gap: compact ? 6 : 10, minWidth: 0,
               }}>
                 <span style={{
-                  width: 30, height: 30, borderRadius: 5,
+                  width: compact ? 24 : 30, height: compact ? 24 : 30, borderRadius: compact ? 4 : 5,
                   display: 'grid', placeItems: 'center',
                   background: 'var(--bg-sunken)',
                   border: `1px solid ${cls.border}`,
-                  fontFamily: 'var(--font-mono)', fontSize: 14,
+                  fontFamily: 'var(--font-mono)', fontSize: compact ? 11 : 14,
                   color: cls.color, flexShrink: 0,
                 }}>
                   {cls.icon}
@@ -818,7 +868,7 @@ function MembersTab({
                       name={m.name ?? '???'}
                       isMe={isMe}
                       style={{
-                        fontSize: 13, fontWeight: 600,
+                        fontSize: compact ? 11.5 : 13, fontWeight: 600,
                         fontFamily: 'var(--font-ui)',
                         color: isMe ? 'var(--accent)' : 'var(--text)',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -826,7 +876,7 @@ function MembersTab({
                     />
                     {isMe && (
                       <span style={{
-                        color: 'var(--accent)', fontSize: 10,
+                        color: 'var(--accent)', fontSize: compact ? 9 : 10,
                         fontFamily: 'var(--font-mono)',
                       }}>
                         (나)
@@ -834,7 +884,7 @@ function MembersTab({
                     )}
                   </span>
                   <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                    fontFamily: 'var(--font-mono)', fontSize: compact ? 8.5 : 9.5,
                     color: role.color, marginTop: 2,
                     display: 'block',
                   }}>
@@ -843,58 +893,64 @@ function MembersTab({
                 </span>
               </span>
 
-              {/* 클래스 */}
-              <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: 11.5,
-                color: 'var(--text-mute)',
-              }}>
-                {cls.name}
-              </span>
+              {/* 클래스 — hidden on compact */}
+              {!compact && (
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                  color: 'var(--text-mute)',
+                }}>
+                  {cls.name}
+                </span>
+              )}
 
               {/* 레벨 */}
               <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: 13,
+                fontFamily: 'var(--font-mono)', fontSize: compact ? 11 : 13,
                 color: 'var(--text)', fontWeight: 600,
               }}>
                 Lv.{m.level ?? 1}
               </span>
 
-              {/* 마지막 접속 */}
-              <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: 10.5,
-                color: online ? 'var(--success)' : 'var(--text-faint)',
-              }}>
-                {online ? '● 접속중' : timeAgo(m.last_active_at)}
-              </span>
+              {/* 마지막 접속 — hidden on compact */}
+              {!compact && (
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10.5,
+                  color: online ? 'var(--success)' : 'var(--text-faint)',
+                }}>
+                  {online ? '● 접속중' : timeAgo(m.last_active_at)}
+                </span>
+              )}
 
-              {/* 액션 */}
-              <span style={{
-                display: 'flex', gap: 4, justifyContent: 'flex-end',
-              }}>
-                <button
-                  title={'프로필'}
-                  onClick={() => useGameStore.getState().openProfile(m.user_id)}
-                  style={{
-                    width: 28, height: 28, borderRadius: 4,
-                    border: '1px solid var(--border-soft)',
-                    background: 'none', color: 'var(--text-mute)',
-                    display: 'grid', placeItems: 'center',
-                    cursor: 'pointer', transition: 'all 0.1s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--text)';
-                    e.currentTarget.style.borderColor = 'var(--border-strong)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--text-mute)';
-                    e.currentTarget.style.borderColor = 'var(--border-soft)';
-                  }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <circle cx="8" cy="6" r="3"/><path d="M3 14a5 5 0 0110 0"/>
-                  </svg>
-                </button>
-              </span>
+              {/* 액션 — hidden on compact */}
+              {!compact && (
+                <span style={{
+                  display: 'flex', gap: 4, justifyContent: 'flex-end',
+                }}>
+                  <button
+                    title={'프로필'}
+                    onClick={() => useGameStore.getState().openProfile(m.user_id)}
+                    style={{
+                      width: 28, height: 28, borderRadius: 4,
+                      border: '1px solid var(--border-soft)',
+                      background: 'none', color: 'var(--text-mute)',
+                      display: 'grid', placeItems: 'center',
+                      cursor: 'pointer', transition: 'all 0.1s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--text)';
+                      e.currentTarget.style.borderColor = 'var(--border-strong)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-mute)';
+                      e.currentTarget.style.borderColor = 'var(--border-soft)';
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <circle cx="8" cy="6" r="3"/><path d="M3 14a5 5 0 0110 0"/>
+                    </svg>
+                  </button>
+                </span>
+              )}
             </div>
           );
         })}
@@ -955,9 +1011,9 @@ function WarTab() {
    가입 중 — 전체 뷰
    ═══════════════════════════════════════════════════════════ */
 function MyGuildContent({
-  userId, guildId, onLeft,
+  userId, guildId, onLeft, compact,
 }: {
-  userId: string; guildId: string; onLeft: () => void;
+  userId: string; guildId: string; onLeft: () => void; compact?: boolean;
 }) {
   const [guild, setGuild] = useState<GuildRow | null>(null);
   const [members, setMembers] = useState<GuildMemberRow[]>([]);
@@ -1029,9 +1085,10 @@ function MyGuildContent({
         isSoleMember={isLeader && members.length === 1}
         onLeave={handleLeave}
         onDissolve={handleDissolve}
+        compact={compact}
       />
 
-      <ClanTabBar tab={tab} setTab={setTab} memberCount={members.length} />
+      <ClanTabBar tab={tab} setTab={setTab} memberCount={members.length} compact={compact} />
 
       {tab === 'overview' && (
         <OverviewTab
@@ -1039,10 +1096,11 @@ function MyGuildContent({
           editingNotice={editingNotice} setEditingNotice={setEditingNotice}
           noticeText={noticeText} setNoticeText={setNoticeText}
           onSaveNotice={handleSaveNotice}
+          compact={compact}
         />
       )}
       {tab === 'members' && (
-        <MembersTab members={members} userId={userId} />
+        <MembersTab members={members} userId={userId} compact={compact} />
       )}
       {tab === 'war' && <WarTab />}
     </>
@@ -1052,7 +1110,7 @@ function MyGuildContent({
 /* ═══════════════════════════════════════════════════════════
    미가입 — 길드 목록 + 생성
    ═══════════════════════════════════════════════════════════ */
-function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => void }) {
+function NoGuildContent({ userId, onJoined, compact }: { userId: string; onJoined: () => void; compact?: boolean }) {
   const level = useGameStore(s => s.level);
   const gold  = useGameStore(s => s.gold);
   const [guilds, setGuilds] = useState<(GuildRow & { memberCount?: number })[]>([]);
@@ -1098,18 +1156,18 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
     <>
       {/* 헤더 */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        marginBottom: 18,
+        display: 'flex', alignItems: 'center', gap: compact ? 8 : 10,
+        marginBottom: compact ? 12 : 18,
       }}>
         <div>
           <div style={{
-            fontFamily: 'var(--font-display)', fontSize: 17,
+            fontFamily: 'var(--font-display)', fontSize: compact ? 14 : 17,
             fontWeight: 700, color: 'var(--text)',
           }}>
             {'클랜'}
           </div>
           <div style={{
-            fontFamily: 'var(--font-mono)', fontSize: 10,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 9 : 10,
             color: 'var(--text-mute)', letterSpacing: '0.08em',
             textTransform: 'uppercase',
           }}>
@@ -1120,7 +1178,7 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
         <button
           onClick={() => setCreating(!creating)}
           style={{
-            padding: '7px 14px', borderRadius: 5,
+            padding: compact ? '5px 10px' : '7px 14px', borderRadius: 5,
             border: creating
               ? '1px solid color-mix(in oklch, var(--accent) 40%, transparent)'
               : '1px solid var(--border-soft)',
@@ -1128,7 +1186,7 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
               ? 'color-mix(in oklch, var(--accent) 10%, transparent)'
               : 'var(--bg-elevated)',
             color: creating ? 'var(--accent)' : 'var(--text-mute)',
-            fontFamily: 'var(--font-mono)', fontSize: 11.5,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11.5,
             fontWeight: 700, cursor: 'pointer',
             textTransform: 'uppercase', letterSpacing: '0.06em',
             transition: 'all 0.12s',
@@ -1141,23 +1199,23 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
       {/* 생성 폼 */}
       {creating && (
         <div style={{
-          padding: 16,
+          padding: compact ? 10 : 16,
           background: 'var(--bg-panel)',
           border: '1px solid var(--border-soft)',
-          borderRadius: 8, marginBottom: 14,
+          borderRadius: compact ? 6 : 8, marginBottom: compact ? 10 : 14,
         }}>
           <div style={{
-            fontFamily: 'var(--font-mono)', fontSize: 10,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 9 : 10,
             color: 'var(--text-mute)', textTransform: 'uppercase',
-            letterSpacing: '0.1em', fontWeight: 600, marginBottom: 10,
+            letterSpacing: '0.1em', fontWeight: 600, marginBottom: compact ? 8 : 10,
           }}>
             {'새 길드 창설'}
           </div>
 
           {/* 조건 표시 */}
           <div style={{
-            display: 'flex', gap: 14, marginBottom: 10,
-            fontFamily: 'var(--font-mono)', fontSize: 11,
+            display: 'flex', gap: compact ? 10 : 14, marginBottom: compact ? 8 : 10,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11,
           }}>
             <span style={{
               color: level >= GUILD_CREATE_LEVEL ? 'var(--success)' : 'var(--danger)',
@@ -1250,11 +1308,11 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
             <div
               key={g.id}
               style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                padding: '12px 16px',
+                display: 'flex', alignItems: 'center', gap: compact ? 10 : 14,
+                padding: compact ? '8px 10px' : '12px 16px',
                 background: 'var(--bg-panel)',
                 border: '1px solid var(--border-soft)',
-                borderRadius: 8,
+                borderRadius: compact ? 6 : 8,
                 transition: 'border-color 0.12s',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
@@ -1262,11 +1320,11 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
             >
               {/* 엠블럼 */}
               <div style={{
-                width: 42, height: 42, borderRadius: 7,
+                width: compact ? 32 : 42, height: compact ? 32 : 42, borderRadius: compact ? 5 : 7,
                 background: `conic-gradient(from 45deg, #2a1a3e, #4a2570, #2a1a3e)`,
                 border: `1px solid ${PURPLE_BORDER}`,
                 display: 'grid', placeItems: 'center',
-                fontFamily: 'var(--font-mono)', fontSize: 18,
+                fontFamily: 'var(--font-mono)', fontSize: compact ? 14 : 18,
                 color: '#fff', flexShrink: 0,
                 textShadow: `0 0 8px color-mix(in oklch, ${PURPLE} 60%, transparent)`,
               }}>
@@ -1275,15 +1333,15 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
               {/* 정보 */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 14, fontWeight: 700, color: 'var(--text)',
+                  fontSize: compact ? 12 : 14, fontWeight: 700, color: 'var(--text)',
                   fontFamily: 'var(--font-display)',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {g.name}
                 </div>
                 <div style={{
-                  display: 'flex', gap: 10, marginTop: 3,
-                  fontFamily: 'var(--font-mono)', fontSize: 11,
+                  display: 'flex', gap: compact ? 8 : 10, marginTop: compact ? 2 : 3,
+                  fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11,
                   color: 'var(--text-mute)',
                 }}>
                   <span style={{ color: 'var(--accent)' }}>Lv.{g.level}</span>
@@ -1294,10 +1352,10 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
               <button
                 onClick={() => handleJoin(g.id)}
                 style={{
-                  padding: '7px 16px', border: 'none', borderRadius: 5,
+                  padding: compact ? '5px 10px' : '7px 16px', border: 'none', borderRadius: 5,
                   background: 'linear-gradient(135deg, var(--accent), oklch(0.68 0.18 45))',
                   color: '#fff',
-                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                  fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11.5,
                   fontWeight: 700, cursor: 'pointer',
                   flexShrink: 0, transition: 'opacity 0.12s',
                   textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -1317,6 +1375,7 @@ function NoGuildContent({ userId, onJoined }: { userId: string; onJoined: () => 
    메인 길드 패널
    ═══════════════════════════════════════════════════════════ */
 export default function GuildPanel() {
+  const compact = useCompact();
   const userId = useGameStore(s => s.authUserId);
   const [guildId, setGuildId] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
@@ -1347,7 +1406,7 @@ export default function GuildPanel() {
   if (!userId || !checked) {
     return (
       <div style={{
-        padding: '18px 22px 32px',
+        padding: compact ? '6px 8px 10px' : '18px 22px 32px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: 'var(--text-mute)', fontSize: 12,
         fontFamily: 'var(--font-mono)',
@@ -1360,7 +1419,7 @@ export default function GuildPanel() {
 
   return (
     <div style={{
-      padding: '18px 22px 32px',
+      padding: compact ? '6px 8px 10px' : '18px 22px 32px',
       overflowY: 'auto',
       height: '100%',
     }}>
@@ -1377,11 +1436,13 @@ export default function GuildPanel() {
             setGuildId(null);
             useGameStore.setState({ guildId: null, guildName: null });
           }}
+          compact={compact}
         />
       ) : (
         <NoGuildContent
           userId={userId}
           onJoined={() => checkGuild()}
+          compact={compact}
         />
       )}
     </div>

@@ -8,6 +8,7 @@ import { getTopPlayers } from '../../lib/leaderboard';
 import type { LeaderboardEntry } from '../../lib/leaderboard';
 import { ClickableName } from '../profile/ClickableName';
 import type { PlayerClass } from '../../types';
+import { useCompact } from '../../lib/useCompact';
 
 /* ─── 클래스 정보 ─── */
 const CLASS_INFO: Record<string, { icon: string; name: string; color: string; border: string }> = {
@@ -56,9 +57,9 @@ const CLASS_CYCLE: (PlayerClass | null)[] = [null, 'knight', 'elf', 'wizard'];
    포디움 카드 (Top 3)
    ═══════════════════════════════════════════════════════════ */
 function PodiumCard({
-  player, rank, cat,
+  player, rank, cat, compact,
 }: {
-  player: LeaderboardEntry; rank: number; cat: RankCat;
+  player: LeaderboardEntry; rank: number; cat: RankCat; compact?: boolean;
 }) {
   const cls = classOf(player.player_class);
   const medal = rank === 1 ? '🏆' : rank === 2 ? '◆' : '◇';
@@ -75,11 +76,13 @@ function PodiumCard({
         : rank === 2 ? 'color-mix(in oklch, #96a5b9 30%, transparent)'
         : 'color-mix(in oklch, #b07814 35%, transparent)'
       }`,
-      borderRadius: 10,
-      padding: isR1 ? '28px 16px 22px' : '22px 16px 18px',
+      borderRadius: compact ? 7 : 10,
+      padding: compact
+        ? (isR1 ? '16px 10px 14px' : '14px 10px 12px')
+        : (isR1 ? '28px 16px 22px' : '22px 16px 18px'),
       textAlign: 'center',
       position: 'relative',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: compact ? 2 : 4,
       overflow: 'hidden',
       boxShadow: isR1
         ? '0 0 0 1px color-mix(in oklch, var(--accent) 15%, transparent) inset, 0 0 24px color-mix(in oklch, var(--accent) 8%, transparent)'
@@ -87,7 +90,7 @@ function PodiumCard({
     }}>
       {/* 상단 그라디언트 */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 80,
+        position: 'absolute', top: 0, left: 0, right: 0, height: compact ? 50 : 80,
         background: `linear-gradient(180deg, ${rc} 0%, transparent 100%)`,
         opacity: 0.04, pointerEvents: 'none',
       }} />
@@ -95,8 +98,8 @@ function PodiumCard({
       {/* 1위 별 */}
       {isR1 && (
         <span style={{
-          position: 'absolute', top: -2, right: 10,
-          fontSize: 24, color: 'var(--accent)',
+          position: 'absolute', top: -2, right: compact ? 4 : 10,
+          fontSize: compact ? 18 : 24, color: 'var(--accent)',
           textShadow: '0 0 12px color-mix(in oklch, var(--accent) 60%, transparent)',
         }}>★</span>
       )}
@@ -104,8 +107,8 @@ function PodiumCard({
       {/* 순위 */}
       <div style={{
         fontFamily: 'var(--font-mono)',
-        fontSize: isR1 ? 32 : 24, fontWeight: 700,
-        lineHeight: 1, marginBottom: 4,
+        fontSize: compact ? (isR1 ? 22 : 18) : (isR1 ? 32 : 24), fontWeight: 700,
+        lineHeight: 1, marginBottom: compact ? 2 : 4,
         color: rc,
       }}>
         #{rank}
@@ -113,8 +116,8 @@ function PodiumCard({
 
       {/* 메달 */}
       <div style={{
-        width: 36, height: 36, marginBottom: 6,
-        display: 'grid', placeItems: 'center', fontSize: 22,
+        width: compact ? 26 : 36, height: compact ? 26 : 36, marginBottom: compact ? 3 : 6,
+        display: 'grid', placeItems: 'center', fontSize: compact ? 16 : 22,
         color: rc,
       }}>
         {medal}
@@ -122,20 +125,24 @@ function PodiumCard({
 
       {/* 이름 */}
       <div style={{
-        fontSize: isR1 ? 17 : 15, fontWeight: 600,
-        color: 'var(--text)', marginTop: 2,
+        fontSize: compact ? (isR1 ? 13 : 12) : (isR1 ? 17 : 15), fontWeight: 600,
+        color: 'var(--text)', marginTop: compact ? 1 : 2,
         fontFamily: 'var(--font-ui)',
+        whiteSpace: compact ? 'nowrap' : undefined,
+        overflow: compact ? 'hidden' : undefined,
+        textOverflow: compact ? 'ellipsis' : undefined,
+        maxWidth: compact ? '100%' : undefined,
       }}>
         {player.name}
       </div>
 
       {/* 클래스 + 길드 */}
       <div style={{
-        fontFamily: 'var(--font-mono)', fontSize: 11,
-        color: 'var(--text-mute)', marginTop: 2,
+        fontFamily: 'var(--font-mono)', fontSize: compact ? 9.5 : 11,
+        color: 'var(--text-mute)', marginTop: compact ? 1 : 2,
       }}>
         {cls.icon} {cls.name} · Lv.{player.level}
-        {player.guild_name && (
+        {player.guild_name && !compact && (
           <span style={{ color: 'oklch(0.68 0.20 305)', marginLeft: 6 }}>
             [{player.guild_name}]
           </span>
@@ -144,26 +151,26 @@ function PodiumCard({
 
       {/* 메트릭 */}
       <div style={{
-        marginTop: 10, paddingTop: 10,
+        marginTop: compact ? 6 : 10, paddingTop: compact ? 6 : 10,
         borderTop: '1px dashed color-mix(in oklch, var(--border-soft) 60%, transparent)',
         width: '100%',
       }}>
         <span style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: isR1 ? 20 : 17,
+          fontSize: compact ? (isR1 ? 15 : 13) : (isR1 ? 20 : 17),
           fontWeight: 700, color: rc,
         }}>
           {metricVal}
           {cat === 'gold' && (
             <span style={{
-              fontSize: 11, color: 'var(--text-mute)',
-              marginLeft: 4, fontWeight: 400,
+              fontSize: compact ? 9 : 11, color: 'var(--text-mute)',
+              marginLeft: compact ? 2 : 4, fontWeight: 400,
             }}>G</span>
           )}
         </span>
         <span style={{
           display: 'block',
-          fontFamily: 'var(--font-mono)', fontSize: 10,
+          fontFamily: 'var(--font-mono)', fontSize: compact ? 8.5 : 10,
           color: 'var(--text-mute)',
           textTransform: 'uppercase', letterSpacing: '0.1em',
           marginTop: 2,
@@ -179,12 +186,13 @@ function PodiumCard({
    테이블 행
    ═══════════════════════════════════════════════════════════ */
 function BoardRow({
-  player, rank, cat, isMe,
+  player, rank, cat, isMe, compact,
 }: {
   player: LeaderboardEntry;
   rank: number;
   cat: RankCat;
   isMe: boolean;
+  compact?: boolean;
 }) {
   const cls = classOf(player.player_class);
   const rc = rankColor(rank);
@@ -195,20 +203,20 @@ function BoardRow({
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '60px 1.8fr 1fr 80px 1fr 80px',
-      alignItems: 'center', columnGap: 12,
-      padding: '9px 16px',
+      gridTemplateColumns: compact ? '32px 1fr 50px' : '60px 1.8fr 1fr 80px 1fr 80px',
+      alignItems: 'center', columnGap: compact ? 6 : 12,
+      padding: compact ? '6px 8px' : '9px 16px',
       borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
       transition: 'background 0.1s',
       ...(isMe ? {
         background: 'color-mix(in oklch, var(--accent) 5%, transparent)',
         borderLeft: '2px solid var(--accent)',
-        paddingLeft: 14,
+        paddingLeft: compact ? 6 : 14,
       } : {}),
     }}>
       {/* 순위 */}
       <span style={{
-        fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 600,
+        fontFamily: 'var(--font-mono)', fontSize: compact ? 11.5 : 14, fontWeight: 600,
         color: rank <= 3 ? rc : 'var(--text-mute)',
       }}>
         #{rank}
@@ -216,15 +224,15 @@ function BoardRow({
 
       {/* 이름 셀 */}
       <span style={{
-        display: 'flex', alignItems: 'center', gap: 10, minWidth: 0,
+        display: 'flex', alignItems: 'center', gap: compact ? 6 : 10, minWidth: 0,
       }}>
         {/* 아바타 */}
         <span style={{
-          width: 30, height: 30, borderRadius: 5,
+          width: compact ? 22 : 30, height: compact ? 22 : 30, borderRadius: compact ? 4 : 5,
           display: 'grid', placeItems: 'center',
           background: 'var(--bg-sunken)',
           border: `1px solid ${cls.border}`,
-          fontFamily: 'var(--font-mono)', fontSize: 14,
+          fontFamily: 'var(--font-mono)', fontSize: compact ? 11 : 14,
           color: cls.color, flexShrink: 0,
         }}>
           {cls.icon}
@@ -239,7 +247,7 @@ function BoardRow({
               name={player.name}
               isMe={isMe}
               style={{
-                fontSize: 13, fontWeight: 600,
+                fontSize: compact ? 11.5 : 13, fontWeight: 600,
                 fontFamily: 'var(--font-ui)',
                 color: rank <= 3 ? 'var(--accent)' : 'var(--text)',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -247,14 +255,14 @@ function BoardRow({
             />
             {isMe && (
               <span style={{
-                color: 'var(--accent)', fontSize: 10,
+                color: 'var(--accent)', fontSize: compact ? 9 : 10,
                 fontFamily: 'var(--font-mono)',
               }}>
                 (나)
               </span>
             )}
           </span>
-          {player.guild_name && (
+          {player.guild_name && !compact && (
             <span style={{
               fontFamily: 'var(--font-mono)', fontSize: 10,
               color: 'oklch(0.68 0.20 305)',
@@ -267,54 +275,61 @@ function BoardRow({
         </span>
       </span>
 
-      {/* 클래스 */}
-      <span style={{
-        fontFamily: 'var(--font-mono)', fontSize: 11.5,
-        color: 'var(--text-mute)',
-      }}>
-        {cls.name}
-      </span>
-
-      {/* 레벨 */}
-      <span style={{
-        fontFamily: 'var(--font-mono)', fontSize: 13,
-        color: 'var(--text)', fontWeight: 600,
-      }}>
-        Lv.{player.level}
-        <small style={{
-          color: 'var(--text-mute)', fontSize: 10, marginLeft: 4,
+      {/* 클래스 — hidden on compact */}
+      {!compact && (
+        <span style={{
+          fontFamily: 'var(--font-mono)', fontSize: 11.5,
+          color: 'var(--text-mute)',
         }}>
-          {player.exp.toFixed(1)}%
-        </small>
-      </span>
+          {cls.name}
+        </span>
+      )}
 
-      {/* 메트릭 (카테고리별) */}
+      {/* 레벨 — hidden on compact (shown as metric column instead) */}
+      {!compact && (
+        <span style={{
+          fontFamily: 'var(--font-mono)', fontSize: 13,
+          color: 'var(--text)', fontWeight: 600,
+        }}>
+          Lv.{player.level}
+          <small style={{
+            color: 'var(--text-mute)', fontSize: 10, marginLeft: 4,
+          }}>
+            {player.exp.toFixed(1)}%
+          </small>
+        </span>
+      )}
+
+      {/* 메트릭 (카테고리별) — on compact this is the 3rd column */}
       <span style={{
-        fontFamily: 'var(--font-mono)', fontSize: 13.5,
+        fontFamily: 'var(--font-mono)', fontSize: compact ? 11.5 : 13.5,
         color: 'var(--accent)', fontWeight: 600,
+        textAlign: compact ? 'right' : undefined,
       }}>
         {metricVal}
         {metricUnit && (
           <span style={{
-            color: 'var(--text-mute)', fontSize: 10,
+            color: 'var(--text-mute)', fontSize: compact ? 9 : 10,
             marginLeft: 2, fontWeight: 400,
           }}>{metricUnit}</span>
         )}
       </span>
 
-      {/* 온라인 상태 */}
-      <span style={{
-        fontFamily: 'var(--font-mono)', fontSize: 10.5,
-        color: online ? 'var(--success)' : 'var(--text-mute)',
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-      }}>
+      {/* 온라인 상태 — hidden on compact */}
+      {!compact && (
         <span style={{
-          width: 6, height: 6, borderRadius: '50%',
-          background: online ? 'var(--success)' : 'var(--text-faint)',
-          boxShadow: online ? '0 0 4px var(--success)' : 'none',
-        }} />
-        {online ? '온라인' : '오프라인'}
-      </span>
+          fontFamily: 'var(--font-mono)', fontSize: 10.5,
+          color: online ? 'var(--success)' : 'var(--text-mute)',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+        }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: online ? 'var(--success)' : 'var(--text-faint)',
+            boxShadow: online ? '0 0 4px var(--success)' : 'none',
+          }} />
+          {online ? '온라인' : '오프라인'}
+        </span>
+      )}
     </div>
   );
 }
@@ -323,13 +338,52 @@ function BoardRow({
    내 순위 사이드바 카드
    ═══════════════════════════════════════════════════════════ */
 function MyRankCard({
-  me, myRank, total,
+  me, myRank, total, compact,
 }: {
   me: LeaderboardEntry;
   myRank: number;
   total: number;
+  compact?: boolean;
 }) {
   const cls = classOf(me.player_class);
+
+  /* compact: inline banner instead of sidebar card */
+  if (compact) {
+    return (
+      <div style={{
+        background: 'var(--bg-panel)',
+        border: '1px solid color-mix(in oklch, var(--accent) 40%, transparent)',
+        borderRadius: 6, padding: '8px 10px',
+        display: 'flex', alignItems: 'center', gap: 10,
+        marginBottom: 8,
+        boxShadow: '0 0 0 1px color-mix(in oklch, var(--accent) 8%, transparent) inset',
+      }}>
+        <span style={{
+          fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--accent)',
+          textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600,
+        }}>내 순위</span>
+        <span style={{
+          fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700,
+          color: 'var(--accent)', lineHeight: 1,
+        }}>#{myRank}</span>
+        <span style={{ color: 'var(--text-mute)', fontSize: 11 }}>/ {total.toLocaleString()}</span>
+        <span style={{ flex: 1 }} />
+        <span style={{
+          width: 24, height: 24, borderRadius: 4,
+          background: 'var(--bg-sunken)', border: `1px solid ${cls.border}`,
+          color: cls.color, display: 'grid', placeItems: 'center', fontSize: 13,
+        }}>{cls.icon}</span>
+        <span style={{
+          fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600,
+          color: 'var(--text)',
+        }}>{me.name}</span>
+        <span style={{
+          fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mute)',
+        }}>Lv.{me.level}</span>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       position: 'sticky', top: 14, alignSelf: 'start',
@@ -448,6 +502,7 @@ function StatPill({
    메인 컴포넌트
    ═══════════════════════════════════════════════════════════ */
 export default function Leaderboard() {
+  const compact    = useCompact();
   const userId     = useGameStore(s => s.authUserId);
   const myName     = useGameStore(s => s.playerName);
   const myLevel    = useGameStore(s => s.level);
@@ -515,50 +570,52 @@ export default function Leaderboard() {
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
       boxShadow: 'var(--shadow-sm)',
-      padding: '18px 22px 32px',
+      padding: compact ? '6px 8px 10px' : '18px 22px 32px',
     }}>
       {/* ── 브레드크럼 ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        marginBottom: 14, paddingBottom: 12,
+        display: 'flex', alignItems: 'center', gap: compact ? 8 : 14,
+        marginBottom: compact ? 8 : 14, paddingBottom: compact ? 8 : 12,
         borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
         flexShrink: 0,
       }}>
         <span style={{
-          fontSize: 17, fontWeight: 600, color: 'var(--text)',
+          fontSize: compact ? 14 : 17, fontWeight: 600, color: 'var(--text)',
           fontFamily: 'var(--font-ui)',
-          display: 'inline-flex', alignItems: 'baseline', gap: 8,
+          display: 'inline-flex', alignItems: 'baseline', gap: compact ? 6 : 8,
         }}>
           랭킹
           <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: 11,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11,
             color: 'var(--text-mute)',
-            padding: '2px 8px', borderRadius: 100,
+            padding: compact ? '1px 6px' : '2px 8px', borderRadius: 100,
             background: 'var(--bg-elevated)',
           }}>
             {loading ? '...' : `${players.length}명`}
           </span>
         </span>
         <span style={{ flex: 1 }} />
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          fontFamily: 'var(--font-mono)', fontSize: 10.5,
-          color: 'var(--text-mute)',
-        }}>
+        {!compact && (
           <span style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: 'var(--success)',
-            boxShadow: '0 0 6px var(--success)',
-          }} />
-          매 30초 갱신
-        </span>
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontFamily: 'var(--font-mono)', fontSize: 10.5,
+            color: 'var(--text-mute)',
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: 'var(--success)',
+              boxShadow: '0 0 6px var(--success)',
+            }} />
+            매 30초 갱신
+          </span>
+        )}
       </div>
 
       {/* ── 카테고리 탭 ── */}
       <div style={{
-        display: 'flex', gap: 4,
+        display: 'flex', gap: compact ? 2 : 4,
         borderBottom: '1px solid var(--border-soft)',
-        marginBottom: 16, flexShrink: 0,
+        marginBottom: compact ? 8 : 16, flexShrink: 0,
       }}>
         {CATEGORIES.map(c => {
           const on = cat === c.id;
@@ -567,9 +624,9 @@ export default function Leaderboard() {
               key={c.id}
               onClick={() => setCat(c.id)}
               style={{
-                padding: '10px 18px',
+                padding: compact ? '6px 12px' : '10px 18px',
                 color: on ? 'var(--accent)' : 'var(--text-mute)',
-                fontSize: 13, fontWeight: on ? 700 : 500,
+                fontSize: compact ? 11.5 : 13, fontWeight: on ? 700 : 500,
                 fontFamily: 'var(--font-ui)',
                 borderBottom: on ? '2px solid var(--accent)' : '2px solid transparent',
                 marginBottom: -1,
@@ -579,10 +636,10 @@ export default function Leaderboard() {
                 borderBottomColor: on ? 'var(--accent)' : 'transparent',
                 cursor: 'pointer',
                 transition: 'color 0.12s, border-color 0.12s',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
+                display: 'inline-flex', alignItems: 'center', gap: compact ? 4 : 8,
               }}
             >
-              <span style={{ fontSize: 14 }}>{c.icon}</span>
+              <span style={{ fontSize: compact ? 12 : 14 }}>{c.icon}</span>
               {c.name}
             </button>
           );
@@ -591,14 +648,14 @@ export default function Leaderboard() {
 
       {/* ── 검색 + 필터 ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 16,
-        marginBottom: 18, flexShrink: 0, flexWrap: 'wrap',
+        display: 'flex', alignItems: 'center', gap: compact ? 8 : 16,
+        marginBottom: compact ? 10 : 18, flexShrink: 0, flexWrap: 'wrap',
       }}>
         {/* 검색 */}
         <div style={{
-          flex: 1, maxWidth: 320, minWidth: 140,
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 12px',
+          flex: 1, maxWidth: compact ? undefined : 320, minWidth: compact ? 0 : 140,
+          display: 'flex', alignItems: 'center', gap: compact ? 6 : 8,
+          padding: compact ? '5px 8px' : '7px 12px',
           background: 'var(--bg-panel)',
           border: '1px solid var(--border-soft)',
           borderRadius: 6,
@@ -615,7 +672,7 @@ export default function Leaderboard() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             style={{
-              flex: 1, fontSize: 12.5, fontFamily: 'var(--font-ui)',
+              flex: 1, fontSize: compact ? 11.5 : 12.5, fontFamily: 'var(--font-ui)',
               background: 'transparent', border: 'none', outline: 'none',
               color: 'var(--text)',
             }}
@@ -629,7 +686,7 @@ export default function Leaderboard() {
             setClassFilter(CLASS_CYCLE[(idx + 1) % CLASS_CYCLE.length]);
           }}
           style={{
-            padding: '7px 11px',
+            padding: compact ? '5px 8px' : '7px 11px',
             background: classFilter
               ? 'color-mix(in oklch, var(--accent) 5%, transparent)'
               : 'var(--bg-panel)',
@@ -666,60 +723,70 @@ export default function Leaderboard() {
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1.1fr 1fr',
-            gap: 12, marginBottom: 18,
+            gap: compact ? 6 : 12, marginBottom: compact ? 10 : 18,
             alignItems: 'end',
           }}>
-            <PodiumCard player={sorted[1]} rank={2} cat={cat} />
-            <PodiumCard player={sorted[0]} rank={1} cat={cat} />
-            <PodiumCard player={sorted[2]} rank={3} cat={cat} />
+            <PodiumCard player={sorted[1]} rank={2} cat={cat} compact={compact} />
+            <PodiumCard player={sorted[0]} rank={1} cat={cat} compact={compact} />
+            <PodiumCard player={sorted[2]} rank={3} cat={cat} compact={compact} />
           </div>
+        )}
+
+        {/* 내 순위 인라인 (compact only — above table) */}
+        {compact && myEntry && (
+          <MyRankCard
+            me={myEntry}
+            myRank={myRank}
+            total={players.length}
+            compact
+          />
         )}
 
         {/* 보드 + 사이드바 */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: myEntry ? 'minmax(0,1fr) 280px' : '1fr',
-          gap: 14, alignItems: 'start',
+          gridTemplateColumns: compact ? '1fr' : (myEntry ? 'minmax(0,1fr) 280px' : '1fr'),
+          gap: compact ? 8 : 14, alignItems: 'start',
         }}>
           {/* 테이블 */}
           <div style={{
             border: '1px solid color-mix(in oklch, var(--border-soft) 60%, transparent)',
-            borderRadius: 8, background: 'var(--bg-panel)',
+            borderRadius: compact ? 6 : 8, background: 'var(--bg-panel)',
             overflow: 'hidden',
           }}>
             {/* 헤더 */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '60px 1.8fr 1fr 80px 1fr 80px',
-              alignItems: 'center', columnGap: 12,
-              padding: '9px 16px',
+              gridTemplateColumns: compact ? '32px 1fr 50px' : '60px 1.8fr 1fr 80px 1fr 80px',
+              alignItems: 'center', columnGap: compact ? 6 : 12,
+              padding: compact ? '6px 8px' : '9px 16px',
               background: 'var(--bg-sunken)',
               borderBottom: '1px solid var(--border-soft)',
-              fontFamily: 'var(--font-mono)', fontSize: 10,
+              fontFamily: 'var(--font-mono)', fontSize: compact ? 9 : 10,
               textTransform: 'uppercase', letterSpacing: '0.08em',
               color: 'var(--text-mute)', fontWeight: 600,
             }}>
               <span>순위</span>
               <span>플레이어</span>
-              <span>클래스</span>
-              <span>레벨</span>
-              <span>{catLabel}</span>
-              <span>상태</span>
+              {!compact && <span>클래스</span>}
+              {!compact && <span>레벨</span>}
+              <span style={{ textAlign: compact ? 'right' : undefined }}>{catLabel}</span>
+              {!compact && <span>상태</span>}
             </div>
 
             {/* 행들 */}
             {loading ? (
               <div style={{
-                textAlign: 'center', padding: 40,
-                color: 'var(--text-faint)', fontSize: 13,
+                textAlign: 'center', padding: compact ? 24 : 40,
+                color: 'var(--text-faint)', fontSize: compact ? 11.5 : 13,
                 fontFamily: 'var(--font-mono)',
               }}>
                 Loading...
               </div>
             ) : sorted.length === 0 ? (
               <div style={{
-                padding: 60, textAlign: 'center',
-                color: 'var(--text-faint)', fontSize: 13,
+                padding: compact ? 32 : 60, textAlign: 'center',
+                color: 'var(--text-faint)', fontSize: compact ? 11.5 : 13,
                 fontFamily: 'var(--font-mono)',
               }}>
                 검색 결과가 없습니다.
@@ -732,13 +799,14 @@ export default function Leaderboard() {
                   rank={i + 1}
                   cat={cat}
                   isMe={p.id === userId}
+                  compact={compact}
                 />
               ))
             )}
           </div>
 
-          {/* 내 순위 사이드바 */}
-          {myEntry && (
+          {/* 내 순위 사이드바 (desktop only) */}
+          {!compact && myEntry && (
             <MyRankCard
               me={myEntry}
               myRank={myRank}

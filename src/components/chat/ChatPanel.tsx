@@ -11,7 +11,6 @@ import {
   unsubscribeChannel,
 } from '../../lib/chat';
 import type { ChatMessage } from '../../types';
-import { LABEL } from '../../styles/shared';
 import { ClickableName } from '../profile/ClickableName';
 
 const MAX_MSG_LENGTH = 200;
@@ -75,6 +74,7 @@ export default function ChatPanel() {
   const guildId = useGameStore((s) => s.guildId);
   const guildName = useGameStore((s) => s.guildName);
 
+  const [chatOpen, setChatOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<ChatTab>('global');
   const [globalMessages, setGlobalMessages] = useState<ChatMessage[]>([]);
   const [guildMessages, setGuildMessages] = useState<ChatMessage[]>([]);
@@ -212,143 +212,178 @@ export default function ChatPanel() {
       background: 'var(--bg-panel)',
       border: '1px solid var(--border-soft)',
       borderRadius: 'var(--r-md)',
-      padding: 'var(--s-2) var(--s-3)',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
+      transition: 'max-height 0.2s ease',
     }}>
-      {/* 헤더 — 탭 전환 */}
+      {/* 헤더 — CHAT + 탭 전환 + 토글 */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--s-1)',
-        flexShrink: 0, marginBottom: 'var(--s-1)',
+        padding: '8px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        borderBottom: chatOpen ? '1px solid var(--border-soft)' : 'none',
+        flexShrink: 0,
       }}>
-        <span style={{ ...LABEL, fontSize: 'var(--fs-xs)', marginBottom: 0 }}>
-          Chat
+        <span style={{
+          margin: 0,
+          fontSize: 11,
+          fontWeight: 600,
+          color: 'var(--text-mute)',
+          fontFamily: 'var(--font-mono)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase' as const,
+        }}>
+          CHAT
         </span>
-        {/* GLOBAL 탭 */}
-        <button
-          onClick={() => setActiveTab('global')}
-          style={{
-            fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
-            padding: '0 4px', border: 'none', cursor: 'pointer',
-            borderRadius: 'var(--r-xs)',
-            background: activeTab === 'global'
-              ? 'color-mix(in oklch, var(--accent) 10%, transparent)'
-              : 'transparent',
-            color: activeTab === 'global' ? 'var(--accent)' : 'var(--text-mute)',
-            transition: 'all 0.15s',
-          }}
-        >
-          GLOBAL
-        </button>
-        {/* GUILD 탭 (길드 가입 시만) */}
-        {guildId && (
+        {/* 채널 탭 */}
+        <div style={{ display: 'flex', gap: 2 }}>
           <button
-            onClick={() => setActiveTab('guild')}
+            onClick={() => setActiveTab('global')}
             style={{
-              fontSize: 'var(--fs-2xs)', fontFamily: 'var(--font-mono)', fontWeight: 700,
-              padding: '0 4px', border: 'none', cursor: 'pointer',
-              borderRadius: 'var(--r-xs)',
-              background: activeTab === 'guild'
-                ? 'color-mix(in oklch, var(--success) 10%, transparent)'
-                : 'transparent',
-              color: activeTab === 'guild' ? 'var(--success)' : 'var(--text-mute)',
-              transition: 'all 0.15s',
+              padding: '3px 9px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              fontWeight: 500,
+              color: activeTab === 'global' ? 'var(--accent)' : 'var(--text-mute)',
+              background: activeTab === 'global' ? 'var(--bg-sunken)' : 'transparent',
+              border: 'none',
+              borderRadius: 3,
+              cursor: 'pointer',
+              transition: 'all 0.12s',
             }}
           >
-            GUILD
+            전체
           </button>
-        )}
-        <span style={{ flex: 1 }} />
-        <span style={{
-          fontSize: 'var(--fs-2xs)', color: 'var(--text-mute)', fontFamily: 'var(--font-mono)',
-        }}>
-          {messages.length}
-        </span>
-      </div>
-
-      {/* 메시지 목록 */}
-      <div ref={scrollRef} style={{
-        flex: 1, minHeight: 0,
-        overflowY: 'auto', overflowX: 'hidden',
-        scrollBehavior: 'smooth',
-      }}>
-        {!loaded ? (
-          <div style={{
-            textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
-          }}>
-            Loading...
-          </div>
-        ) : messages.length === 0 ? (
-          <div style={{
-            textAlign: 'center', color: 'var(--text-mute)',
-            fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
-          }}>
-            {activeTab === 'guild' ? '길드 첫 메시지를 보내보세요!' : '첫 메시지를 보내보세요!'}
-          </div>
-        ) : (
-          messages.map((msg) => (
-            <MessageLine
-              key={msg.id}
-              msg={msg}
-              isMe={msg.userId === userId}
-              isGuild={activeTab === 'guild'}
-            />
-          ))
-        )}
-      </div>
-
-      {/* 입력 */}
-      <div style={{
-        display: 'flex', gap: 4, flexShrink: 0,
-        paddingTop: 'var(--s-1)',
-        borderTop: '1px solid var(--border-soft)',
-      }}>
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value.slice(0, MAX_MSG_LENGTH))}
-          onKeyDown={handleKeyDown}
-          placeholder={activeTab === 'guild' ? '길드 메시지...' : '메시지...'}
-          maxLength={MAX_MSG_LENGTH}
-          style={{
-            flex: 1, minWidth: 0,
-            padding: '4px 8px',
-            border: '1px solid var(--border-soft)',
-            borderRadius: 'var(--r-xs)',
-            background: 'var(--bg-sunken)',
-            color: 'var(--text)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 'var(--fs-xs)',
-            outline: 'none',
-            transition: 'border-color 0.15s ease',
-          }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = activeTab === 'guild' ? 'var(--success)' : 'var(--accent)'; }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border-soft)'; }}
-        />
+          {guildId && (
+            <button
+              onClick={() => setActiveTab('guild')}
+              style={{
+                padding: '3px 9px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 500,
+                color: activeTab === 'guild' ? 'var(--success)' : 'var(--text-mute)',
+                background: activeTab === 'guild' ? 'var(--bg-sunken)' : 'transparent',
+                border: 'none',
+                borderRadius: 3,
+                cursor: 'pointer',
+                transition: 'all 0.12s',
+              }}
+            >
+              클랜
+            </button>
+          )}
+        </div>
+        {/* 토글 버튼 */}
         <button
-          onClick={handleSend}
-          disabled={!input.trim() || sending}
+          onClick={() => setChatOpen(o => !o)}
           style={{
-            padding: '0 8px',
+            marginLeft: 'auto',
+            color: 'var(--text-mute)',
+            fontSize: 14,
+            width: 22,
+            height: 22,
+            background: 'none',
             border: 'none',
-            borderRadius: 'var(--r-xs)',
-            background: !input.trim() || sending
-              ? 'var(--bg-sunken)'
-              : activeTab === 'guild' ? 'var(--success)' : 'var(--accent)',
-            color: !input.trim() || sending ? 'var(--text-mute)' : '#fff',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 'var(--fs-xs)', fontWeight: 700,
-            cursor: !input.trim() || sending ? 'not-allowed' : 'pointer',
-            transition: 'all 0.15s ease',
-            flexShrink: 0,
+            cursor: 'pointer',
+            display: 'grid',
+            placeItems: 'center',
+            borderRadius: 3,
+            transition: 'color 0.12s',
           }}
         >
-          {sending ? '..' : '>'}
+          {chatOpen ? '−' : '+'}
         </button>
       </div>
+
+      {chatOpen && (
+        <>
+          {/* 메시지 목록 */}
+          <div ref={scrollRef} style={{
+            flex: 1, minHeight: 0,
+            overflowY: 'auto', overflowX: 'hidden',
+            padding: '6px 14px',
+            scrollBehavior: 'smooth',
+            fontSize: 11.5,
+          }}>
+            {!loaded ? (
+              <div style={{
+                textAlign: 'center', color: 'var(--text-mute)',
+                fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
+              }}>
+                Loading...
+              </div>
+            ) : messages.length === 0 ? (
+              <div style={{
+                textAlign: 'center', color: 'var(--text-mute)',
+                fontSize: 'var(--fs-xs)', fontStyle: 'italic', padding: 'var(--s-3)',
+              }}>
+                {activeTab === 'guild' ? '길드 첫 메시지를 보내보세요!' : '첫 메시지를 보내보세요!'}
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <MessageLine
+                  key={msg.id}
+                  msg={msg}
+                  isMe={msg.userId === userId}
+                  isGuild={activeTab === 'guild'}
+                />
+              ))
+            )}
+          </div>
+
+          {/* 입력 */}
+          <div style={{
+            padding: '8px 14px',
+            borderTop: '1px solid var(--border-soft)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexShrink: 0,
+          }}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value.slice(0, MAX_MSG_LENGTH))}
+              onKeyDown={handleKeyDown}
+              placeholder={activeTab === 'guild' ? '길드 메시지...' : '메시지...'}
+              maxLength={MAX_MSG_LENGTH}
+              style={{
+                flex: 1, minWidth: 0,
+                fontSize: 12,
+                color: 'var(--text)',
+                fontFamily: 'var(--font-mono)',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+              }}
+            />
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || sending}
+              style={{
+                width: 24,
+                height: 22,
+                background: 'var(--bg-sunken)',
+                border: '1px solid var(--border-soft)',
+                borderRadius: 4,
+                color: !input.trim() || sending ? 'var(--text-mute)' : 'var(--text)',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: !input.trim() || sending ? 'not-allowed' : 'pointer',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 14,
+                transition: 'all 0.12s',
+              }}
+            >
+              ›
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

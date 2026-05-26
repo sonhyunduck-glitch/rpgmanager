@@ -20,20 +20,20 @@ const SKILL_FILTER = (e: LogEntry) =>
 const LOOT_FILTER = (e: LogEntry) =>
   e.type === 'loot' || e.type === 'find';
 
-/* ── 태그 색상 ── */
-const TAG_COLORS: Partial<Record<LogEntry['type'], string>> = {
-  encounter: 'var(--info)',
-  kill: 'var(--success)',
-  crit: 'var(--success)',
-  loot: 'oklch(0.65 0.18 85)',
-  find: 'var(--accent)',
-  skill: 'oklch(0.65 0.20 300)',
-  battle: 'oklch(0.60 0.18 30)',
-  potion: 'oklch(0.70 0.16 150)',
-  hit_taken: 'oklch(0.60 0.22 25)',
-  miss: 'var(--text-mute)',
-  death: 'oklch(0.55 0.25 15)',
-  join: 'oklch(0.60 0.15 60)',
+/* ── 태그 색상 (디자인 핸드오프 기반: 반투명 배경 + 컬러 텍스트) ── */
+const TAG_COLORS: Partial<Record<LogEntry['type'], { fg: string; bg: string }>> = {
+  encounter: { fg: 'var(--info)', bg: 'color-mix(in oklch, var(--info) 12%, transparent)' },
+  kill:      { fg: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 15%, transparent)' },
+  crit:      { fg: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 18%, transparent)' },
+  loot:      { fg: 'var(--success)', bg: 'color-mix(in oklch, var(--success) 12%, transparent)' },
+  find:      { fg: 'var(--info)', bg: 'color-mix(in oklch, var(--info) 12%, transparent)' },
+  skill:     { fg: 'oklch(0.65 0.20 300)', bg: 'oklch(0.65 0.20 300 / 0.12)' },
+  battle:    { fg: 'oklch(0.60 0.18 30)', bg: 'oklch(0.60 0.18 30 / 0.12)' },
+  potion:    { fg: 'var(--success)', bg: 'color-mix(in oklch, var(--success) 12%, transparent)' },
+  hit_taken: { fg: 'var(--danger)', bg: 'color-mix(in oklch, var(--danger) 12%, transparent)' },
+  miss:      { fg: 'var(--text-mute)', bg: 'color-mix(in oklch, var(--text-mute) 12%, transparent)' },
+  death:     { fg: 'var(--danger)', bg: 'color-mix(in oklch, var(--danger) 15%, transparent)' },
+  join:      { fg: 'oklch(0.60 0.15 60)', bg: 'oklch(0.60 0.15 60 / 0.12)' },
 };
 
 const TAG_LABELS: Partial<Record<LogEntry['type'], string>> = {
@@ -53,32 +53,34 @@ const TAG_LABELS: Partial<Record<LogEntry['type'], string>> = {
 
 /* ── 로그 라인 ── */
 function LogLine({ entry }: { entry: LogEntry }) {
-  const color = TAG_COLORS[entry.type];
+  const tagStyle = TAG_COLORS[entry.type];
   const tag = TAG_LABELS[entry.type];
 
   return (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'flex-start',
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr auto',
         gap: 'var(--s-2)',
-        padding: '1px 0',
+        padding: '3px 0',
         fontSize: 'var(--fs-sm)',
         fontFamily: 'var(--font-mono)',
         lineHeight: 1.4,
+        borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 30%, transparent)',
       }}
     >
       <span
         style={{
           fontSize: 'var(--fs-xs)',
           fontWeight: 700,
-          color: 'var(--bg-canvas)',
-          background: color,
-          padding: '1px 5px',
+          color: tagStyle?.fg ?? 'var(--text-mute)',
+          background: tagStyle?.bg ?? 'transparent',
+          padding: '1px 6px',
           borderRadius: 'var(--r-xs)',
           flexShrink: 0,
           letterSpacing: '0.06em',
-          marginTop: 2,
+          alignSelf: 'start',
+          marginTop: 1,
         }}
       >
         {tag}
@@ -89,6 +91,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
           fontSize: 'var(--fs-xs)',
           color: 'var(--text-mute)',
           flexShrink: 0,
+          alignSelf: 'start',
           marginTop: 2,
         }}
       >
