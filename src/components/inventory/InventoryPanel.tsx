@@ -7,6 +7,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { EQUIPMENT_TEMPLATES } from '../../data/gameData';
 import type { Equipment, PlayerClass } from '../../types';
+import { useCompact } from '../../lib/useCompact';
 import EnhanceSidebar from './EnhanceSidebar';
 
 /* ══════════════════════════════════════════════
@@ -459,6 +460,8 @@ export default function InventoryPanel() {
   const equippedItems = Object.values(equippedMap).filter((e): e is Equipment => e !== null);
   const equippedUids = new Set(equippedItems.map(e => e.uid));
 
+  const compact = useCompact();
+
   // ── State ──
   const [cat, setCat] = useState<CatId>('all');
   const [search, setSearch] = useState('');
@@ -466,6 +469,7 @@ export default function InventoryPanel() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [rightTab, setRightTab] = useState<'equip' | 'enhance'>('equip');
+  const [mobileView, setMobileView] = useState<'items' | 'sidebar'>('items');
 
   const selectedUid = enhanceTargetUid;
   const selectedItem = selectedUid
@@ -556,32 +560,32 @@ export default function InventoryPanel() {
       height: '100%',
       overflow: 'hidden',
       display: 'grid',
-      gridTemplateColumns: '1fr 300px',
+      gridTemplateColumns: compact ? '1fr' : '1fr 300px',
       gridTemplateRows: 'auto 1fr',
-      gap: '14px 18px',
-      padding: '18px 22px 24px',
+      gap: compact ? '8px' : '14px 18px',
+      padding: compact ? '0' : '18px 22px 24px',
     }}>
       {/* ━━━ BREADCRUMB ━━━ */}
       <div style={{
         gridColumn: '1 / -1',
-        display: 'flex', alignItems: 'center', gap: 14,
-        paddingBottom: 12,
+        display: 'flex', alignItems: 'center', gap: compact ? 8 : 14,
+        paddingBottom: compact ? 8 : 12,
         borderBottom: '1px solid var(--border-soft)',
       }}>
         <span style={{
-          fontSize: 17, fontWeight: 600, color: 'var(--text)',
-          display: 'inline-flex', alignItems: 'baseline', gap: 10,
+          fontSize: compact ? 14 : 17, fontWeight: 600, color: 'var(--text)',
+          display: 'inline-flex', alignItems: 'baseline', gap: compact ? 6 : 10,
         }}>
           가방
           <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            fontFamily: 'var(--font-mono)', fontSize: 11.5,
+            display: 'inline-flex', alignItems: 'center', gap: compact ? 4 : 8,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10.5 : 11.5,
           }}>
             <span style={{ fontWeight: 600 }}>
               {inventory.length}<span style={{ color: 'var(--text-mute)' }}>/{inventoryCapacity}</span>
             </span>
             <span style={{
-              width: 100, height: 4,
+              width: compact ? 60 : 100, height: 4,
               background: 'var(--bg-elevated)', borderRadius: 2,
               overflow: 'hidden', display: 'inline-block',
             }}>
@@ -598,15 +602,44 @@ export default function InventoryPanel() {
         </span>
         <span style={{
           marginLeft: 'auto',
-          fontFamily: 'var(--font-mono)', fontSize: 12,
+          fontFamily: 'var(--font-mono)', fontSize: compact ? 11 : 12,
           color: 'var(--accent)',
         }}>
           $ {gold.toLocaleString()}
         </span>
       </div>
 
+      {/* ━━━ MOBILE VIEW TOGGLE ━━━ */}
+      {compact && (
+        <div style={{
+          gridColumn: '1 / -1',
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          gap: 4, padding: 3,
+          background: 'var(--bg-elevated)', borderRadius: 6,
+        }}>
+          {([
+            { key: 'items' as const, label: '아이템' },
+            { key: 'sidebar' as const, label: '장비 · 강화' },
+          ]).map(v => {
+            const active = mobileView === v.key;
+            return (
+              <button key={v.key} onClick={() => setMobileView(v.key)} style={{
+                padding: '7px 0', textAlign: 'center', borderRadius: 4,
+                border: 'none', cursor: 'pointer',
+                color: active ? 'var(--accent)' : 'var(--text-mute)',
+                background: active ? 'var(--bg-panel)' : 'transparent',
+                fontSize: 12, fontWeight: active ? 600 : 400,
+                transition: 'all 0.12s',
+              }}>
+                {v.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* ━━━ LEFT: ITEMS ━━━ */}
-      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden' }}>
+      {(!compact || mobileView === 'items') && <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden' }}>
         {/* Filter tabs */}
         <div style={{
           display: 'flex', gap: 6, alignItems: 'center',
@@ -653,14 +686,16 @@ export default function InventoryPanel() {
 
         {/* Toolbar: search + sort + view toggle */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          marginBottom: 14,
+          display: 'flex', alignItems: 'center', gap: compact ? 6 : 10,
+          marginBottom: compact ? 10 : 14,
+          flexWrap: 'wrap',
         }}>
           {/* Search */}
           <div style={{
-            flex: 1, maxWidth: 280,
+            flex: 1, maxWidth: compact ? undefined : 280,
+            minWidth: compact ? '100%' : undefined,
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '7px 12px',
+            padding: compact ? '6px 10px' : '7px 12px',
             background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
           }}>
             <span style={{ color: 'var(--text-faint)', fontSize: 13, lineHeight: 1 }}>🔍</span>
@@ -698,8 +733,8 @@ export default function InventoryPanel() {
             <option value="name">이름</option>
           </select>
 
-          {/* View toggle */}
-          <div style={{
+          {/* View toggle (desktop only) */}
+          {!compact && <div style={{
             display: 'inline-flex', padding: 2,
             background: 'var(--bg-elevated)', borderRadius: 5,
           }}>
@@ -722,7 +757,7 @@ export default function InventoryPanel() {
                 {v.label}
               </button>
             ))}
-          </div>
+          </div>}
         </div>
 
         {/* Multi-select action bar */}
@@ -774,10 +809,12 @@ export default function InventoryPanel() {
 
         {/* Items grid / list */}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-          {viewMode === 'grid' ? (
+          {(compact || viewMode === 'grid') ? (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+              gridTemplateColumns: compact
+                ? 'repeat(auto-fill, minmax(140px, 1fr))'
+                : 'repeat(auto-fill, minmax(180px, 1fr))',
               gap: 8,
               alignContent: 'start',
             }}>
@@ -788,7 +825,7 @@ export default function InventoryPanel() {
                   isEquipped={equippedUids.has(eq.uid)}
                   isSelected={eq.uid === selectedUid}
                   isChecked={checked.has(eq.uid)}
-                  onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); }}
+                  onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); if (compact) setMobileView('sidebar'); }}
                   onCheck={() => onCheck(eq.uid)}
                   onAction={() => equippedUids.has(eq.uid) ? unequipToInventory(eq.uid) : equipFromInventory(eq.uid)}
                   actionLabel={equippedUids.has(eq.uid) ? '착용중' : '착용'}
@@ -796,7 +833,7 @@ export default function InventoryPanel() {
               ))}
               {rows.length === 0 && (
                 <div style={{
-                  padding: 60, textAlign: 'center',
+                  padding: compact ? 30 : 60, textAlign: 'center',
                   color: 'var(--text-faint)', gridColumn: '1 / -1',
                   fontFamily: 'var(--font-ui)',
                 }}>
@@ -831,15 +868,16 @@ export default function InventoryPanel() {
             </div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* ━━━ RIGHT SIDEBAR ━━━ */}
-      <div style={{
-        alignSelf: 'start',
-        position: 'sticky', top: 14,
+      {(!compact || mobileView === 'sidebar') && <div style={{
+        alignSelf: compact ? undefined : 'start',
+        position: compact ? undefined : 'sticky',
+        top: compact ? undefined : 14,
         display: 'flex', flexDirection: 'column', gap: 12,
-        maxHeight: 'calc(100vh - 120px)',
-        overflow: 'hidden',
+        maxHeight: compact ? undefined : 'calc(100vh - 120px)',
+        overflow: compact ? 'auto' : 'hidden',
       }}>
         {/* Side tabs */}
         <div style={{
@@ -1023,7 +1061,7 @@ export default function InventoryPanel() {
             />
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
   PLAYER_SKILLS, getAvailableSkills, MAX_SKILL_SLOTS,
 } from '../../data/playerSkillData';
 import { magicLevel } from '../../data/statFormulas';
+import { useCompact } from '../../lib/useCompact';
 import type { PlayerSkill } from '../../data/playerSkillData';
 
 /* ══════════════════════════════════════════════
@@ -90,7 +91,9 @@ export default function SkillPanel() {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dragSkillId, setDragSkillId] = useState<number | null>(null);
+  const [mobileView, setMobileView] = useState<'list' | 'sidebar'>('list');
 
+  const compact = useCompact();
   const maxSlots = MAX_SKILL_SLOTS;
   const mlvl = magicLevel(level, playerClass);
   const maxMp = getMaxMp();
@@ -180,38 +183,38 @@ export default function SkillPanel() {
     <div style={{
       height: '100%', overflow: 'hidden',
       display: 'grid',
-      gridTemplateColumns: 'minmax(0, 1fr) 320px',
+      gridTemplateColumns: compact ? '1fr' : 'minmax(0, 1fr) 320px',
       gridTemplateRows: 'auto 1fr',
-      gap: '14px 18px',
-      padding: '18px 22px 24px',
+      gap: compact ? '8px' : '14px 18px',
+      padding: compact ? '0' : '18px 22px 24px',
     }}>
       {/* ━━━ BREADCRUMB ━━━ */}
       <div style={{
         gridColumn: '1 / -1',
-        display: 'flex', alignItems: 'center', gap: 14,
-        paddingBottom: 12,
+        display: 'flex', alignItems: 'center', gap: compact ? 8 : 14,
+        paddingBottom: compact ? 8 : 12,
         borderBottom: '1px solid var(--border-soft)',
       }}>
         <span style={{
-          fontSize: 17, fontWeight: 600, color: 'var(--text)',
-          display: 'inline-flex', alignItems: 'baseline', gap: 10,
+          fontSize: compact ? 14 : 17, fontWeight: 600, color: 'var(--text)',
+          display: 'inline-flex', alignItems: 'baseline', gap: compact ? 6 : 10,
         }}>
           스킬 목록
           <span style={{
-            display: 'inline-flex', gap: 14,
-            fontFamily: 'var(--font-mono)', fontSize: 11.5,
+            display: 'inline-flex', gap: compact ? 8 : 14,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11.5,
             color: 'var(--text-mute)',
           }}>
             <span><b style={{ color: 'var(--text)' }}>{unlockedSkills.length}개</b> 해금</span>
             <span style={{ color: 'oklch(0.68 0.20 305)' }}>
-              마법 서클 <b style={{ color: 'oklch(0.68 0.20 305)' }}>{mlvl}</b>
+              서클 <b style={{ color: 'oklch(0.68 0.20 305)' }}>{mlvl}</b>
             </span>
           </span>
         </span>
         {maxMp > 0 && (
           <span style={{
             marginLeft: 'auto',
-            fontFamily: 'var(--font-mono)', fontSize: 12,
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 12,
             color: 'var(--info)',
           }}>
             MP <span style={{ fontWeight: 600 }}>{currentMp}</span>
@@ -220,13 +223,40 @@ export default function SkillPanel() {
         )}
       </div>
 
+      {/* ━━━ MOBILE VIEW TOGGLE ━━━ */}
+      {compact && (
+        <div style={{
+          gridColumn: '1 / -1',
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4,
+          background: 'var(--bg-sunken)', borderRadius: 6, padding: 3,
+        }}>
+          {(['list', 'sidebar'] as const).map(v => (
+            <button
+              key={v}
+              onClick={() => setMobileView(v)}
+              style={{
+                padding: '6px 0', borderRadius: 4, border: 'none',
+                fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                background: mobileView === v ? 'var(--bg-elevated)' : 'transparent',
+                color: mobileView === v ? 'var(--text)' : 'var(--text-mute)',
+                transition: 'all 0.12s',
+              }}
+            >
+              {v === 'list' ? '스킬 목록' : '슬롯 · 상세'}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ━━━ LEFT: SKILL LIST ━━━ */}
+      {(!compact || mobileView === 'list') && (
       <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden' }}>
         {/* Category tabs */}
         <div style={{
-          display: 'flex', gap: 4,
-          marginBottom: 14,
+          display: 'flex', gap: compact ? 2 : 4,
+          marginBottom: compact ? 8 : 14,
           borderBottom: '1px solid var(--border-soft)',
+          ...(compact ? { overflowX: 'auto' as const, WebkitOverflowScrolling: 'touch' as const, flexShrink: 0 } : {}),
         }}>
           {CATS.map(c => {
             const active = filterTab === c.id;
@@ -235,22 +265,23 @@ export default function SkillPanel() {
                 key={c.id}
                 onClick={() => setFilterTab(c.id)}
                 style={{
-                  padding: '9px 18px',
+                  padding: compact ? '7px 10px' : '9px 18px',
                   color: active ? 'var(--accent)' : 'var(--text-mute)',
-                  fontSize: 12.5, fontWeight: 500,
+                  fontSize: compact ? 11.5 : 12.5, fontWeight: 500,
                   borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
                   marginBottom: -1,
                   background: 'none', border: 'none',
                   borderBottomStyle: 'solid',
                   cursor: 'pointer',
                   transition: 'color 0.12s, border-color 0.12s',
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  display: 'inline-flex', alignItems: 'center', gap: compact ? 4 : 8,
+                  flexShrink: 0, whiteSpace: 'nowrap' as const,
                 }}
               >
-                <span style={{ fontSize: 14, opacity: 0.7 }}>{c.ic}</span>
+                <span style={{ fontSize: compact ? 12 : 14, opacity: 0.7 }}>{c.ic}</span>
                 {c.nm}
                 <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 10,
+                  fontFamily: 'var(--font-mono)', fontSize: compact ? 9 : 10,
                   padding: '0 5px',
                   background: active
                     ? 'color-mix(in oklch, var(--accent) 12%, transparent)'
@@ -267,14 +298,16 @@ export default function SkillPanel() {
 
         {/* Toolbar */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          marginBottom: 12,
+          display: 'flex', alignItems: 'center', gap: compact ? 6 : 10,
+          marginBottom: compact ? 8 : 12,
+          flexWrap: 'wrap' as const,
         }}>
           {/* Search */}
           <div style={{
-            flex: 1, maxWidth: 320,
+            flex: 1, maxWidth: compact ? undefined : 320,
+            minWidth: compact ? '100%' : undefined,
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '7px 12px',
+            padding: compact ? '6px 10px' : '7px 12px',
             background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
           }}>
             <span style={{ color: 'var(--text-faint)', fontSize: 13, lineHeight: 1 }}>🔍</span>
@@ -283,7 +316,7 @@ export default function SkillPanel() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
-                flex: 1, fontSize: 12.5,
+                flex: 1, fontSize: compact ? 12 : 12.5,
                 background: 'transparent', border: 'none', outline: 'none',
                 color: 'var(--text)', fontFamily: 'var(--font-ui)',
               }}
@@ -292,9 +325,9 @@ export default function SkillPanel() {
           <button
             onClick={clearSlots}
             style={{
-              padding: '7px 11px',
+              padding: compact ? '6px 9px' : '7px 11px',
               background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
-              fontSize: 11.5, color: 'var(--text-mute)', cursor: 'pointer',
+              fontSize: compact ? 11 : 11.5, color: 'var(--text-mute)', cursor: 'pointer',
             }}
           >
             슬롯 초기화
@@ -302,11 +335,11 @@ export default function SkillPanel() {
           <button
             onClick={autoEquipSkills}
             style={{
-              padding: '7px 11px',
+              padding: compact ? '6px 9px' : '7px 11px',
               background: 'color-mix(in oklch, var(--accent) 5%, transparent)',
               border: '1px solid color-mix(in oklch, var(--accent) 40%, transparent)',
               borderRadius: 6,
-              fontSize: 11.5, color: 'var(--accent)', cursor: 'pointer',
+              fontSize: compact ? 11 : 11.5, color: 'var(--accent)', cursor: 'pointer',
             }}
           >
             자동 배치
@@ -331,15 +364,19 @@ export default function SkillPanel() {
             return (
               <div
                 key={skill.id}
-                draggable={!isPassive}
-                onDragStart={() => !isPassive && handleDragStart(skill.id)}
-                onClick={() => setSelectedId(skill.id)}
+                draggable={!isPassive && !compact}
+                onDragStart={() => !isPassive && !compact && handleDragStart(skill.id)}
+                onClick={() => { setSelectedId(skill.id); if (compact) setMobileView('sidebar'); }}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '28px 38px 1fr 60px 60px 80px 24px',
+                  gridTemplateColumns: compact
+                    ? '26px 1fr 22px'
+                    : '28px 38px 1fr 60px 60px 80px 24px',
                   alignItems: 'center',
-                  columnGap: 12,
-                  padding: isSelected ? '9px 12px 9px 12px' : '9px 14px',
+                  columnGap: compact ? 8 : 12,
+                  padding: compact
+                    ? '8px 10px'
+                    : isSelected ? '9px 12px 9px 12px' : '9px 14px',
                   borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)',
                   cursor: 'pointer',
                   transition: 'background 0.1s',
@@ -351,33 +388,44 @@ export default function SkillPanel() {
               >
                 {/* Icon */}
                 <div style={{
-                  width: 26, height: 26, borderRadius: 5,
+                  width: compact ? 24 : 26, height: compact ? 24 : 26, borderRadius: 5,
                   display: 'grid', placeItems: 'center',
                   background: 'var(--bg-sunken)',
                   border: `1px solid color-mix(in oklch, ${kindColor} 30%, transparent)`,
-                  fontFamily: 'var(--font-mono)', fontSize: 13,
+                  fontFamily: 'var(--font-mono)', fontSize: compact ? 12 : 13,
                   color: kindColor,
                 }}>
                   {KIND_ICON[isPassive ? 'passive' : skill.skillType]}
                 </div>
 
-                {/* Circle badge */}
-                <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 11,
-                  padding: '2px 8px', borderRadius: 4, textAlign: 'center',
-                  fontWeight: 600,
-                  color: cs.color, background: cs.bg,
-                }}>
-                  {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
-                </span>
+                {/* Circle badge — desktop only */}
+                {!compact && (
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 11,
+                    padding: '2px 8px', borderRadius: 4, textAlign: 'center',
+                    fontWeight: 600,
+                    color: cs.color, background: cs.bg,
+                  }}>
+                    {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
+                  </span>
+                )}
 
-                {/* Name + element tag */}
+                {/* Name + element tag (compact: name + circle + mp inline) */}
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
+                  display: 'flex', alignItems: 'center', gap: compact ? 5 : 8,
                   minWidth: 0,
                 }}>
+                  {compact && (
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                      padding: '1px 5px', borderRadius: 3, flexShrink: 0,
+                      fontWeight: 600, color: cs.color, background: cs.bg,
+                    }}>
+                      {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
+                    </span>
+                  )}
                   <span style={{
-                    fontSize: 13, fontWeight: 500, color: 'var(--text)',
+                    fontSize: compact ? 12 : 13, fontWeight: 500, color: 'var(--text)',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>
                     {skill.name}
@@ -385,7 +433,7 @@ export default function SkillPanel() {
                   {isPassive ? (
                     <span style={{
                       fontFamily: 'var(--font-mono)', fontSize: 9.5,
-                      padding: '1px 6px', borderRadius: 3,
+                      padding: '1px 6px', borderRadius: 3, flexShrink: 0,
                       color: 'var(--accent)',
                       background: 'color-mix(in oklch, var(--accent) 6%, transparent)',
                     }}>
@@ -394,52 +442,69 @@ export default function SkillPanel() {
                   ) : skill.attr > 0 && ATTR_LABEL[skill.attr] ? (
                     <span style={{
                       fontFamily: 'var(--font-mono)', fontSize: 9.5,
-                      padding: '1px 6px', borderRadius: 3,
+                      padding: '1px 6px', borderRadius: 3, flexShrink: 0,
                       color: ATTR_COLOR[skill.attr] ?? 'var(--text-mute)',
                       background: `color-mix(in oklch, ${ATTR_COLOR[skill.attr] ?? 'var(--text-mute)'} 8%, transparent)`,
                       display: 'inline-flex', alignItems: 'center', gap: 4,
                     }}>
-                      <span style={{
-                        width: 6, height: 6, borderRadius: '50%',
-                        background: ATTR_COLOR[skill.attr],
-                        display: 'inline-block',
-                      }} />
+                      {!compact && (
+                        <span style={{
+                          width: 6, height: 6, borderRadius: '50%',
+                          background: ATTR_COLOR[skill.attr],
+                          display: 'inline-block',
+                        }} />
+                      )}
                       {ATTR_LABEL[skill.attr]}
                     </span>
                   ) : null}
+                  {compact && !isPassive && (
+                    <span style={{
+                      marginLeft: 'auto', flexShrink: 0,
+                      fontFamily: 'var(--font-mono)', fontSize: 10,
+                      color: 'var(--info)',
+                    }}>
+                      {skill.consumeMp}MP
+                    </span>
+                  )}
                 </div>
 
-                {/* MP */}
-                <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
-                  color: 'var(--info)', textAlign: 'right',
-                }}>
-                  {isPassive ? '—' : `${skill.consumeMp} MP`}
-                </span>
+                {/* MP — desktop only */}
+                {!compact && (
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                    color: 'var(--info)', textAlign: 'right',
+                  }}>
+                    {isPassive ? '—' : `${skill.consumeMp} MP`}
+                  </span>
+                )}
 
-                {/* Cooldown */}
-                <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
-                  color: 'var(--text-mute)', textAlign: 'right',
-                }}>
-                  {isPassive ? '상시' : skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'}
-                </span>
+                {/* Cooldown — desktop only */}
+                {!compact && (
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                    color: 'var(--text-mute)', textAlign: 'right',
+                  }}>
+                    {isPassive ? '상시' : skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'}
+                  </span>
+                )}
 
-                {/* Damage/Heal */}
-                <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 10,
-                  textAlign: 'right',
-                }}>
-                  {skill.skillType === 'attack' && skill.damageValue > 0 ? (
-                    <span style={{ color: 'var(--danger)' }}>DMG {skill.damageValue}{skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}</span>
-                  ) : skill.skillType === 'heal' && skill.damageValue > 0 ? (
-                    <span style={{ color: 'var(--success)' }}>HEAL {skill.damageValue}+</span>
-                  ) : skill.skillType === 'buff' ? (
-                    <span style={{ color: 'oklch(0.68 0.20 305)' }}>{formatBuffEffect(skill).slice(0, 12)}</span>
-                  ) : (
-                    <span style={{ color: 'var(--text-faint)' }}>—</span>
-                  )}
-                </span>
+                {/* Damage/Heal — desktop only */}
+                {!compact && (
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 10,
+                    textAlign: 'right',
+                  }}>
+                    {skill.skillType === 'attack' && skill.damageValue > 0 ? (
+                      <span style={{ color: 'var(--danger)' }}>DMG {skill.damageValue}{skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}</span>
+                    ) : skill.skillType === 'heal' && skill.damageValue > 0 ? (
+                      <span style={{ color: 'var(--success)' }}>HEAL {skill.damageValue}+</span>
+                    ) : skill.skillType === 'buff' ? (
+                      <span style={{ color: 'oklch(0.68 0.20 305)' }}>{formatBuffEffect(skill).slice(0, 12)}</span>
+                    ) : (
+                      <span style={{ color: 'var(--text-faint)' }}>—</span>
+                    )}
+                  </span>
+                )}
 
                 {/* Slot toggle */}
                 {!isPassive ? (
@@ -494,34 +559,46 @@ export default function SkillPanel() {
                     onClick={() => setSelectedId(skill.id)}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '28px 38px 1fr auto',
-                      alignItems: 'center', columnGap: 12,
-                      padding: '7px 14px',
+                      gridTemplateColumns: compact ? '24px 1fr auto' : '28px 38px 1fr auto',
+                      alignItems: 'center', columnGap: compact ? 8 : 12,
+                      padding: compact ? '6px 10px' : '7px 14px',
                       borderBottom: '1px solid color-mix(in oklch, var(--border-soft) 30%, transparent)',
                       cursor: 'pointer', opacity: 0.4,
                     }}
                   >
                     <div style={{
-                      width: 26, height: 26, borderRadius: 5,
+                      width: compact ? 24 : 26, height: compact ? 24 : 26, borderRadius: 5,
                       display: 'grid', placeItems: 'center',
                       background: 'var(--bg-sunken)',
                       border: `1px solid color-mix(in oklch, ${kindColor} 20%, transparent)`,
-                      fontFamily: 'var(--font-mono)', fontSize: 13,
+                      fontFamily: 'var(--font-mono)', fontSize: compact ? 12 : 13,
                       color: kindColor,
                     }}>
                       {KIND_ICON[skill.skillType]}
                     </div>
+                    {!compact && (
+                      <span style={{
+                        fontFamily: 'var(--font-mono)', fontSize: 11,
+                        padding: '2px 8px', borderRadius: 4, textAlign: 'center',
+                        fontWeight: 600, color: cs.color, background: cs.bg,
+                      }}>
+                        {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
+                      </span>
+                    )}
                     <span style={{
-                      fontFamily: 'var(--font-mono)', fontSize: 11,
-                      padding: '2px 8px', borderRadius: 4, textAlign: 'center',
-                      fontWeight: 600, color: cs.color, background: cs.bg,
-                    }}>
-                      {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
-                    </span>
-                    <span style={{
-                      fontSize: 13, color: 'var(--text-mute)',
+                      fontSize: compact ? 12 : 13, color: 'var(--text-mute)',
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      display: 'flex', alignItems: 'center', gap: 5,
                     }}>
+                      {compact && (
+                        <span style={{
+                          fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                          padding: '1px 5px', borderRadius: 3, flexShrink: 0,
+                          fontWeight: 600, color: cs.color, background: cs.bg,
+                        }}>
+                          {skill.skillCircle > 0 ? `C${skill.skillCircle}` : 'EX'}
+                        </span>
+                      )}
                       {skill.name}
                     </span>
                     <span style={{
@@ -546,7 +623,7 @@ export default function SkillPanel() {
 
           {filteredUnlocked.length === 0 && filterTab !== 'all' && (
             <div style={{
-              padding: 40, textAlign: 'center',
+              padding: compact ? 24 : 40, textAlign: 'center',
               color: 'var(--text-faint)',
             }}>
               {search ? '검색 결과가 없습니다.' : '해당 카테고리의 스킬이 없습니다.'}
@@ -554,13 +631,15 @@ export default function SkillPanel() {
           )}
         </div>
       </div>
+      )}
 
       {/* ━━━ RIGHT SIDEBAR ━━━ */}
+      {(!compact || mobileView === 'sidebar') && (
       <div style={{
         alignSelf: 'start',
-        position: 'sticky', top: 14,
-        display: 'flex', flexDirection: 'column', gap: 12,
-        maxHeight: 'calc(100vh - 120px)',
+        ...(compact ? {} : { position: 'sticky' as const, top: 14 }),
+        display: 'flex', flexDirection: 'column', gap: compact ? 8 : 12,
+        maxHeight: compact ? undefined : 'calc(100vh - 120px)',
         overflowY: 'auto',
       }}>
         {/* Skill detail */}
@@ -718,6 +797,7 @@ export default function SkillPanel() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

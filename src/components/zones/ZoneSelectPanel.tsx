@@ -8,6 +8,7 @@ import { HUNT_ZONES, MATERIALS, EQUIPMENT_TEMPLATES } from '../../data/gameData'
 import type { HuntZone, Monster } from '../../data/gameData';
 import { getMonsterDrops } from '../../data/dropData';
 import { calcHitRate, meleeHit } from '../../data/statFormulas';
+import { useCompact } from '../../lib/useCompact';
 import WorldMapPanel from '../worldmap/WorldMapPanel';
 
 /* ═══════════════════════════════════════════
@@ -645,6 +646,7 @@ export default function ZoneSelectPanel() {
   const huntZoneId = hunt.zoneId;
   const currentZone = HUNT_ZONES.find(z => z.id === huntZoneId) ?? null;
 
+  const compact = useCompact();
   const [pageView, setPageView] = useState<PageView>('cards');
   const [region, setRegion] = useState<RegionId>('all');
   const [q, setQ] = useState('');
@@ -722,26 +724,26 @@ export default function ZoneSelectPanel() {
   /* 카드 뷰 (메인) */
   return (
     <div style={{
-      padding: '18px 22px 32px',
+      padding: compact ? '0 0 12px' : '18px 22px 32px',
       display: 'flex', flexDirection: 'column',
       minHeight: '100%',
       overflow: 'auto',
     }}>
       {/* ── 브레드크럼 ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        marginBottom: 14, paddingBottom: 12,
+        display: 'flex', alignItems: 'center', gap: compact ? 8 : 14,
+        marginBottom: compact ? 10 : 14, paddingBottom: compact ? 8 : 12,
         borderBottom: '1px solid var(--border-soft)',
         flexWrap: 'wrap',
       }}>
         <span style={{
-          fontSize: 17, fontWeight: 600, color: 'var(--text)',
+          fontSize: compact ? 14 : 17, fontWeight: 600, color: 'var(--text)',
           fontFamily: 'var(--font-display)',
           display: 'inline-flex', alignItems: 'baseline', gap: 8,
         }}>
           사냥터
           <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)',
+            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11, color: 'var(--text-mute)',
             padding: '2px 8px', borderRadius: 100, background: 'var(--bg-elevated)',
           }}>{rows.length}개</span>
         </span>
@@ -772,11 +774,13 @@ export default function ZoneSelectPanel() {
           </span>
         )}
 
-        {/* 뷰 토글 */}
-        <div style={{ display: 'flex', gap: 4 }}>
-          <ViewToggleBtn label="카드" active onClick={() => {}} />
-          <ViewToggleBtn label="월드맵" active={false} onClick={() => setPageView('worldmap')} />
-        </div>
+        {/* 뷰 토글 (desktop only) */}
+        {!compact && (
+          <div style={{ display: 'flex', gap: 4 }}>
+            <ViewToggleBtn label="카드" active onClick={() => {}} />
+            <ViewToggleBtn label="월드맵" active={false} onClick={() => setPageView('worldmap')} />
+          </div>
+        )}
       </div>
 
       {/* ── 지역 탭 ── */}
@@ -815,11 +819,12 @@ export default function ZoneSelectPanel() {
       </div>
 
       {/* ── 툴바 ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 10, marginBottom: compact ? 10 : 14, flexWrap: 'wrap' }}>
         {/* 검색 */}
         <div style={{
-          flex: 1, minWidth: 140, display: 'flex', alignItems: 'center', gap: 8,
-          padding: '8px 12px',
+          flex: 1, minWidth: compact ? '100%' : 140,
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: compact ? '6px 10px' : '8px 12px',
           background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
         }}>
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--text-faint)" strokeWidth="1.6">
@@ -883,15 +888,17 @@ export default function ZoneSelectPanel() {
       {/* ── 메인 바디: 카드 그리드 + 디테일 ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) 340px',
-        gap: 14,
+        gridTemplateColumns: compact ? '1fr' : 'minmax(0, 1fr) 340px',
+        gap: compact ? 8 : 14,
         alignItems: 'start',
       }}>
         {/* 카드 그리드 */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: 10,
+          gridTemplateColumns: compact
+            ? 'repeat(auto-fill, minmax(140px, 1fr))'
+            : 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: compact ? 6 : 10,
         }}>
           {rows.map(z => (
             <ZoneCard
@@ -908,7 +915,7 @@ export default function ZoneSelectPanel() {
           ))}
           {rows.length === 0 && (
             <div style={{
-              padding: 60, textAlign: 'center',
+              padding: compact ? 30 : 60, textAlign: 'center',
               color: 'var(--text-faint)', gridColumn: '1 / -1',
               fontSize: 13,
             }}>
@@ -917,14 +924,16 @@ export default function ZoneSelectPanel() {
           )}
         </div>
 
-        {/* 디테일 사이드바 */}
-        <ZoneDetail
-          zone={selectedZone}
-          onGo={handleGo}
-          isHere={huntZoneId === selectedZone?.id}
-          playerLevel={level}
-          playerHit={playerHit}
-        />
+        {/* 디테일 사이드바 (desktop only) */}
+        {!compact && (
+          <ZoneDetail
+            zone={selectedZone}
+            onGo={handleGo}
+            isHere={huntZoneId === selectedZone?.id}
+            playerLevel={level}
+            playerHit={playerHit}
+          />
+        )}
       </div>
 
       {/* ── 토스트 ── */}
