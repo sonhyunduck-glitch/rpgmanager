@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.38.11 — 모바일 사냥 HIT 수치 표시 (기사/요정 hitRate 계산)
-export const APP_VERSION = '2.38.11';
+// v2.38.12 — 모바일 사냥 퀵메뉴 더보기 버튼 (거래소/길드/랭킹)
+export const APP_VERSION = '2.38.12';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

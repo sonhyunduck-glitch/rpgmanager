@@ -50,6 +50,12 @@ const QUICK_MENU: { mode: ViewMode; icon: string; label: string }[] = [
   { mode: 'zones',     icon: '◈', label: '사냥터' },
 ];
 
+const MORE_MENU: { mode: ViewMode; icon: string; label: string }[] = [
+  { mode: 'trade',   icon: '⇄', label: '거래소' },
+  { mode: 'guild',   icon: '⚑', label: '길드' },
+  { mode: 'ranking', icon: '♛', label: '랭킹' },
+];
+
 /* ═══════════════════════════════════════════════════════════
    메인 컴포넌트
    ═══════════════════════════════════════════════════════════ */
@@ -58,6 +64,7 @@ export default function MobileHuntLayout() {
   const [showTsModal, setShowTsModal] = useState(false);
   const [showBuffModal, setShowBuffModal] = useState(false);
   const [showRoomSelector, setShowRoomSelector] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /* ── store selectors ── */
   const viewMode     = useGameStore(s => s.viewMode);
@@ -272,7 +279,7 @@ export default function MobileHuntLayout() {
           }}>
             {fmtG(gold)} G
           </span>
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
             {QUICK_MENU.map(({ mode, icon, label }) => (
               <button
                 key={mode}
@@ -298,6 +305,72 @@ export default function MobileHuntLayout() {
                 }}>{label}</span>
               </button>
             ))}
+            {/* 더보기 */}
+            <button
+              onClick={() => setShowMoreMenu(v => !v)}
+              style={{
+                width: 36, height: 40,
+                background: showMoreMenu ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.55)',
+                border: `1px solid ${showMoreMenu ? 'var(--accent)' : 'var(--border-soft)'}`,
+                borderRadius: 8,
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                gap: 1,
+                color: showMoreMenu ? 'var(--accent)' : 'var(--text-dim)',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              <span style={{ fontSize: 13, lineHeight: 1 }}>⋯</span>
+              <span style={{
+                fontSize: 8, lineHeight: 1,
+                fontFamily: 'var(--font-mono)',
+                color: showMoreMenu ? 'var(--accent)' : 'var(--text-mute)',
+              }}>더보기</span>
+            </button>
+            {/* 더보기 드롭다운 */}
+            {showMoreMenu && (
+              <>
+                <div
+                  onClick={() => setShowMoreMenu(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: -1 }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  top: '100%', right: 0,
+                  marginTop: 6,
+                  background: 'rgba(10,12,16,0.92)',
+                  border: '1px solid var(--border-soft)',
+                  borderRadius: 8,
+                  padding: '4px 0',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+                  minWidth: 110,
+                  zIndex: 20,
+                }}>
+                  {MORE_MENU.map(({ mode, icon, label }) => (
+                    <button
+                      key={mode}
+                      onClick={() => { setViewMode(mode); setShowMoreMenu(false); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        width: '100%', padding: '9px 14px',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11, fontWeight: 500,
+                        color: 'var(--text)',
+                        textShadow: 'none',
+                      }}
+                    >
+                      <span style={{ fontSize: 13, width: 18, textAlign: 'center' }}>{icon}</span>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
