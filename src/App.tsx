@@ -20,6 +20,7 @@ import ProfilePanel from './components/profile/ProfileModal';
 import Leaderboard from './components/guild/Leaderboard';
 import GuildPanel from './components/guild/GuildPanel';
 import MobileHuntLayout from './components/hunt/MobileHuntLayout';
+import MobileShell from './components/layout/MobileShell';
 import OfflineRewardModal from './components/offline/OfflineRewardModal';
 import UpdateModal from './components/update/UpdateModal';
 import RotateOverlay from './components/ui/RotateOverlay';
@@ -32,7 +33,6 @@ interface AppProps {
 
 export default function App({ userId }: AppProps) {
   const viewMode = useGameStore(s => s.viewMode);
-  const setViewMode = useGameStore(s => s.setViewMode);
   const huntStatus = useGameStore(s => s.hunt.status);
   const tickHunt = useGameStore(s => s.tickHunt);
   const getAtkSpeedMult = useGameStore(s => s.getAtkSpeedMult);
@@ -114,72 +114,29 @@ export default function App({ userId }: AppProps) {
     );
   }
 
-  /* ── 모바일 레이아웃 ── */
+  /* ── 모바일 세로모드 레이아웃 ── */
   if (mobile) {
     return (
       <div style={{
-        width: '100%', height: '100%',
+        width: '100%', height: '100dvh',
         overflow: 'hidden',
         background: 'var(--bg-canvas)',
+        position: 'relative',
       }}>
         {viewMode === 'main' ? (
-          /* 모바일 사냥 전체화면 HUD */
+          /* 사냥: 독립 전체화면 (캔버스 + HUD 오버레이) */
           <MobileHuntLayout />
         ) : (
-          /* 모바일: 다른 뷰 → 전체화면 패널 + 상단 뒤로가기 */
-          <div style={{
-            display: 'flex', flexDirection: 'column',
-            height: '100%', overflow: 'hidden',
-          }}>
-            {/* 모바일 뒤로가기 헤더 */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '6px 10px',
-              background: 'var(--bg-panel)',
-              borderBottom: '1px solid var(--border-soft)',
-              flexShrink: 0,
-            }}>
-              <button
-                onClick={() => setViewMode('main')}
-                style={{
-                  background: 'none', border: 'none',
-                  color: 'var(--accent)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 13, fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: '6px 8px',
-                  borderRadius: 6,
-                }}
-              >
-                ← 사냥
-              </button>
-              <span style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 13, fontWeight: 600,
-                color: 'var(--text)',
-              }}>
-                {viewMode === 'inventory' ? '가방'
-                  : viewMode === 'zones' ? '사냥터'
-                  : viewMode === 'shop' ? '상점'
-                  : viewMode === 'trade' ? '거래소'
-                  : viewMode === 'skills' ? '스킬'
-                  : viewMode === 'ranking' ? '랭킹'
-                  : viewMode === 'guild' ? '길드'
-                  : ''}
-              </span>
-            </div>
-
-            {/* 패널 영역 */}
-            <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-              {viewMode === 'inventory' && <InventoryPanel />}
-              {viewMode === 'zones' && <ZoneSelectPanel />}
-              {viewMode === 'shop' && <ShopPanel />}
-              {viewMode === 'trade' && <TradePanel />}
-              {viewMode === 'skills' && <SkillPanel />}
-              {viewMode === 'ranking' && <Leaderboard />}
-              {viewMode === 'guild' && <GuildPanel />}
-            </div>
-          </div>
+          /* 나머지 7개 페이지: MobileShell (탑바 + 바텀네비 + 드로어) */
+          <MobileShell>
+            {viewMode === 'inventory' && <InventoryPanel />}
+            {viewMode === 'zones' && <ZoneSelectPanel />}
+            {viewMode === 'shop' && <ShopPanel />}
+            {viewMode === 'trade' && <TradePanel />}
+            {viewMode === 'skills' && <SkillPanel />}
+            {viewMode === 'ranking' && <Leaderboard />}
+            {viewMode === 'guild' && <GuildPanel />}
+          </MobileShell>
         )}
 
         {/* 프로필 모달 (모바일에서도 오버레이) */}
@@ -197,7 +154,6 @@ export default function App({ userId }: AppProps) {
         {/* 전역 모달 오버레이 */}
         <OfflineRewardModal />
         <UpdateModal />
-        <RotateOverlay />
       </div>
     );
   }

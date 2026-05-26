@@ -89,31 +89,12 @@
 }
 
 /* =========================================================
-   FORCED LANDSCAPE — 모바일 세로 모드일 때 강제 가로 회전
-   CSS transform으로 #root를 90° 회전하여 가로 레이아웃 적용.
-   유저가 폰을 가로로 들면 orientation: landscape 가 되어
-   이 규칙이 해제되고 자연스러운 가로 레이아웃으로 전환.
-   ========================================================= */
-@media screen and (orientation: portrait) and (pointer: coarse) and (max-width: 768px) {
-  #root {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100dvh !important;
-    height: 100dvw !important;
-    transform-origin: top left;
-    transform: rotate(90deg) translateY(-100%);
-    overflow: hidden !important;
-  }
-}
-
-/* =========================================================
    MOBILE COMPACT TOKENS
-   — 자연 가로 (높이 ≤ 500px)
-   — 강제 가로 (세로 모드 폰, 너비 ≤ 500px)
+   — 모바일 세로 모드 (pointer: coarse + 좁은 폭)
+   — 자연 가로 모드 fallback (높이 ≤ 500px)
    ========================================================= */
-@media (max-height: 500px) and (orientation: landscape),
-       (orientation: portrait) and (pointer: coarse) and (max-width: 500px) {
+@media (pointer: coarse) and (max-width: 500px),
+       (max-height: 500px) and (orientation: landscape) {
   :root {
     /* ---- Type (축소) ---- */
     --fs-2xs: 5px; --fs-xs: 7px; --fs-sm: 8px; --fs-base: 9px;
