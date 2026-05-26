@@ -23,6 +23,7 @@ import Minimap from './Minimap';
 import HuntMetrics from './HuntMetrics';
 import HpPotionModal from './HpPotionModal';
 import TransformScrollModal from './TransformScrollModal';
+import MiniChatFeed from './MiniChatFeed';
 import type { ViewMode } from '../../types';
 
 /* ── 가격 포맷 ── */
@@ -466,6 +467,9 @@ export default function MobileHuntLayout() {
           </div>
         </div>
       </div>
+
+      {/* ━━━ 미니 채팅 (좌하단 오버레이) ━━━ */}
+      <MiniChatFeed />
 
       {/* ━━━ 모달 ━━━ */}
       {showHpModal && <HpPotionModal onClose={() => setShowHpModal(false)} />}
