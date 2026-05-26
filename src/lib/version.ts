@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.38.0 — 모바일 세로모드 전면 전환 + MobileShell + 하단 탭 네비
-export const APP_VERSION = '2.38.0';
+// v2.38.1 — 모바일 세로모드 텍스트/닷/간격 사이즈 보정
+export const APP_VERSION = '2.38.1';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
