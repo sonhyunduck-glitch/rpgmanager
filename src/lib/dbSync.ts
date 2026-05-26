@@ -16,10 +16,15 @@ export function setStoreSetter(fn: (partial: Record<string, unknown>) => void) {
   _setStore = fn;
 }
 
-/** 현재 인증된 유저 ID 설정 */
-export function setSyncUserId(userId: string | null) {
+/**
+ * 현재 인증된 유저 ID 설정
+ * @param skipTimer true면 userId만 설정하고 30초 타이머는 시작하지 않음
+ *                  (initFromDB에서 DB 로드 전에 userId만 필요할 때 사용)
+ *                  DB 로드 완료 후 skipTimer 없이 다시 호출하면 타이머 시작
+ */
+export function setSyncUserId(userId: string | null, skipTimer?: boolean) {
   _userId = userId;
-  if (userId && !_syncTimer) {
+  if (userId && !_syncTimer && !skipTimer) {
     // 30초마다 자동 동기화
     _syncTimer = setInterval(() => {
       if (_dirty) {

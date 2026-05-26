@@ -57,9 +57,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   initFromDB: async (userId: string) => {
     enforceEpochGate();
-    setSyncUserId(userId);
+
+    // ⚠️ setSyncUserId는 DB 로드 완료 후 호출 (레이스 컨디션 방지)
+    //    타이머를 여기서 시작하면 DB 로드 전에 구 데이터가 flush될 위험
     setStateGetter(() => get() as unknown as Record<string, unknown>);
     setStoreSetter((partial) => set(partial as Partial<GameState>));
+
+    // DB 로드 전에 userId만 등록 (loadFromDB 내부에서 _userId 필요)
+    setSyncUserId(userId, true);  // skipTimer=true: 타이머 시작하지 않음
 
     const dbData = await loadFromDB();
     if (dbData && dbData.profile) {
@@ -86,17 +91,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       const hasDBItems = dbItems.length > 0;
 
+      // ⚠️ DB가 단일 진실 원천 — get() 폴백 제거 (구 localStorage 오염 방지)
+      //    DB 값이 null이면 하드코딩 기본값 사용 (이전 기기 데이터 사용 금지)
       set({
         authUserId: userId,
-        playerClass: (p.player_class as import('../types').PlayerClass) ?? get().playerClass,
-        playerName: p.name ?? get().playerName,
+        playerClass: (p.player_class as import('../types').PlayerClass) ?? 'knight',
+        playerName: p.name ?? '모험가',
         guildId: p.guild_id ?? null,
-        level: p.level ?? get().level,
-        exp: safeNumber(p.exp, get().exp),
-        gold: safeNumber(p.gold, get().gold),
-        title: p.title ?? get().title,
-        currentHp: p.current_hp ?? get().currentHp,
-        maxHp: p.max_hp ?? get().maxHp,
+        level: p.level ?? 1,
+        exp: safeNumber(p.exp, 0),
+        gold: safeNumber(p.gold, 0),
+        title: p.title ?? '뉴비',
+        currentHp: p.current_hp ?? startingHp(BASE_STATS.con),
+        maxHp: p.max_hp ?? startingHp(BASE_STATS.con),
         statAllocation: {
           str: p.stat_str ?? 0, dex: p.stat_dex ?? 0,
           con: p.stat_con ?? 0, wis: p.stat_wis ?? 0,
@@ -118,12 +125,13 @@ export const useGameStore = create<GameState>((set, get) => ({
           equippedEarring: equipped['earring'] ?? null,
           inventory: inv,
         } : {}),
-        materials: Object.keys(dbData.materials).length > 0 ? dbData.materials : get().materials,
-        potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : get().potions,
-        selectedPotionId: p.selected_potion ?? get().selectedPotionId,
-        potionAutoUse: p.potion_auto_use ?? get().potionAutoUse,
-        potionAutoThreshold: p.potion_auto_threshold ?? get().potionAutoThreshold,
-        potionAutoBuy: p.potion_auto_buy ?? get().potionAutoBuy,
+        // ⚠️ DB가 진실 — 빈 객체도 그대로 사용 (재료/포션 0개 = 정당한 상태)
+        materials: dbData.materials,
+        potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : { potion_hp_minor: 50 },
+        selectedPotionId: p.selected_potion ?? 'potion_hp_minor',
+        potionAutoUse: p.potion_auto_use ?? true,
+        potionAutoThreshold: p.potion_auto_threshold ?? 50,
+        potionAutoBuy: p.potion_auto_buy ?? true,
       });
 
       // 길드 이름 비동기 로드
@@ -251,7 +259,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     set({ dbReady: true });
-    saveState(get());
+
+    // ⚠️ localStorage 캐시만 갱신 — markDirty() 호출 안 함
+    //    DB에서 읽은 데이터를 다시 DB에 올리는 무의미한 라운드트립 방지
+    _saveState(get());
+
+    // ⚠️ 30초 동기화 타이머를 DB 로드 완료 후에 시작
+    //    이제 Zustand에 DB 데이터가 반영된 상태이므로 안전
+    setSyncUserId(userId);
   },
 
   logout: async () => {
@@ -259,7 +274,61 @@ export const useGameStore = create<GameState>((set, get) => ({
     setSyncUserId(null);
     // 로그아웃 시 localStorage 삭제 — 다른 계정 로그인 시 장비 복사 방지
     localStorage.removeItem(STORAGE_KEY);
-    set({ authUserId: null });
+    // ⚠️ Zustand 전체 리셋 — 메모리에 이전 계정 데이터 잔존 방지
+    //    authUserId만 null로 하면 다음 계정 로그인 시 get() 폴백에서 이전 계정 값 참조
+    set({
+      authUserId: null,
+      dbReady: false,
+      playerClass: 'knight',
+      playerName: '초보 모험가',
+      guildId: null,
+      guildName: null,
+      level: 1,
+      exp: 0,
+      gold: 0,
+      title: '뉴비',
+      statAllocation: { str: 0, dex: 0, con: 0, wis: 0, int: 0 },
+      maxHp: startingHp(BASE_STATS.con),
+      currentHp: startingHp(BASE_STATS.con),
+      maxMp: 16,
+      currentMp: 16,
+      equippedWeapon: null,
+      equippedTshirt: null,
+      equippedArmor: null,
+      equippedHelmet: null,
+      equippedCloak: null,
+      equippedGloves: null,
+      equippedBoots: null,
+      equippedShield: null,
+      equippedNecklace: null,
+      equippedRing: null,
+      equippedRing2: null,
+      equippedBelt: null,
+      equippedEarring: null,
+      inventory: [],
+      materials: {},
+      potions: {},
+      queue: [],
+      combatLog: [],
+      activeBuffs: [],
+      equippedSkills: [],
+      disabledSkills: [],
+      hunt: {
+        zoneId: null, status: 'idle', currentRoom: 1,
+        roomKills: 0, roomCleared: 0, kills: 0,
+        goldGained: 0, materialsGained: {}, itemsFound: 0,
+        avgKillTime: 0, currentFightTicks: 0, fightStartedAt: 0,
+        startedAt: 0, currentTargetId: null, monsterCurrentHp: 0,
+        joinedMonsters: [], approachingMonsters: [],
+        mobSkillCooldowns: {}, lastMagicHitAt: 0, consecutiveMagicHits: 0,
+        currentMp: 0, lastHpRegenAt: 0, lastMpRegenAt: 0, skillCooldowns: {},
+        monsterStunnedTicks: 0, windShackleTicks: 0, regenWaitTicks: 0,
+        monsterAtkAccum: 0,
+      } as HuntSession,
+      offlineReward: null,
+      viewMode: 'main',
+      viewingProfileId: null,
+    });
   },
 
   // ── Player State ──

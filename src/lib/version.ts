@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.35.0 — 기기 이동 데이터 동기화 안전장치 (dbReady 게이트)
-export const APP_VERSION = '2.35.0';
+// v2.35.1 — 데이터 로드/세이브 흐름 재구조화 (DB 단일 진실 원천)
+export const APP_VERSION = '2.35.1';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
