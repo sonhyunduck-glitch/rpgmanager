@@ -345,14 +345,14 @@ export default function MobileHuntLayout() {
         </div>
       </div>
 
-      {/* ━━━ ZONE LABEL (우측, 탑바 아래) — 클릭 시 구역 선택 ━━━ */}
+      {/* ━━━ ZONE LABEL (좌측, 탑바 아래) — 클릭 시 구역 선택 ━━━ */}
       <div style={{
         position: 'absolute',
-        top: 86, right: 12,
+        top: 86, left: 12,
         fontFamily: 'var(--font-mono)',
         fontSize: 11,
         color: 'var(--text-dim)',
-        textAlign: 'right',
+        textAlign: 'left',
         textShadow: '0 0 4px rgba(0,0,0,0.9)',
         zIndex: 15,
       }}>
@@ -366,7 +366,7 @@ export default function MobileHuntLayout() {
             fontFamily: 'var(--font-mono)',
             textShadow: '0 0 4px rgba(0,0,0,0.9)',
             display: 'flex', alignItems: 'center', gap: 4,
-            justifyContent: 'flex-end',
+            justifyContent: 'flex-start',
           }}
         >
           {zoneName} {roomNum > 0 && `${roomNum}구역`}
@@ -383,7 +383,7 @@ export default function MobileHuntLayout() {
           <div style={{
             color: 'var(--success)', fontSize: 10, marginTop: 2,
             display: 'flex', alignItems: 'center', gap: 4,
-            justifyContent: 'flex-end',
+            justifyContent: 'flex-start',
           }}>
             <span style={{
               width: 6, height: 6, borderRadius: '50%',
@@ -443,8 +443,8 @@ export default function MobileHuntLayout() {
                         : isCleared ? 'var(--text)'
                         : isNext ? 'var(--success)'
                         : 'var(--text-dim)',
-                      textAlign: 'right',
-                      justifyContent: 'flex-end',
+                      textAlign: 'left',
+                      justifyContent: 'flex-start',
                       textShadow: 'none',
                       opacity: isLocked ? 0.4 : 1,
                     }}
