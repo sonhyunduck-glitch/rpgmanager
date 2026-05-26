@@ -4,12 +4,11 @@
 import { useState } from 'react';
 import { useGameStore, equipDisplayName } from '../../store/gameStore';
 import type { Equipment } from '../../types';
-import { MATERIALS } from '../../data/gameData';
-import { LABEL, PANEL_FULL, chipStyle } from '../../styles/shared';
+import { PANEL_FULL, chipStyle } from '../../styles/shared';
 import EnhanceSidebar from './EnhanceSidebar';
 import EquipCard from './EquipCard';
 
-type FilterMode = 'all' | 'weapon' | 'defense' | 'material';
+type FilterMode = 'all' | 'weapon' | 'defense';
 
 /* ── 착용 슬롯 정의 ── */
 interface EquipSlotDef { key: string; label: string; }
@@ -79,11 +78,9 @@ export default function InventoryPanel() {
   const isWeaponType = (t: string) => t === 'weapon' || t === 'bow' || t === 'staff';
   const filteredInv = filter === 'all'
     ? inventory
-    : filter === 'material'
-      ? []
-      : filter === 'weapon'
-        ? inventory.filter(eq => isWeaponType(eq.type))
-        : inventory.filter(eq => !isWeaponType(eq.type));
+    : filter === 'weapon'
+      ? inventory.filter(eq => isWeaponType(eq.type))
+      : inventory.filter(eq => !isWeaponType(eq.type));
 
   const selectedUid = enhanceTargetUid;
   const selectedItem = selectedUid
@@ -116,7 +113,6 @@ export default function InventoryPanel() {
               ['all', '전체'],
               ['weapon', '무기'],
               ['defense', '방어구'],
-              ['material', '재료'],
             ] as [FilterMode, string][]).map(([key, txt]) => (
               <button key={key} style={chipStyle(filter === key)} onClick={() => setFilter(key)}>
                 {txt}
@@ -127,77 +123,39 @@ export default function InventoryPanel() {
 
         {/* Scrollable grid */}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column', gap: 'var(--s-3)' }}>
-          {filter !== 'material' && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${BAG_COLS}, 1fr)`,
-              gap: 'var(--s-2)',
-              alignContent: 'start',
-            }}>
-              {filteredInv.map(eq => (
-                <EquipCard
-                  key={eq.uid}
-                  eq={eq}
-                  isEquipped={false}
-                  isSelected={eq.uid === selectedUid}
-                  onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); }}
-                  onAction={() => equipFromInventory(eq.uid)}
-                  actionLabel="착용"
-                  actionStyle="success"
-                />
-              ))}
-              {filter === 'all' && Array.from({ length: Math.min(emptySlots, 10) }, (_, i) => (
-                <div key={`empty-${i}`} style={{
-                  border: '1px dashed var(--border-soft)',
-                  borderRadius: 'var(--r-sm)',
-                  minHeight: 88,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-faint)',
-                  fontSize: 'var(--fs-xs)',
-                }}>
-                  빈 슬롯
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Materials */}
-          {(filter === 'all' || filter === 'material') && (
-            <div>
-              <div style={{ ...LABEL, marginBottom: 'var(--s-2)' }}>보유 재료</div>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                gap: 'var(--s-2)',
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${BAG_COLS}, 1fr)`,
+            gap: 'var(--s-2)',
+            alignContent: 'start',
+          }}>
+            {filteredInv.map(eq => (
+              <EquipCard
+                key={eq.uid}
+                eq={eq}
+                isEquipped={false}
+                isSelected={eq.uid === selectedUid}
+                onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); }}
+                onAction={() => equipFromInventory(eq.uid)}
+                actionLabel="착용"
+                actionStyle="success"
+              />
+            ))}
+            {filter === 'all' && Array.from({ length: Math.min(emptySlots, 10) }, (_, i) => (
+              <div key={`empty-${i}`} style={{
+                border: '1px dashed var(--border-soft)',
+                borderRadius: 'var(--r-sm)',
+                minHeight: 88,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-faint)',
+                fontSize: 'var(--fs-xs)',
               }}>
-                {Object.entries(materials)
-                  .filter(([, qty]) => qty > 0)
-                  .map(([matId, qty]) => {
-                    const mat = MATERIALS[matId];
-                    return (
-                      <div key={matId} style={{
-                        background: 'var(--bg-sunken)',
-                        border: '1px solid var(--border-soft)',
-                        borderRadius: 'var(--r-xs)',
-                        padding: '6px var(--s-3)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                        <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-dim)' }}>
-                          {mat?.name ?? matId}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', color: 'var(--text)' }}>
-                          x{qty}
-                        </span>
-                      </div>
-                    );
-                  })}
+                빈 슬롯
               </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       </div>
 
