@@ -11,6 +11,7 @@ import {
 } from '../../data/gameData';
 import { SHOP_ETC_ITEMS } from '../../data/shopItemData';
 import { canClassEquip } from '../../data/classData';
+import { useMobile } from '../../lib/useMobile';
 import type { ShopTab, EquipmentTemplate, PlayerClass, Equipment } from '../../types';
 
 /* ═══════════════════════════════════════════
@@ -184,9 +185,10 @@ const ITEMS_PANEL: React.CSSProperties = {
    ═══════════════════════════════════════════ */
 
 /* ── 물약 ── */
-function PotionSection({ gold, potions, buy, cls }: {
+function PotionSection({ gold, potions, buy, cls, mobile }: {
   gold: number; potions: Record<string, number>;
   buy: (id: string, q: number) => void; cls: PlayerClass;
+  mobile?: boolean;
 }) {
   return (
     <div style={ITEMS_PANEL}>
@@ -197,63 +199,107 @@ function PotionSection({ gold, potions, buy, cls }: {
         const ok = !p.classRestriction || p.classRestriction.includes(cls);
         const last = i === POTION_ORDER.length - 1;
 
+        /* ── 이름 라인 (공용) ── */
+        const nameLine = (
+          <div style={{
+            fontSize: mobile ? 13 : 13.5, fontWeight: 600, color: clr,
+            display: 'flex', alignItems: 'center', gap: mobile ? 4 : 6,
+          }}>
+            {p.name}
+            {p.classRestriction && (
+              <span style={{ fontSize: 10, opacity: 0.8 }}>
+                {p.classRestriction.map(c => CLS_IC[c]).join('')}
+              </span>
+            )}
+            {!ok && (
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9,
+                padding: '1px 5px', borderRadius: 3,
+                color: 'var(--danger)',
+                background: 'color-mix(in oklch, var(--danger) 8%, transparent)',
+                border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
+              }}>사용 불가</span>
+            )}
+          </div>
+        );
+
+        /* ── 설명 라인 (공용) ── */
+        const descLine = (
+          <div style={{
+            fontFamily: 'var(--font-mono)', fontSize: mobile ? 10 : 10.5,
+            color: 'var(--text-mute)', marginTop: mobile ? 1 : 2,
+            overflow: mobile ? 'hidden' : undefined,
+            textOverflow: mobile ? 'ellipsis' : undefined,
+            whiteSpace: mobile ? 'nowrap' : undefined,
+          }}>
+            {p.buffDuration ? (
+              <>
+                {p.id === 'blue_potion' && 'MP 리젠 증가'}
+                {p.atkSpeedMult && p.atkSpeedMult > 1 ? `공속 ×${p.atkSpeedMult}` : ''}
+                {p.moveSpeedMult && p.moveSpeedMult > 1 ? ` 이속 ×${p.moveSpeedMult}` : ''}
+                {p.spBonus ? `SP +${p.spBonus}` : ''}
+                {` (${p.buffDuration >= 60 ? `${Math.floor(p.buffDuration / 60)}분` : `${p.buffDuration}초`})`}
+              </>
+            ) : (
+              <>HP {p.healMin}~{p.healMax} 회복</>
+            )}
+          </div>
+        );
+
+        /* ── 구매 버튼 (공용) ── */
+        const buyBtns = [1, 10, 50].map(q => (
+          <PackBtn key={q} qty={q} cost={p.buyPrice * q}
+            ok={gold >= p.buyPrice * q && ok}
+            onClick={() => buy(id, q)} />
+        ));
+
+        /* ── 모바일: 2행 그리드 ── */
+        if (mobile) {
+          return (
+            <div key={id} style={{
+              display: 'grid',
+              gridTemplateColumns: '28px 1fr auto',
+              gap: '4px 8px',
+              padding: '10px 12px',
+              borderBottom: last ? 'none' : '1px solid var(--border-soft)',
+              alignItems: 'center',
+              opacity: ok ? 1 : 0.45,
+            }}>
+              <div style={{ gridRow: '1 / 3', alignSelf: 'center' }}>
+                <Dot color={clr} />
+              </div>
+              <div style={{ minWidth: 0 }}>{nameLine}{descLine}</div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                  fontWeight: 700, color: 'var(--accent)',
+                }}>
+                  {fmt(p.buyPrice)}<span style={{ color: 'var(--text-mute)', fontSize: 10, fontWeight: 400, marginLeft: 2 }}>G</span>
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                  color: 'var(--text-mute)',
+                }}>보유 {fmt(owned)}</div>
+              </div>
+              <div style={{
+                gridColumn: '2 / 4',
+                display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4,
+              }}>{buyBtns}</div>
+            </div>
+          );
+        }
+
+        /* ── 데스크톱: 1행 플렉스 (기존) ── */
         return (
           <div key={id} style={{
             ...ROW, opacity: ok ? 1 : 0.45,
             borderBottom: last ? 'none' : ROW.borderBottom,
           }}>
             <Dot color={clr} />
-
-            {/* 이름 + 설명 */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 13.5, fontWeight: 600, color: clr,
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}>
-                {p.name}
-                {p.classRestriction && (
-                  <span style={{ fontSize: 10, opacity: 0.8 }}>
-                    {p.classRestriction.map(c => CLS_IC[c]).join('')}
-                  </span>
-                )}
-                {!ok && (
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 9,
-                    padding: '1px 5px', borderRadius: 3,
-                    color: 'var(--danger)',
-                    background: 'color-mix(in oklch, var(--danger) 8%, transparent)',
-                    border: '1px solid color-mix(in oklch, var(--danger) 20%, transparent)',
-                  }}>사용 불가</span>
-                )}
-              </div>
-              <div style={{
-                fontFamily: 'var(--font-mono)', fontSize: 10.5,
-                color: 'var(--text-mute)', marginTop: 2,
-              }}>
-                {p.buffDuration ? (
-                  <>
-                    {p.id === 'blue_potion' && 'MP 리젠 증가'}
-                    {p.atkSpeedMult && p.atkSpeedMult > 1 ? `공속 ×${p.atkSpeedMult}` : ''}
-                    {p.moveSpeedMult && p.moveSpeedMult > 1 ? ` 이속 ×${p.moveSpeedMult}` : ''}
-                    {p.spBonus ? `SP +${p.spBonus}` : ''}
-                    {` (${p.buffDuration >= 60 ? `${Math.floor(p.buffDuration / 60)}분` : `${p.buffDuration}초`})`}
-                  </>
-                ) : (
-                  <>HP {p.healMin}~{p.healMax} 회복</>
-                )}
-              </div>
-            </div>
-
+            <div style={{ flex: 1, minWidth: 0 }}>{nameLine}{descLine}</div>
             <Owned n={owned} />
             <Price v={p.buyPrice} />
-
-            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-              {[1, 10, 50].map(q => (
-                <PackBtn key={q} qty={q} cost={p.buyPrice * q}
-                  ok={gold >= p.buyPrice * q && ok}
-                  onClick={() => buy(id, q)} />
-              ))}
-            </div>
+            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>{buyBtns}</div>
           </div>
         );
       })}
@@ -262,9 +308,10 @@ function PotionSection({ gold, potions, buy, cls }: {
 }
 
 /* ── 재료 ── */
-function MaterialSection({ gold, mats, buy }: {
+function MaterialSection({ gold, mats, buy, mobile }: {
   gold: number; mats: Record<string, number>;
   buy: (id: string, qty: number, cost: number) => void;
+  mobile?: boolean;
 }) {
   const items = useMemo(() => SHOP_ETC_ITEMS.filter(i => i.category === 'material'), []);
 
@@ -276,39 +323,73 @@ function MaterialSection({ gold, mats, buy }: {
         const clr = MAT_CLR[it.id] ?? 'var(--text-mute)';
         const last = i === items.length - 1;
 
+        const nameLine = (
+          <div style={{ fontSize: mobile ? 13 : 13.5, fontWeight: 600, color: 'var(--text)' }}>
+            {it.name}
+          </div>
+        );
+        const descLine = (
+          <div style={{
+            fontFamily: 'var(--font-mono)', fontSize: mobile ? 10 : 10.5,
+            color: 'var(--text-mute)', marginTop: mobile ? 1 : 2,
+          }}>
+            {pack > 1 ? `${pack}개 ${fmt(it.buyPrice)}G` : `구매 ${fmt(it.buyPrice)}G`}
+            {it.sellPrice > 0 && ` · 판매 ${fmt(it.sellPrice)}G`}
+          </div>
+        );
+        const buyBtns = [1, 10, 50].map(m => {
+          const q = pack * m;
+          const c = it.buyPrice * m;
+          return (
+            <PackBtn key={m} qty={q} cost={c}
+              ok={gold >= c}
+              onClick={() => buy(it.id, q, c)} />
+          );
+        });
+
+        if (mobile) {
+          return (
+            <div key={it.id} style={{
+              display: 'grid',
+              gridTemplateColumns: '28px 1fr auto',
+              gap: '4px 8px',
+              padding: '10px 12px',
+              borderBottom: last ? 'none' : '1px solid var(--border-soft)',
+              alignItems: 'center',
+            }}>
+              <div style={{ gridRow: '1 / 3', alignSelf: 'center' }}>
+                <Dot color={clr} />
+              </div>
+              <div style={{ minWidth: 0 }}>{nameLine}{descLine}</div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                  fontWeight: 700, color: 'var(--accent)',
+                }}>
+                  {fmt(it.buyPrice)}<span style={{ color: 'var(--text-mute)', fontSize: 10, fontWeight: 400, marginLeft: 2 }}>G</span>
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                  color: 'var(--text-mute)',
+                }}>보유 {fmt(owned)}</div>
+              </div>
+              <div style={{
+                gridColumn: '2 / 4',
+                display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4,
+              }}>{buyBtns}</div>
+            </div>
+          );
+        }
+
         return (
           <div key={it.id} style={{
             ...ROW, borderBottom: last ? 'none' : ROW.borderBottom,
           }}>
             <Dot color={clr} />
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>
-                {it.name}
-              </div>
-              <div style={{
-                fontFamily: 'var(--font-mono)', fontSize: 10.5,
-                color: 'var(--text-mute)', marginTop: 2,
-              }}>
-                {pack > 1 ? `${pack}개 ${fmt(it.buyPrice)}G` : `구매 ${fmt(it.buyPrice)}G`}
-                {it.sellPrice > 0 && ` · 판매 ${fmt(it.sellPrice)}G`}
-              </div>
-            </div>
-
+            <div style={{ flex: 1, minWidth: 0 }}>{nameLine}{descLine}</div>
             <Owned n={owned} />
             <Price v={it.buyPrice} />
-
-            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-              {[1, 10, 50].map(m => {
-                const q = pack * m;
-                const c = it.buyPrice * m;
-                return (
-                  <PackBtn key={m} qty={q} cost={c}
-                    ok={gold >= c}
-                    onClick={() => buy(it.id, q, c)} />
-                );
-              })}
-            </div>
+            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>{buyBtns}</div>
           </div>
         );
       })}
@@ -317,19 +398,20 @@ function MaterialSection({ gold, mats, buy }: {
 }
 
 /* ── 주문서 ── */
-function ScrollSection({ gold, mats, buy }: {
+function ScrollSection({ gold, mats, buy, mobile }: {
   gold: number; mats: Record<string, number>;
   buy: (id: string, qty: number, cost: number) => void;
+  mobile?: boolean;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 10 : 14 }}>
       {SCROLL_GROUPS.map(g => (
         <div key={g.label}>
           <div style={{
             fontFamily: 'var(--font-mono)', fontSize: 10,
             color: 'var(--text-mute)', textTransform: 'uppercase',
             letterSpacing: '0.08em', fontWeight: 600,
-            marginBottom: 8,
+            marginBottom: mobile ? 6 : 8,
           }}>{g.label}</div>
 
           <div style={ITEMS_PANEL}>
@@ -342,31 +424,67 @@ function ScrollSection({ gold, mats, buy }: {
               const clr = SCROLL_CLR[id] ?? '#9e9e9e';
               const glow = SCROLL_GLOW[id];
               const last = i === g.ids.length - 1;
+              const nameClr = clr === '#9e9e9e' ? 'var(--text)' : clr;
+
+              const buyBtns = [1, 10, 50].map(q => (
+                <PackBtn key={q} qty={q} cost={si.price * q}
+                  ok={gold >= si.price * q}
+                  onClick={() => buy(id, q, si.price * q)} />
+              ));
+
+              if (mobile) {
+                return (
+                  <div key={id} style={{
+                    display: 'grid',
+                    gridTemplateColumns: '28px 1fr auto',
+                    gap: '4px 8px',
+                    padding: '10px 12px',
+                    borderBottom: last ? 'none' : '1px solid var(--border-soft)',
+                    alignItems: 'center',
+                  }}>
+                    <div style={{ gridRow: '1 / 3', alignSelf: 'center' }}>
+                      <Dot color={clr} />
+                    </div>
+                    <div style={{
+                      fontSize: 13, fontWeight: 600,
+                      color: nameClr, textShadow: glow,
+                      minWidth: 0, overflow: 'hidden',
+                      textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>{mat.name}</div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{
+                        fontFamily: 'var(--font-mono)', fontSize: 11.5,
+                        fontWeight: 700, color: 'var(--accent)',
+                      }}>
+                        {fmt(si.price)}<span style={{ color: 'var(--text-mute)', fontSize: 10, fontWeight: 400, marginLeft: 2 }}>G</span>
+                      </div>
+                      <div style={{
+                        fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                        color: 'var(--text-mute)',
+                      }}>보유 {fmt(owned)}</div>
+                    </div>
+                    <div style={{
+                      gridColumn: '2 / 4',
+                      display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4,
+                    }}>{buyBtns}</div>
+                  </div>
+                );
+              }
 
               return (
                 <div key={id} style={{
                   ...ROW, borderBottom: last ? 'none' : ROW.borderBottom,
                 }}>
                   <Dot color={clr} />
-
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontSize: 13.5, fontWeight: 600,
-                      color: clr === '#9e9e9e' ? 'var(--text)' : clr,
-                      textShadow: glow,
+                      color: nameClr, textShadow: glow,
                     }}>{mat.name}</div>
                   </div>
-
                   <Owned n={owned} />
                   <Price v={si.price} />
-
-                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    {[1, 10, 50].map(q => (
-                      <PackBtn key={q} qty={q} cost={si.price * q}
-                        ok={gold >= si.price * q}
-                        onClick={() => buy(id, q, si.price * q)} />
-                    ))}
-                  </div>
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>{buyBtns}</div>
                 </div>
               );
             })}
@@ -726,6 +844,7 @@ function ConfirmDlg({ tmpl, cls, onOk, onNo }: {
 export default function ShopPanel() {
   const [tab, setTab] = useState<FullTab>('potion');
   const [confirm, setConfirm] = useState<EquipmentTemplate | null>(null);
+  const mobile = useMobile();
 
   /* store */
   const gold             = useGameStore(s => s.gold);
@@ -746,38 +865,81 @@ export default function ShopPanel() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      padding: '18px 22px 32px', overflow: 'hidden',
+      padding: mobile ? '0 0 12px' : '18px 22px 32px',
+      overflow: 'hidden',
     }}>
-      {/* ── 브레드크럼 ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        paddingBottom: 12, marginBottom: 14,
-        borderBottom: '1px solid var(--border-soft)', flexShrink: 0,
-      }}>
-        <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)' }}>상점</span>
-
-        <span style={{
-          marginLeft: 'auto',
-          fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--accent)',
-          display: 'inline-flex', alignItems: 'baseline', gap: 6,
+      {/* ── 잔액 (모바일: 카드형 / 데스크톱: 브레드크럼 내) ── */}
+      {mobile ? (
+        <div style={{
+          display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+          padding: '10px 12px',
+          marginBottom: 10,
+          background: 'color-mix(in oklch, var(--accent) 5%, transparent)',
+          border: '1px solid color-mix(in oklch, var(--accent) 15%, transparent)',
+          borderRadius: 8, flexShrink: 0,
         }}>
           <span style={{
-            fontSize: 10, color: 'var(--text-mute)',
-            textTransform: 'uppercase', letterSpacing: '0.12em', marginRight: 4,
+            fontFamily: 'var(--font-mono)', fontSize: 10,
+            color: 'var(--text-mute)', textTransform: 'uppercase',
+            letterSpacing: '0.08em',
           }}>잔액</span>
-          <span style={{ fontWeight: 700 }}>{fmt(gold)}</span>
-          <span style={{ color: 'var(--text-mute)', fontSize: 12 }}>G</span>
-        </span>
-      </div>
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 700,
+            color: 'var(--accent)',
+          }}>
+            {fmt(gold)}<span style={{ color: 'var(--text-mute)', fontSize: 12, fontWeight: 400, marginLeft: 3 }}>G</span>
+          </span>
+        </div>
+      ) : (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 14,
+          paddingBottom: 12, marginBottom: 14,
+          borderBottom: '1px solid var(--border-soft)', flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)' }}>상점</span>
+          <span style={{
+            marginLeft: 'auto',
+            fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--accent)',
+            display: 'inline-flex', alignItems: 'baseline', gap: 6,
+          }}>
+            <span style={{
+              fontSize: 10, color: 'var(--text-mute)',
+              textTransform: 'uppercase', letterSpacing: '0.12em', marginRight: 4,
+            }}>잔액</span>
+            <span style={{ fontWeight: 700 }}>{fmt(gold)}</span>
+            <span style={{ color: 'var(--text-mute)', fontSize: 12 }}>G</span>
+          </span>
+        </div>
+      )}
 
       {/* ── 카테고리 탭 ── */}
       <div style={{
-        display: 'flex', marginBottom: 18, flexShrink: 0,
-        borderBottom: '1px solid var(--border-soft)',
+        display: 'flex',
+        gap: mobile ? 6 : 0,
+        marginBottom: mobile ? 10 : 18,
+        flexShrink: 0,
+        borderBottom: mobile ? 'none' : '1px solid var(--border-soft)',
+        overflowX: mobile ? 'auto' : undefined,
+        paddingBottom: mobile ? 6 : 0,
+        scrollbarWidth: 'none',
       }}>
         {CATS.map(c => {
           const on = tab === c.id;
-          return (
+          return mobile ? (
+            <button key={c.id} onClick={() => setTab(c.id)} style={{
+              padding: '6px 12px', flexShrink: 0,
+              borderRadius: 16, whiteSpace: 'nowrap',
+              border: on ? '1px solid var(--accent)' : '1px solid var(--border-soft)',
+              background: on ? 'color-mix(in oklch, var(--accent) 12%, transparent)' : 'transparent',
+              color: on ? 'var(--accent)' : 'var(--text-mute)',
+              fontSize: 12, fontWeight: on ? 600 : 500,
+              cursor: 'pointer', transition: 'all 0.12s',
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+            }}>
+              <span style={{ fontSize: 12, opacity: 0.7 }}>{c.ic}</span>
+              {c.nm}
+            </button>
+          ) : (
             <button key={c.id} onClick={() => setTab(c.id)} style={{
               flex: 1, padding: '12px 6px', textAlign: 'center',
               color: on ? 'var(--accent)' : 'var(--text-mute)',
@@ -795,32 +957,49 @@ export default function ShopPanel() {
         })}
 
         {/* 판매 (녹색) */}
-        <button onClick={() => setTab('sell')} style={{
-          flex: 1, padding: '12px 6px', textAlign: 'center',
-          color: 'var(--success)',
-          opacity: tab === 'sell' ? 1 : 0.6,
-          fontSize: 13, fontWeight: tab === 'sell' ? 600 : 500,
-          background: 'none', border: 'none',
-          borderBottom: `2px solid ${tab === 'sell' ? 'var(--success)' : 'transparent'}`,
-          marginBottom: -1, cursor: 'pointer',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          transition: 'color 0.12s, border-color 0.12s, opacity 0.12s', whiteSpace: 'nowrap',
-        }}>
-          <span style={{ fontSize: 14, opacity: 0.7 }}>$</span>
-          판매
-        </button>
+        {mobile ? (
+          <button onClick={() => setTab('sell')} style={{
+            padding: '6px 12px', flexShrink: 0,
+            borderRadius: 16, whiteSpace: 'nowrap',
+            border: tab === 'sell' ? '1px solid var(--success)' : '1px solid var(--border-soft)',
+            background: tab === 'sell' ? 'color-mix(in oklch, var(--success) 12%, transparent)' : 'transparent',
+            color: 'var(--success)',
+            opacity: tab === 'sell' ? 1 : 0.6,
+            fontSize: 12, fontWeight: tab === 'sell' ? 600 : 500,
+            cursor: 'pointer', transition: 'all 0.12s',
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+          }}>
+            <span style={{ fontSize: 12, opacity: 0.7 }}>$</span>
+            판매
+          </button>
+        ) : (
+          <button onClick={() => setTab('sell')} style={{
+            flex: 1, padding: '12px 6px', textAlign: 'center',
+            color: 'var(--success)',
+            opacity: tab === 'sell' ? 1 : 0.6,
+            fontSize: 13, fontWeight: tab === 'sell' ? 600 : 500,
+            background: 'none', border: 'none',
+            borderBottom: `2px solid ${tab === 'sell' ? 'var(--success)' : 'transparent'}`,
+            marginBottom: -1, cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            transition: 'color 0.12s, border-color 0.12s, opacity 0.12s', whiteSpace: 'nowrap',
+          }}>
+            <span style={{ fontSize: 14, opacity: 0.7 }}>$</span>
+            판매
+          </button>
+        )}
       </div>
 
       {/* ── 콘텐츠 ── */}
       <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
         {tab === 'potion' && (
-          <PotionSection gold={gold} potions={potions} buy={buyPotion} cls={playerClass} />
+          <PotionSection gold={gold} potions={potions} buy={buyPotion} cls={playerClass} mobile={mobile} />
         )}
         {tab === 'material' && (
-          <MaterialSection gold={gold} mats={materials} buy={buyMaterial} />
+          <MaterialSection gold={gold} mats={materials} buy={buyMaterial} mobile={mobile} />
         )}
         {tab === 'scroll' && (
-          <ScrollSection gold={gold} mats={materials} buy={buyMaterial} />
+          <ScrollSection gold={gold} mats={materials} buy={buyMaterial} mobile={mobile} />
         )}
         {(tab === 'weapon' || tab === 'armor' || tab === 'accessory') && (
           <EquipSection key={tab} tab={tab} gold={gold}
