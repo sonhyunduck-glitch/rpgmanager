@@ -163,6 +163,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             monsterCurrentHp: monsterHp,
             currentFightTicks: 0,
             fightStartedAt: Date.now(),
+            monsterAtkAccum: 0,
           },
           combatLog: [...state.combatLog, ...encounterLogs].slice(-100),
         } as Partial<GameState>);
@@ -237,6 +238,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
       let monsterStunnedTicks = Math.max(0, (hunt.monsterStunnedTicks ?? 0) - 1);
       let windShackleTicks = Math.max(0, (hunt.windShackleTicks ?? 0) - 1);
+
+      // ── 몬스터 공격속도 비율 계산 (L1J atk_speed 기반) ──
+      // 플레이어 틱 간격(ms)만큼 몬스터 공격 타이머 누적
+      const playerTickMs = 3000 / (state.getAtkSpeedMult?.() ?? 1);
+      let monsterAtkAccum = (hunt.monsterAtkAccum ?? 0) + playerTickMs;
 
       // ── 버프 물약 자동 사용 ──
       const now = Date.now();
@@ -816,7 +822,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         }
       }
 
-      // ── 주 타겟 반격 (L1J D20 NPC→PC) ──
+      // ── 주 타겟 반격 (L1J D20 NPC→PC + atk_speed 비율 기반) ──
       let newLastMagicHitAt = hunt.lastMagicHitAt;
       let newConsecutiveMagicHits = hunt.consecutiveMagicHits;
       let evasionCount = 0; // 회피 로그 배칭 (AC 높을 때 로그 폭주 방지)
@@ -824,56 +830,69 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       // 몬스터 스턴 체크 (쇼크 스턴 등)
       const monsterCanAttack = monsterStunnedTicks <= 0;
 
+      // 몬스터 공격속도: atkSpeed(ms) 도달 시 공격, 초과분 이월
+      // 윈드 셰클: 공격 딜레이 1.5배 (30% 공격속도 감소)
+      const effectiveMonsterAtkSpeed = windShackleTicks > 0
+        ? Math.floor(monster.atkSpeed * 1.5) : monster.atkSpeed;
+
       if (!killed && monsterHp > 0 && newCurrentHp > 0 && monsterCanAttack) {
-        const rawMonsterDmg = rollMonsterDamage(monster.damDice, monster.damDiceSides, monster.extraDam);
+        // 누적 시간이 공격 딜레이에 도달할 때마다 공격 (한 틱에 여러 번 가능)
+        let monsterAttackCount = 0;
+        while (monsterAtkAccum >= effectiveMonsterAtkSpeed && newCurrentHp > 0) {
+          monsterAtkAccum -= effectiveMonsterAtkSpeed;
+          monsterAttackCount++;
+          if (monsterAttackCount > 3) break; // 안전장치: 한 틱 최대 3회
 
-        if (monster.attackType === 'magic') {
-          const playerMR = finalMR(state.level, playerWis) + equipBonusMr;
-          let reduced = applyMagicReduction(rawMonsterDmg, playerMR);
-          if (windShackleTicks > 0) reduced = Math.max(1, Math.floor(reduced * 0.7));
-          const pct = Math.round(magicReduction(playerMR) * 100);
+          const rawMonsterDmg = rollMonsterDamage(monster.damDice, monster.damDiceSides, monster.extraDam);
 
-          // 연속 마법 감쇠 (L1J: 2초 내 (2/3)^n, PC 타겟만)
-          const elapsed = now - newLastMagicHitAt;
-          let consecutive: number;
-          if (elapsed < 2000) {
-            consecutive = newConsecutiveMagicHits;
-          } else if (elapsed < 4000) {
-            consecutive = newConsecutiveMagicHits; // 전이 구간: 유지
-          } else {
-            consecutive = 0;
-          }
-          reduced = Math.max(1, Math.floor(reduced * consecutiveMagicDecay(consecutive)));
-          if (elapsed < 2000) consecutive++;
-          newLastMagicHitAt = now;
-          newConsecutiveMagicHits = consecutive;
+          if (monster.attackType === 'magic') {
+            const playerMR = finalMR(state.level, playerWis) + equipBonusMr;
+            let reduced = applyMagicReduction(rawMonsterDmg, playerMR);
+            const pct = Math.round(magicReduction(playerMR) * 100);
 
-          newCurrentHp = Math.max(0, newCurrentHp - reduced);
-          newLogs.push({
-            id: genLogId(), type: 'hit_taken',
-            text: `${monster.name}의 마법 공격! -${reduced} HP (MR ${pct}% 저항) (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
-            timestamp: Date.now(),
-          });
-        } else {
-          // 물리 몬스터: D20 명중 → AC 대미지 감소 (별도 단계)
-          const mHitRate = calcMonsterHitRate(monster.level, 0);
-          const { hit: monsterHits } = rollD20NpcPcHit(mHitRate, effectivePlayerAC);
-          if (monsterHits) {
-            // AC 기반 대미지 감소 (L1J calcPcDefense — 명중 판정과 별개)
-            const acReduction = calcPcDefense(effectivePlayerAC, state.playerClass);
-            // 윈드 셰클: 몬스터 대미지 30% 감소
-            const shackleReduction = windShackleTicks > 0 ? 0.7 : 1.0;
-            const finalMonsterDmg = Math.max(1, Math.floor((rawMonsterDmg - acReduction) * shackleReduction));
-            newCurrentHp = Math.max(0, newCurrentHp - finalMonsterDmg);
+            // 연속 마법 감쇠 (L1J: 2초 내 (2/3)^n, PC 타겟만)
+            const elapsed = now - newLastMagicHitAt;
+            let consecutive: number;
+            if (elapsed < 2000) {
+              consecutive = newConsecutiveMagicHits;
+            } else if (elapsed < 4000) {
+              consecutive = newConsecutiveMagicHits; // 전이 구간: 유지
+            } else {
+              consecutive = 0;
+            }
+            reduced = Math.max(1, Math.floor(reduced * consecutiveMagicDecay(consecutive)));
+            if (elapsed < 2000) consecutive++;
+            newLastMagicHitAt = now;
+            newConsecutiveMagicHits = consecutive;
+
+            newCurrentHp = Math.max(0, newCurrentHp - reduced);
             newLogs.push({
               id: genLogId(), type: 'hit_taken',
-              text: `${monster.name}의 공격! -${finalMonsterDmg} HP (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+              text: `${monster.name}의 마법 공격! -${reduced} HP (MR ${pct}% 저항) (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
               timestamp: Date.now(),
             });
           } else {
-            evasionCount++;
+            // 물리 몬스터: D20 명중 → AC 대미지 감소 (별도 단계)
+            const mHitRate = calcMonsterHitRate(monster.level, 0);
+            const { hit: monsterHits } = rollD20NpcPcHit(mHitRate, effectivePlayerAC);
+            if (monsterHits) {
+              // AC 기반 대미지 감소 (L1J calcPcDefense — 명중 판정과 별개)
+              const acReduction = calcPcDefense(effectivePlayerAC, state.playerClass);
+              const finalMonsterDmg = Math.max(1, rawMonsterDmg - acReduction);
+              newCurrentHp = Math.max(0, newCurrentHp - finalMonsterDmg);
+              newLogs.push({
+                id: genLogId(), type: 'hit_taken',
+                text: `${monster.name}의 공격! -${finalMonsterDmg} HP (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+                timestamp: Date.now(),
+              });
+            } else {
+              evasionCount++;
+            }
           }
         }
+      } else if (killed || monsterHp <= 0) {
+        // 몬스터 사망 시 공격 타이머 리셋
+        monsterAtkAccum = 0;
       }
 
       // ── 몬스터 스킬 AI (L1J mob_skills — 4종 행동 + 5종 트리거) ──
@@ -1181,6 +1200,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           skillCooldowns,
           monsterStunnedTicks,
           windShackleTicks,
+          monsterAtkAccum: killed ? 0 : monsterAtkAccum,
           // 킬 후 접속자 수에 따른 리젠 대기 (다른 유저 1명당 1틱 대기)
           regenWaitTicks: killed ? Math.max(0, state.zonePlayerCount - 1 - guildMatesInZone) : hunt.regenWaitTicks,
         },

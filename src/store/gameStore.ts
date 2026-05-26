@@ -307,7 +307,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       startedAt: 0, currentTargetId: null, monsterCurrentHp: 0,
       joinedMonsters: [], approachingMonsters: [],
       mobSkillCooldowns: {}, lastMagicHitAt: 0, consecutiveMagicHits: 0,
-      currentMp: 0, lastHpRegenAt: 0, lastMpRegenAt: 0, skillCooldowns: {}, monsterStunnedTicks: 0, windShackleTicks: 0, regenWaitTicks: 0,
+      currentMp: 0, lastHpRegenAt: 0, lastMpRegenAt: 0, skillCooldowns: {}, monsterStunnedTicks: 0, windShackleTicks: 0, regenWaitTicks: 0, monsterAtkAccum: 0,
     } as HuntSession;
     return {
       ...h,
@@ -322,6 +322,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       monsterStunnedTicks: h.monsterStunnedTicks ?? 0,
       windShackleTicks: h.windShackleTicks ?? 0,
       regenWaitTicks: h.regenWaitTicks ?? 0,
+      monsterAtkAccum: h.monsterAtkAccum ?? 0,
     } as HuntSession;
   })(),
   combatLog: [],

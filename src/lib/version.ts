@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.34.8 — 레벨업 HP 증가 순수 CON만 반영 + 미니맵 몬스터 피격 데미지 표시 수정
-export const APP_VERSION = '2.34.8';
+// v2.34.9 — 몬스터 공격속도 L1J 원본 반영 (atk_speed 비율 기반)
+export const APP_VERSION = '2.34.9';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

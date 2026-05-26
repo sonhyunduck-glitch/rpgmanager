@@ -149,6 +149,7 @@ export interface Monster {
   undead?: boolean;     // 언데드 속성
   aggressive: boolean;  // 선공 여부 (true: 플레이어에게 접근 후 선제공격)
   moveSpeed: number;    // 이동속도 (1m당 초, 낮을수록 빠름, 0.4~1.0)
+  atkSpeed: number;     // 공격 딜레이 (ms, L1J npcs.csv 원본 — 높을수록 느림)
   expReward: number;
   goldReward: number;
   skills?: MobSkill[];          // 몬스터 스킬 목록
@@ -214,6 +215,7 @@ export interface HuntSession {
   monsterStunnedTicks: number; // 몬스터 스턴 남은 틱
   windShackleTicks: number;    // 윈드 셰클 남은 틱 (몬스터 공격속도 감소)
   regenWaitTicks: number;      // 몬스터 리젠 대기 틱 (접속자 수에 따라 킬 후 대기)
+  monsterAtkAccum: number;     // 몬스터 공격 타이머 누적 (ms, atkSpeed 도달 시 공격)
 }
 
 // ── Queue & Log ──

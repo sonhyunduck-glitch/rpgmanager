@@ -102,6 +102,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           monsterStunnedTicks: 0,
           windShackleTicks: 0,
           regenWaitTicks: 0,
+          monsterAtkAccum: 0,
         },
         combatLog: [entry],
       });
