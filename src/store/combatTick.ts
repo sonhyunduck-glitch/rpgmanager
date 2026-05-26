@@ -286,6 +286,11 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
       // ── 패시브 버프 상시 적용 (습득 조건 충족 시 만료 없이 활성) ──
       const passives = getPassiveBuffs(state.playerClass, state.level);
+      const validPassiveIds = new Set(passives.map(pb => pb.id));
+      // 현재 클래스/레벨에서 무효한 패시브 제거 (이전 버전 잔존 데이터 정리)
+      newActiveBuffs = newActiveBuffs.filter(b =>
+        !b.potionId?.startsWith('passive_') || validPassiveIds.has(b.skillId ?? 0),
+      );
       for (const pb of passives) {
         const already = newActiveBuffs.some(b => b.skillId === pb.id);
         if (!already) {
