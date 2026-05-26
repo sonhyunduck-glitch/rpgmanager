@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES, getBravePotionId } from '../../data/gameData';
 import { CLASS_CONFIGS } from '../../data/classData';
-import { finalAC, finalMR, calcPlayerHitRate } from '../../data/statFormulas';
+import { finalAC, finalMR, calcPlayerHitRate, calcBluePotionMpBonus, calcMpRegenAmount } from '../../data/statFormulas';
 import { getAllEquipped, ROOMS_PER_ZONE } from '../../store/storeTypes';
 import Minimap from './Minimap';
 import HuntMetrics from './HuntMetrics';
@@ -555,7 +555,7 @@ export default function MobileHuntLayout() {
       {/* ━━━ 모달 ━━━ */}
       {showHpModal && <HpPotionModal onClose={() => setShowHpModal(false)} />}
       {showTsModal && <TransformScrollModal onClose={() => setShowTsModal(false)} />}
-      {showBuffModal && <BuffListModal buffs={aliveBuffs} now={now} onClose={() => setShowBuffModal(false)} />}
+      {showBuffModal && <BuffListModal buffs={aliveBuffs} now={now} wis={wis} onClose={() => setShowBuffModal(false)} />}
     </div>
   );
 }
@@ -626,8 +626,8 @@ const potCountStyle: React.CSSProperties = {
    ═══════════════════════════════════════════════════════════ */
 import type { ActiveBuff } from '../../types';
 
-function BuffListModal({ buffs, now, onClose }: {
-  buffs: ActiveBuff[]; now: number; onClose: () => void;
+function BuffListModal({ buffs, now, wis, onClose }: {
+  buffs: ActiveBuff[]; now: number; wis: number; onClose: () => void;
 }) {
   return (
     <div
@@ -704,12 +704,14 @@ function BuffListModal({ buffs, now, onClose }: {
             const isPassive = buff.potionId?.startsWith('passive_');
             const isTs = buff.potionId === 'transform_scroll';
             const isGreen = buff.potionId === 'green_potion';
+            const isBlue = buff.potionId === 'blue_potion';
             const isSkill = !!buff.skillId;
             const color = isTs ? 'var(--accent)'
               : isGreen ? 'var(--success)'
+              : isBlue ? '#42a5f5'
               : isSkill ? 'var(--info)'
               : 'oklch(0.68 0.20 305)';
-            const icon = isTs ? '⚜' : isGreen ? '✚' : isSkill ? '✦' : '✦';
+            const icon = isTs ? '⚜' : isGreen ? '✚' : isBlue ? '◆' : isSkill ? '✦' : '✦';
 
             // 효과 요약 텍스트
             const effects: string[] = [];
@@ -720,6 +722,11 @@ function BuffListModal({ buffs, now, onClose }: {
             if (buff.dmgBonus) effects.push(`추타 +${buff.dmgBonus}`);
             if (buff.fireDmgBonus) effects.push(`화염 +${buff.fireDmgBonus}`);
             if (buff.spBonus) effects.push(`SP +${buff.spBonus}`);
+            if (isBlue) {
+              const baseRegen = calcMpRegenAmount(wis);
+              const bonus = calcBluePotionMpBonus(wis);
+              effects.push(`MP +${baseRegen + bonus}/16초`);
+            }
 
             return (
               <div key={i} style={{
