@@ -36,6 +36,7 @@ export interface PlayerSkill {
   buffEffect?: {
     acBonus?: number;            // AC 보너스 (음수 = 방어 상승)
     atkSpeedMult?: number;       // 공격 속도 배율
+    moveSpeedMult?: number;      // 이동 속도 배율
     hitBonus?: number;           // 명중 보너스
     dmgBonus?: number;           // 추가 대미지
     fireDmgBonus?: number;       // 화염 속성 대미지 추가
@@ -478,10 +479,10 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 0,
     damageDiceCount: 0,
     attr: 8, // 바람
-    buffEffect: { atkSpeedMult: 1.33 },
+    buffEffect: { atkSpeedMult: 1.33, moveSpeedMult: 1.33 },
     classes: ['wizard', 'elf'],
     requiredLevel: 1,
-    description: '공격 속도 33% 증가',
+    description: '공격·이동 속도 33% 증가',
   },
   {
     id: 42,

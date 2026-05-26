@@ -68,6 +68,7 @@ function formatBuffEffect(skill: PlayerSkill): string {
   const parts: string[] = [];
   if (skill.buffEffect.acBonus) parts.push(`AC ${skill.buffEffect.acBonus}`);
   if (skill.buffEffect.atkSpeedMult) parts.push(`공속 x${skill.buffEffect.atkSpeedMult}`);
+  if (skill.buffEffect.moveSpeedMult) parts.push(`이속 x${skill.buffEffect.moveSpeedMult}`);
   if (skill.buffEffect.hitBonus) parts.push(`명중 +${skill.buffEffect.hitBonus}`);
   if (skill.buffEffect.dmgBonus) parts.push(`추타 +${skill.buffEffect.dmgBonus}`);
   if (skill.buffEffect.fireDmgBonus) parts.push(`화염 +${skill.buffEffect.fireDmgBonus}`);
