@@ -492,6 +492,7 @@ function TabBuffs() {
   useTimer(alive.length > 0);
 
   const totalAtkSpeed = alive.reduce((s, b) => s * (b.atkSpeedMult ?? 1), 1);
+  const totalMoveSpeed = alive.reduce((s, b) => s * (b.moveSpeedMult ?? 1), 1);
   const totalAc = alive.reduce((s, b) => s + (b.acBonus ?? 0), 0);
   const totalHit = alive.reduce((s, b) => s + (b.hitBonus ?? 0), 0);
   const totalDmg = alive.reduce((s, b) => s + (b.dmgBonus ?? 0), 0);
@@ -530,7 +531,8 @@ function TabBuffs() {
             padding: '2px', fontStyle: 'italic',
           }}>
             {[
-              totalAtkSpeed !== 1 ? `ATK SPD x${totalAtkSpeed.toFixed(2)}` : '',
+              totalAtkSpeed !== 1 ? `공속 x${totalAtkSpeed.toFixed(2)}` : '',
+              totalMoveSpeed !== 1 ? `이속 x${totalMoveSpeed.toFixed(2)}` : '',
               totalAc !== 0 ? `AC ${totalAc > 0 ? '+' : ''}${totalAc}` : '',
               totalHit !== 0 ? `HIT +${totalHit}` : '',
               totalDmg !== 0 ? `DMG +${totalDmg}` : '',
