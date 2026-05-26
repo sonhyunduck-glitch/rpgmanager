@@ -42,18 +42,15 @@ const glassPanel = {
 
 const textShadow = '0 0 4px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.95)';
 
-/* ── 퀵 메뉴 (탑바 우측, 하단 네비바 대체) ── */
-const QUICK_MENU: { mode: ViewMode; icon: string; label: string }[] = [
+/* ── 퀵 메뉴 (드롭다운) ── */
+const ALL_MENU: { mode: ViewMode; icon: string; label: string }[] = [
   { mode: 'inventory', icon: '⌗', label: '가방' },
   { mode: 'skills',    icon: '✦', label: '스킬' },
   { mode: 'shop',      icon: '⛁', label: '상점' },
   { mode: 'zones',     icon: '◈', label: '사냥터' },
-];
-
-const MORE_MENU: { mode: ViewMode; icon: string; label: string }[] = [
-  { mode: 'trade',   icon: '⇄', label: '거래소' },
-  { mode: 'guild',   icon: '⚑', label: '길드' },
-  { mode: 'ranking', icon: '♛', label: '랭킹' },
+  { mode: 'trade',     icon: '⇄', label: '거래소' },
+  { mode: 'guild',     icon: '⚑', label: '길드' },
+  { mode: 'ranking',   icon: '♛', label: '랭킹' },
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -279,33 +276,7 @@ export default function MobileHuntLayout() {
           }}>
             {fmtG(gold)} G
           </span>
-          <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
-            {QUICK_MENU.map(({ mode, icon, label }) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                style={{
-                  width: 36, height: 40,
-                  background: 'rgba(0,0,0,0.55)',
-                  border: '1px solid var(--border-soft)',
-                  borderRadius: 8,
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: 1,
-                  color: 'var(--text-dim)',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                <span style={{ fontSize: 13, lineHeight: 1 }}>{icon}</span>
-                <span style={{
-                  fontSize: 8, lineHeight: 1,
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--text-mute)',
-                }}>{label}</span>
-              </button>
-            ))}
-            {/* 더보기 */}
+          <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowMoreMenu(v => !v)}
               style={{
@@ -321,14 +292,13 @@ export default function MobileHuntLayout() {
                 padding: 0,
               }}
             >
-              <span style={{ fontSize: 13, lineHeight: 1 }}>⋯</span>
+              <span style={{ fontSize: 13, lineHeight: 1 }}>☰</span>
               <span style={{
                 fontSize: 8, lineHeight: 1,
                 fontFamily: 'var(--font-mono)',
                 color: showMoreMenu ? 'var(--accent)' : 'var(--text-mute)',
-              }}>더보기</span>
+              }}>메뉴</span>
             </button>
-            {/* 더보기 드롭다운 */}
             {showMoreMenu && (
               <>
                 <div
@@ -348,7 +318,7 @@ export default function MobileHuntLayout() {
                   minWidth: 110,
                   zIndex: 20,
                 }}>
-                  {MORE_MENU.map(({ mode, icon, label }) => (
+                  {ALL_MENU.map(({ mode, icon, label }) => (
                     <button
                       key={mode}
                       onClick={() => { setViewMode(mode); setShowMoreMenu(false); }}
