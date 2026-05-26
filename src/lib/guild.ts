@@ -22,6 +22,7 @@ export interface GuildMemberRow {
   // join from profiles
   name?: string;
   level?: number;
+  player_class?: string | null;
   last_active_at?: string;
 }
 
@@ -94,7 +95,7 @@ export async function getGuild(guildId: string): Promise<GuildRow | null> {
 export async function getGuildMembers(guildId: string): Promise<GuildMemberRow[]> {
   const { data } = await supabase
     .from('guild_members')
-    .select('guild_id, user_id, role, joined_at, profiles(name, level, last_active_at)')
+    .select('guild_id, user_id, role, joined_at, profiles(name, level, player_class, last_active_at)')
     .eq('guild_id', guildId)
     .order('role', { ascending: true });
 
@@ -109,6 +110,7 @@ export async function getGuildMembers(guildId: string): Promise<GuildMemberRow[]
       joined_at: row.joined_at as string,
       name: (profile?.name as string) ?? '???',
       level: (profile?.level as number) ?? 1,
+      player_class: (profile?.player_class as string | null) ?? null,
       last_active_at: profile?.last_active_at as string | undefined,
     };
   });

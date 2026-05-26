@@ -7,16 +7,19 @@ export interface LeaderboardEntry {
   id: string;
   name: string;
   level: number;
+  exp: number;
+  gold: number;
   title: string;
+  player_class: string | null;
   guild_name: string | null;
   last_active_at: string;
 }
 
 /** 레벨 상위 N명 조회 */
-export async function getTopPlayers(limit = 20): Promise<LeaderboardEntry[]> {
+export async function getTopPlayers(limit = 50): Promise<LeaderboardEntry[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, level, title, guild_id, last_active_at')
+    .select('id, name, level, exp, gold, title, player_class, guild_id, last_active_at')
     .order('level', { ascending: false })
     .order('exp', { ascending: false })
     .limit(limit);
@@ -44,7 +47,10 @@ export async function getTopPlayers(limit = 20): Promise<LeaderboardEntry[]> {
     id: row.id,
     name: row.name,
     level: row.level,
+    exp: row.exp ?? 0,
+    gold: row.gold ?? 0,
     title: row.title,
+    player_class: row.player_class ?? null,
     guild_name: row.guild_id ? (guildMap[row.guild_id] ?? null) : null,
     last_active_at: row.last_active_at,
   }));
