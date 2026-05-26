@@ -162,13 +162,19 @@ export default function MiniChatFeed() {
 
       {/* ── 미니 입력 바 (토글 시 표시) ── */}
       {showInput && (
-        <div style={{
-          position: 'absolute',
-          left: 0, right: 0, bottom: 60,
-          zIndex: 11,
-          padding: '0 10px',
-        }}>
+        <>
+          {/* 빈 화면 클릭 → 닫기 */}
+          <div
+            onClick={() => setShowInput(false)}
+            style={{ position: 'absolute', inset: 0, zIndex: 10 }}
+          />
           <div style={{
+            position: 'absolute',
+            left: 0, right: 0, bottom: 60,
+            zIndex: 11,
+            padding: '0 10px',
+          }}>
+            <div style={{
             display: 'flex', gap: 6, alignItems: 'center',
             background: 'rgba(0,0,0,0.8)',
             border: '1px solid var(--border-soft)',
@@ -214,6 +220,7 @@ export default function MiniChatFeed() {
             </button>
           </div>
         </div>
+        </>
       )}
     </>
   );

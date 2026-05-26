@@ -33,9 +33,6 @@ function fmtG(n: number): string {
   return n.toLocaleString();
 }
 
-/* ── 클래스 아이콘 ── */
-const CLASS_ICON: Record<string, string> = { knight: '⚔', elf: '⌬', wizard: '✦' };
-
 /* ── 공통 스타일 ── */
 const glassPanel = {
   background: 'rgba(0,0,0,0.55)',
@@ -79,6 +76,7 @@ export default function MobileHuntLayout() {
   const potionAutoUse     = useGameStore(s => s.potionAutoUse);
   const greenPotionEnabled  = useGameStore(s => s.greenPotionEnabled);
   const couragePotionEnabled = useGameStore(s => s.couragePotionEnabled);
+  const bluePotionEnabled    = useGameStore(s => s.bluePotionEnabled);
   const transformScrollEnabled = useGameStore(s => s.transformScrollEnabled);
   const transformScrollType    = useGameStore(s => s.transformScrollType);
   const getDex     = useGameStore(s => s.getDex);
@@ -110,6 +108,7 @@ export default function MobileHuntLayout() {
   const hpCount = potions[selectedPotionId] ?? 0;
   const bravePotionId = getBravePotionId(playerClass);
   const greenCount = potions['green_potion'] ?? 0;
+  const blueCount  = potions['blue_potion'] ?? 0;
   const braveCount = potions[bravePotionId] ?? 0;
 
   /* ── 버프 ── */
@@ -323,149 +322,92 @@ export default function MobileHuntLayout() {
         )}
       </div>
 
-      {/* ━━━ RIGHT ACTIONS — 다이아몬드 레이아웃 ━━━ */}
+      {/* ━━━ BOTTOM CONSUMABLE GRID (3×2) ━━━ */}
       <div style={{
         position: 'absolute',
-        right: 12, bottom: 80,
-        width: 140, height: 140,
-        zIndex: 9,
+        right: 8, bottom: 8,
+        zIndex: 10,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 44px)',
+        gap: 3,
       }}>
-        {/* 메인 공격 버튼 — 70×70 (우하) */}
+        {/* Row 1: HP물약 · 초록물약 · 용기물약 */}
+        <button
+          onClick={() => setShowHpModal(true)}
+          style={{
+            ...slotStyle,
+            borderColor: potionAutoUse ? 'var(--danger)' : 'oklch(0.36 0.014 260 / 0.6)',
+            cursor: 'pointer',
+          }}
+        >
+          <span style={{
+            width: 18, height: 18, borderRadius: '50%',
+            background: 'var(--danger)',
+            boxShadow: potionAutoUse ? '0 0 6px var(--danger)' : 'none',
+          }} />
+          <span style={potCountStyle}>{hpCount}</span>
+        </button>
+
         <div style={{
-          position: 'absolute', right: 0, bottom: 0,
-          width: 70, height: 70,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, oklch(0.74 0.17 55 / 0.25), rgba(0,0,0,0.6))',
-          border: '2px solid var(--accent)',
-          display: 'grid', placeItems: 'center',
-          color: 'var(--accent)',
-          fontSize: 24, fontFamily: 'var(--font-mono)', fontWeight: 700,
-          boxShadow: '0 0 20px oklch(0.74 0.17 55 / 0.4)',
-          pointerEvents: 'none',
+          ...slotStyle,
+          borderColor: greenPotionEnabled ? 'var(--success)' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
-          {CLASS_ICON[playerClass] ?? '⚔'}
+          <span style={{
+            width: 18, height: 18, borderRadius: '50%',
+            background: 'var(--success)',
+            boxShadow: greenPotionEnabled ? '0 0 6px var(--success)' : 'none',
+          }} />
+          <span style={potCountStyle}>{greenCount}</span>
         </div>
 
-        {/* AUTO 버튼 — 46×46 (좌하) */}
         <div style={{
-          position: 'absolute', right: 78, bottom: 8,
-          width: 46, height: 46,
-          borderRadius: '50%',
-          background: isHunting
-            ? 'radial-gradient(circle, oklch(0.76 0.17 145 / 0.2), rgba(0,0,0,0.6))'
-            : 'rgba(0,0,0,0.6)',
-          border: `2px solid ${isHunting ? 'var(--success)' : 'var(--border-soft)'}`,
-          display: 'grid', placeItems: 'center',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10, fontWeight: 700,
-          color: isHunting ? 'var(--success)' : 'var(--text-dim)',
-          backdropFilter: 'blur(6px)',
-          letterSpacing: '-0.02em',
-          pointerEvents: 'none',
+          ...slotStyle,
+          borderColor: couragePotionEnabled ? 'oklch(0.68 0.20 305)' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
-          AUTO
-          {isHunting && (
-            <span style={{
-              position: 'absolute', top: 4, right: 4,
-              width: 8, height: 8,
-              background: 'var(--success)',
-              borderRadius: '50%',
-              boxShadow: '0 0 6px var(--success)',
-              animation: 'pulse 1.4s ease-in-out infinite',
-            }} />
-          )}
+          <span style={{
+            width: 18, height: 18, borderRadius: '50%',
+            background: 'oklch(0.68 0.20 305)',
+            boxShadow: couragePotionEnabled ? '0 0 6px oklch(0.68 0.20 305)' : 'none',
+          }} />
+          <span style={potCountStyle}>{braveCount}</span>
         </div>
 
-        {/* 변신주문서 — 46×46 (우상) */}
+        {/* Row 2: 변신주문서 · 파란물약 · 빈칸 */}
         <button
           onClick={() => setShowTsModal(true)}
           style={{
-            position: 'absolute', right: 8, bottom: 78,
-            width: 46, height: 46,
-            borderRadius: '50%',
-            background: transformScrollEnabled
-              ? 'radial-gradient(circle, oklch(0.74 0.14 230 / 0.2), rgba(0,0,0,0.6))'
-              : 'rgba(0,0,0,0.6)',
-            border: `2px solid ${transformScrollEnabled ? 'var(--info)' : 'oklch(0.74 0.14 230 / 0.5)'}`,
-            display: 'grid', placeItems: 'center',
-            color: 'var(--info)',
-            fontSize: 18, cursor: 'pointer',
-            backdropFilter: 'blur(6px)',
-            padding: 0,
+            ...slotStyle,
+            borderColor: transformScrollEnabled
+              ? (transformScrollType === 'event' ? '#F5C518' : '#00e5ff')
+              : 'oklch(0.36 0.014 260 / 0.6)',
+            cursor: 'pointer',
           }}
-          title="변신주문서"
         >
-          ⚜
-          {tsCount > 0 && (
-            <span style={{
-              position: 'absolute', bottom: -2, right: -2,
-              fontFamily: 'var(--font-mono)', fontSize: 8,
-              background: 'var(--info)', color: '#000',
-              padding: '0 3px', borderRadius: 3, fontWeight: 700,
-              minWidth: 14, textAlign: 'center',
-            }}>
-              {tsCount}
-            </span>
-          )}
+          <span style={{
+            width: 18, height: 18, borderRadius: '50%',
+            background: transformScrollType === 'event' ? '#F5C518' : '#00e5ff',
+            boxShadow: transformScrollEnabled
+              ? `0 0 6px ${transformScrollType === 'event' ? '#F5C518' : '#00e5ff'}`
+              : 'none',
+            opacity: transformScrollEnabled ? 1 : 0.4,
+          }} />
+          <span style={potCountStyle}>{tsCount}</span>
         </button>
-      </div>
 
-      {/* ━━━ BOTTOM POTION BAR ━━━ */}
-      <div style={{
-        position: 'absolute',
-        left: 0, right: 0, bottom: 0,
-        padding: '8px 8px 12px',
-        display: 'flex',
-        gap: 4,
-        zIndex: 10,
-        background: 'linear-gradient(0deg, rgba(6,8,11,0.85), transparent)',
-        alignItems: 'flex-end',
-        justifyContent: 'flex-end',
-      }}>
-        {/* 물약 슬롯 (우측 정렬 — 디자인 핸드오프 기준) */}
-        <div style={{ display: 'flex', gap: 3 }}>
-          {/* HP 물약 */}
-          <button
-            onClick={() => setShowHpModal(true)}
-            style={{
-              ...slotStyle,
-              borderColor: potionAutoUse ? 'var(--danger)' : 'oklch(0.36 0.014 260 / 0.6)',
-            }}
-          >
-            <span style={{
-              width: 18, height: 18, borderRadius: '50%',
-              background: 'var(--danger)',
-              boxShadow: potionAutoUse ? '0 0 6px var(--danger)' : 'none',
-            }} />
-            <span style={potCountStyle}>{hpCount}</span>
-          </button>
-
-          {/* 초록 물약 */}
-          <div style={{
-            ...slotStyle,
-            borderColor: greenPotionEnabled ? 'var(--success)' : 'oklch(0.36 0.014 260 / 0.6)',
-          }}>
-            <span style={{
-              width: 18, height: 18, borderRadius: '50%',
-              background: 'var(--success)',
-              boxShadow: greenPotionEnabled ? '0 0 6px var(--success)' : 'none',
-            }} />
-            <span style={potCountStyle}>{greenCount}</span>
-          </div>
-
-          {/* 용기 물약 */}
-          <div style={{
-            ...slotStyle,
-            borderColor: couragePotionEnabled ? 'oklch(0.68 0.20 305)' : 'oklch(0.36 0.014 260 / 0.6)',
-          }}>
-            <span style={{
-              width: 18, height: 18, borderRadius: '50%',
-              background: 'oklch(0.68 0.20 305)',
-              boxShadow: couragePotionEnabled ? '0 0 6px oklch(0.68 0.20 305)' : 'none',
-            }} />
-            <span style={potCountStyle}>{braveCount}</span>
-          </div>
+        <div style={{
+          ...slotStyle,
+          borderColor: bluePotionEnabled ? '#42a5f5' : 'oklch(0.36 0.014 260 / 0.6)',
+        }}>
+          <span style={{
+            width: 18, height: 18, borderRadius: '50%',
+            background: '#42a5f5',
+            boxShadow: bluePotionEnabled ? '0 0 6px #42a5f5' : 'none',
+          }} />
+          <span style={potCountStyle}>{blueCount}</span>
         </div>
+
+        {/* 빈 슬롯 */}
+        <div style={slotStyle} />
       </div>
 
       {/* ━━━ 미니 채팅 (좌하단 오버레이) ━━━ */}
