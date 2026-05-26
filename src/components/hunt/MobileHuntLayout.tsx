@@ -272,19 +272,25 @@ export default function MobileHuntLayout() {
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
-                title={label}
                 style={{
-                  width: 32, height: 32,
+                  width: 36, height: 40,
                   background: 'rgba(0,0,0,0.55)',
                   border: '1px solid var(--border-soft)',
-                  borderRadius: '50%',
-                  display: 'grid', placeItems: 'center',
+                  borderRadius: 8,
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: 1,
                   color: 'var(--text-dim)',
-                  fontSize: 13, cursor: 'pointer',
+                  cursor: 'pointer',
                   padding: 0,
                 }}
               >
-                {icon}
+                <span style={{ fontSize: 13, lineHeight: 1 }}>{icon}</span>
+                <span style={{
+                  fontSize: 8, lineHeight: 1,
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-mute)',
+                }}>{label}</span>
               </button>
             ))}
           </div>
