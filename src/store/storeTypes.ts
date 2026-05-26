@@ -117,6 +117,7 @@ export interface GameState {
   potionAutoUse: boolean;
   potionAutoThreshold: number;
   lastPotionUsedAt: number;    // 물약 쿨타임 (timestamp)
+  lastPotionCooldownMs: number;  // 마지막 사용 물약의 쿨타임 (ms)
   potionAutoBuy: boolean;
   // Skills
   equippedSkills: number[];  // 슬롯에 장착된 스킬 ID 목록 (최대 16)

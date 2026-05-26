@@ -411,6 +411,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   potionAutoThreshold: (saved?.potionAutoThreshold as number) ?? 50,
   potionAutoBuy: (saved?.potionAutoBuy as boolean) ?? true,
   lastPotionUsedAt: 0,
+  lastPotionCooldownMs: 0,
   bluePotionEnabled: (saved?.bluePotionEnabled as boolean) ?? true,
 
   // ── Skills ──

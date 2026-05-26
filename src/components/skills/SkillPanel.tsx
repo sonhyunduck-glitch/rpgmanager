@@ -333,8 +333,8 @@ export default function SkillPanel() {
                       ) : (
                         <>
                           <span style={{ color: 'var(--info)' }}>{skill.consumeMp} MP</span>
-                          {skill.reuseDelayTicks > 0 && (
-                            <span style={{ color: 'var(--accent)' }}>{skill.reuseDelayTicks * 3}s</span>
+                          {skill.reuseDelayMs > 0 && (
+                            <span style={{ color: 'var(--accent)' }}>{skill.reuseDelayMs / 1000}s</span>
                           )}
                           {skill.attr > 0 && ATTR_LABEL[skill.attr] && (
                             <span style={{ color: ATTR_COLOR[skill.attr] }}>{ATTR_LABEL[skill.attr]}</span>
@@ -737,7 +737,7 @@ export default function SkillPanel() {
                   {isPassive ? '—' : `${skill.consumeMp} MP`}
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-mute)', textAlign: 'right' }}>
-                  {isPassive ? '상시' : skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'}
+                  {isPassive ? '상시' : skill.reuseDelayMs > 0 ? `${skill.reuseDelayMs / 1000}s` : '3s'}
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textAlign: 'right' }}>
                   {skill.skillType === 'attack' && skill.damageValue > 0 ? (
@@ -1007,7 +1007,7 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
           <StatRow label="MP 소모" value={isPassive ? '상시' : String(skill.consumeMp)} color="var(--info)" />
           <StatRow
             label="쿨타임"
-            value={isPassive ? '—' : skill.reuseDelayTicks > 0 ? `${skill.reuseDelayTicks * 3}s` : '3s'}
+            value={isPassive ? '—' : skill.reuseDelayMs > 0 ? `${skill.reuseDelayMs / 1000}s` : '3s'}
             color="var(--accent)"
           />
           {skill.skillType === 'attack' && skill.damageValue > 0 && (

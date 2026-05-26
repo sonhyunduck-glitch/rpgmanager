@@ -27,7 +27,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
     trigger: { triggerRandom: 30, triggerHp: 50 },
     damageMult: 1.5,
     skillName: '역병의 일격',
-    cooldownTicks: 3,
+    cooldownMs: 9000,
   }],
 
   // 흑기사(Lv.16): 25% 확률 강타
@@ -36,7 +36,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
     trigger: { triggerRandom: 25 },
     damageMult: 1.4,
     skillName: '어둠의 칼날',
-    cooldownTicks: 4,
+    cooldownMs: 12000,
   }],
 
   // 라이칸 스로프(Lv.17): 20% 확률 마법 공격
@@ -45,7 +45,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
     trigger: { triggerRandom: 20 },
     magicDice: 2, magicDiceSides: 6, magicDamageBonus: 3,
     skillName: '암흑의 저주',
-    cooldownTicks: 4,
+    cooldownMs: 12000,
   }],
 
   // 도펠 갱어(Lv.19): 30% 확률 강타
@@ -54,7 +54,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
     trigger: { triggerRandom: 30 },
     damageMult: 1.5,
     skillName: '분신 공격',
-    cooldownTicks: 3,
+    cooldownMs: 9000,
   }],
 
   // 산적 부두목(Lv.20): HP 40% 이하 → 동료 소환
@@ -76,7 +76,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
     trigger: { triggerRandom: 25 },
     damageMult: 1.6,
     skillName: '대지 강타',
-    cooldownTicks: 3,
+    cooldownMs: 9000,
   }],
 
   // 라미아(Lv.24): 마법 공격 (2d6+5)
@@ -85,7 +85,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
     trigger: { triggerRandom: 35 },
     magicDice: 2, magicDiceSides: 6, magicDamageBonus: 5,
     skillName: '독안개',
-    cooldownTicks: 4,
+    cooldownMs: 12000,
   }],
 
   // 시렌(Lv.28): 마법 공격 (2d8+8)
@@ -94,7 +94,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
     trigger: { triggerRandom: 40 },
     magicDice: 2, magicDiceSides: 8, magicDamageBonus: 8,
     skillName: '환혹의 노래',
-    cooldownTicks: 3,
+    cooldownMs: 9000,
   }],
 
   // ══════════════════════════════════════
@@ -108,7 +108,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
       trigger: { triggerRandom: 25 },
       damageMult: 1.8,
       skillName: '급강하',
-      cooldownTicks: 4,
+      cooldownMs: 12000,
     },
     {
       type: 'SUMMON',
@@ -126,7 +126,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
       trigger: { triggerRandom: 40 },
       magicDice: 3, magicDiceSides: 6, magicDamageBonus: 8,
       skillName: '매혹의 손길',
-      cooldownTicks: 3,
+      cooldownMs: 9000,
     },
     {
       type: 'POLY',
@@ -134,7 +134,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
       polyEffect: 'heal',
       polyValue: 40,
       skillName: '생명 흡수',
-      cooldownTicks: 5,
+      cooldownMs: 15000,
     },
   ],
 
@@ -145,14 +145,14 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
       trigger: { triggerRandom: 30 },
       damageMult: 1.8,
       skillName: '대지진',
-      cooldownTicks: 3,
+      cooldownMs: 9000,
     },
     {
       type: 'MAGIC_ATTACK',
       trigger: { triggerRandom: 25, triggerHp: 60 },
       magicDice: 3, magicDiceSides: 8, magicDamageBonus: 10,
       skillName: '독액 분사',
-      cooldownTicks: 4,
+      cooldownMs: 12000,
     },
   ],
 
@@ -167,7 +167,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
       trigger: { triggerRandom: 50 },
       magicDice: 3, magicDiceSides: 8, magicDamageBonus: 12,
       skillName: '데스 볼트',
-      cooldownTicks: 3,
+      cooldownMs: 9000,
     },
     {
       type: 'POLY',
@@ -175,7 +175,7 @@ export const MONSTER_SKILLS: Record<number, MobSkill[]> = {
       polyEffect: 'heal',
       polyValue: 60,
       skillName: '어둠의 치유',
-      cooldownTicks: 5,
+      cooldownMs: 15000,
     },
     {
       type: 'SUMMON',

@@ -26,7 +26,7 @@ export interface PlayerSkill {
   skillCategory: SkillCategory;  // 마법/기술/정령
   skillCircle: number;           // 마법 서클 (1-10), 0 = 클래스 전용
   consumeMp: number;             // MP 소모량
-  reuseDelayTicks: number;       // 재사용 대기 (1틱 ≈ 3초)
+  reuseDelayMs: number;          // 재사용 대기 (ms, 시간 기반)
   buffDuration: number;          // 버프 지속시간 (초), 0 = 즉발/공격
   skillType: 'attack' | 'heal' | 'buff';
   damageValue: number;           // 고정 대미지
@@ -69,7 +69,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 4,
-    reuseDelayTicks: 0, // L1J reuse_delay: 10ms
+    reuseDelayMs: 0, // L1J reuse_delay: 10ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 10,
@@ -86,7 +86,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 4,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 10,
@@ -104,7 +104,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 4,
-    reuseDelayTicks: 0, // L1J reuse_delay: 10ms
+    reuseDelayMs: 0, // L1J reuse_delay: 10ms
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 2,
@@ -122,7 +122,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 0,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'buff',
     passive: true,
@@ -141,7 +141,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 1,
     consumeMp: 0,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'buff',
     passive: true,
@@ -162,7 +162,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 6,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 10,
@@ -179,7 +179,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 6,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 10,
@@ -197,7 +197,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 8,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 10,
@@ -215,7 +215,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 2,
     consumeMp: 0,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'buff',
     passive: true,
@@ -236,7 +236,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 20,
-    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
+    reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -253,7 +253,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 20,
-    reuseDelayTicks: 1, // L1J reuse_delay: 300ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 300ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -271,7 +271,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 0,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'buff',
     passive: true,
@@ -291,7 +291,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 3,
     consumeMp: 15,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 4,
@@ -310,7 +310,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 20,
-    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
+    reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -327,7 +327,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 12,
-    reuseDelayTicks: 0, // L1J reuse_delay: 100ms
+    reuseDelayMs: 0, // L1J reuse_delay: 100ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 15,
@@ -344,7 +344,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 24,
-    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -362,7 +362,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 4,
     consumeMp: 0,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'buff',
     passive: true,
@@ -382,7 +382,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 5,
     consumeMp: 18,
-    reuseDelayTicks: 1, // L1J reuse_delay: 400ms (콘 오브 콜드와 동일 서클)
+    reuseDelayMs: 3000, // L1J reuse_delay: 400ms (콘 오브 콜드와 동일 서클)
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 40,
@@ -399,7 +399,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 5,
     consumeMp: 18,
-    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 40,
@@ -417,7 +417,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 5,
     consumeMp: 20,
-    reuseDelayTicks: 0, // L1J reuse_delay: 200ms
+    reuseDelayMs: 0, // L1J reuse_delay: 200ms
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 10,
@@ -436,7 +436,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 20,
-    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 50,
@@ -453,7 +453,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 20,
-    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 40,
@@ -471,7 +471,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 0,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'buff',
     passive: true,
@@ -490,7 +490,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 6,
     consumeMp: 0,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 0,
     skillType: 'buff',
     passive: true,
@@ -510,7 +510,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 7,
     consumeMp: 36,
-    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
+    reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 50,
@@ -527,7 +527,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 7,
     consumeMp: 40,
-    reuseDelayTicks: 2, // L1J reuse_delay: 1000ms
+    reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 20,
@@ -547,7 +547,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 60,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 41,
@@ -564,7 +564,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 60,
-    reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
+    reuseDelayMs: 9000, // L1J reuse_delay: 1500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 3,
@@ -581,7 +581,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 40,
-    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 40,
@@ -599,7 +599,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 8,
     consumeMp: 48,
-    reuseDelayTicks: 1, // L1J reuse_delay: 500ms → 1 tick
+    reuseDelayMs: 3000, // L1J reuse_delay: 500ms → 1 tick
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 12,
@@ -618,7 +618,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 9,
     consumeMp: 48,
-    reuseDelayTicks: 1, // L1J reuse_delay: 500ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 35,
@@ -635,7 +635,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 9,
     consumeMp: 48,
-    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 30,
@@ -654,7 +654,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 10,
     consumeMp: 60,
-    reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
+    reuseDelayMs: 9000, // L1J reuse_delay: 1500ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 80,
@@ -671,7 +671,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'magic',
     skillCircle: 10,
     consumeMp: 70,
-    reuseDelayTicks: 5, // L1J reuse_delay: 5000ms
+    reuseDelayMs: 15000, // L1J reuse_delay: 5000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 125,
@@ -695,7 +695,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCircle: 0,
     consumeMp: 5,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 1200, // 20분
     skillType: 'buff',
     damageValue: 0,
@@ -713,7 +713,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 0,
-    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'heal',
     damageValue: 0,
@@ -731,7 +731,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 1, // L1J reuse_delay: 400ms
+    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -749,7 +749,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 10,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 32,
     skillType: 'buff',
     damageValue: 0,
@@ -767,7 +767,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCircle: 0,
     consumeMp: 10,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 1200, // 20분
     skillType: 'buff',
     damageValue: 0,
@@ -785,7 +785,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCircle: 0,
     consumeMp: 10,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 1200, // 20분
     skillType: 'buff',
     damageValue: 0,
@@ -803,7 +803,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCircle: 0,
     consumeMp: 6,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 64,
     skillType: 'buff',
     damageValue: 0,
@@ -820,7 +820,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 1200, // 20분
     skillType: 'buff',
     damageValue: 0,
@@ -838,7 +838,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 960, // 16분
     skillType: 'buff',
     damageValue: 0,
@@ -858,7 +858,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCircle: 0,
     consumeMp: 18,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 32,
     skillType: 'buff',
     damageValue: 0,
@@ -875,7 +875,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 40,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 960, // 16분
     skillType: 'buff',
     damageValue: 0,
@@ -892,7 +892,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'spirit',
     skillCircle: 0,
     consumeMp: 30,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 960, // 16분
     skillType: 'buff',
     damageValue: 0,
@@ -911,7 +911,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCircle: 0,
     consumeMp: 15,
     consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayTicks: 7, // L1J reuse_delay: 20000ms
+    reuseDelayMs: 21000, // L1J reuse_delay: 20000ms
     buffDuration: 0,
     skillType: 'attack',
     damageValue: 0,
@@ -929,7 +929,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCircle: 0,
     consumeMp: 15,
     consumeItemId: 40319, consumeAmount: 3, // 정령옥 ×3
-    reuseDelayTicks: 0,
+    reuseDelayMs: 0,
     buffDuration: 1200, // 20분
     skillType: 'buff',
     damageValue: 0,
@@ -954,7 +954,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 15,
-    reuseDelayTicks: 3, // L1J reuse_delay: 1500ms
+    reuseDelayMs: 9000, // L1J reuse_delay: 1500ms
     buffDuration: 64,
     skillType: 'buff',
     damageValue: 0,
@@ -972,7 +972,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 7,
-    reuseDelayTicks: 4, // L1J reuse_delay: 3000ms
+    reuseDelayMs: 12000, // L1J reuse_delay: 3000ms
     buffDuration: 192,
     skillType: 'buff',
     damageValue: 0,
@@ -990,7 +990,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 10,
-    reuseDelayTicks: 5, // L1J reuse_delay: 5000ms
+    reuseDelayMs: 15000, // L1J reuse_delay: 5000ms
     buffDuration: 64,
     skillType: 'buff',
     damageValue: 0,
@@ -1008,7 +1008,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 10,
-    reuseDelayTicks: 4, // L1J reuse_delay: 3000ms
+    reuseDelayMs: 12000, // L1J reuse_delay: 3000ms
     buffDuration: 64,
     skillType: 'buff',
     damageValue: 0,
@@ -1026,7 +1026,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     skillCategory: 'technique',
     skillCircle: 0,
     consumeMp: 10,
-    reuseDelayTicks: 0, // L1J reuse_delay: 0ms
+    reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 64,
     skillType: 'buff',
     damageValue: 0,
@@ -1086,7 +1086,7 @@ export function getBestAttackSpell(
 ): PlayerSkill | null {
   let available = getAvailableSkills(playerClass, level)
     .filter(s => s.skillType === 'attack' && s.consumeMp <= currentMp && s.skillCircle > 0
-      && (cooldowns ? (cooldowns[s.id] ?? 0) <= 0 : true));
+      && (cooldowns ? (cooldowns[s.id] ?? 0) <= Date.now() : true));
   if (equippedIds) available = available.filter(s => equippedIds.includes(s.id));
   if (disabledIds) available = available.filter(s => !disabledIds.includes(s.id));
   available.sort((a, b) => b.skillCircle - a.skillCircle); // 높은 서클 우선

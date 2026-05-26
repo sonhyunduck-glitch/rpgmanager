@@ -391,7 +391,7 @@ function TabSkills() {
   const filledCount = equippedSkills.filter(id => id > 0).length;
 
   // 쿨다운 진행 중이면 리렌더 (1초마다)
-  const hasCooldown = equippedSkills.some(id => id > 0 && (cooldowns[id] ?? 0) > 0);
+  const hasCooldown = equippedSkills.some(id => id > 0 && (cooldowns[id] ?? 0) > Date.now());
   useTimer(hasCooldown);
 
   return (
@@ -402,10 +402,10 @@ function TabSkills() {
           const skillId = equippedSkills[i] ?? 0;
           const skill = skillId > 0 ? PLAYER_SKILLS.find(s => s.id === skillId) : null;
           const isDisabled = skill ? (disabledSkills ?? []).includes(skill.id) : false;
-          const cdRemain = skill ? (cooldowns[skill.id] ?? 0) : 0;
-          const cdMax = skill ? Math.max(skill.reuseDelayTicks, 1) : 0;
-          const onCooldown = cdRemain > 0;
-          const cdPct = onCooldown ? (cdRemain / cdMax) * 100 : 0;
+          const cdRemainMs = skill ? Math.max(0, (cooldowns[skill.id] ?? 0) - Date.now()) : 0;
+          const cdMax = skill ? Math.max(skill.reuseDelayMs, 1) : 0;
+          const onCooldown = cdRemainMs > 0;
+          const cdPct = onCooldown ? (cdRemainMs / cdMax) * 100 : 0;
 
           return (
             <div key={i} style={{
@@ -448,7 +448,7 @@ function TabSkills() {
                     fontFamily: 'var(--font-mono)', fontSize: F.tiny,
                     color: isDisabled ? 'var(--text-faint)' : onCooldown ? 'var(--danger)' : 'var(--info)',
                   }}>
-                    {onCooldown && !isDisabled ? `${cdRemain * 3}s` : `MP ${skill.consumeMp}`}
+                    {onCooldown && !isDisabled ? `${Math.ceil(cdRemainMs / 1000)}s` : `MP ${skill.consumeMp}`}
                   </span>
                   {/* ON/OFF 토글 스위치 */}
                   <button

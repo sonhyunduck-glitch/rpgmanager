@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.38.18 — 모바일 버프 모달 파란물약 MP 회복량 표시
-export const APP_VERSION = '2.38.18';
+// v2.38.19 — 쿨다운 시스템 ms 전환 + 물약별 쿨타임 차등
+export const APP_VERSION = '2.38.19';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

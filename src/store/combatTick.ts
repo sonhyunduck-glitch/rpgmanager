@@ -219,6 +219,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       let shouldAdvanceFloor = false;
       let killed = false;
       let newLastPotionUsedAt = state.lastPotionUsedAt;
+      let newLastPotionCooldownMs = state.lastPotionCooldownMs;
       const fightTicks = isNewTarget ? 1 : hunt.currentFightTicks + 1;
       let currentJoined = [...(hunt.joinedMonsters ?? [])];
       let currentApproaching = [...(hunt.approachingMonsters ?? [])];
@@ -230,12 +231,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         huntMp = maxMp;
       }
 
-      // ── 스킬 쿨다운 감소 ──
+      // ── 스킬 쿨다운 (타임스탬프 기반 — now와 비교) ──
       const skillCooldowns: Record<number, number> = { ...(hunt.skillCooldowns ?? {}) };
-      for (const key of Object.keys(skillCooldowns)) {
-        const numKey = Number(key);
-        if (skillCooldowns[numKey] > 0) skillCooldowns[numKey]--;
-      }
       let monsterStunnedTicks = Math.max(0, (hunt.monsterStunnedTicks ?? 0) - 1);
       let windShackleTicks = Math.max(0, (hunt.windShackleTicks ?? 0) - 1);
 
@@ -377,8 +374,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         const hasGreenBuff = newActiveBuffs.some(b => b.potionId === 'green_potion' && b.expiresAt > now);
         for (const buff of buffSkills) {
           if (huntMp < buff.consumeMp) continue;
-          // 쿨다운 체크
-          if ((skillCooldowns[buff.id] ?? 0) > 0) continue;
+          // 쿨다운 체크 (타임스탬프 기반)
+          if ((skillCooldowns[buff.id] ?? 0) > now) continue;
           // 헤이스트 스킬은 장비/초록물약 헤이스트와 중복 불가
           if (HASTE_SKILL_IDS.has(buff.id) && (hasEquipHaste || hasGreenBuff)) continue;
           // 재료 소모 체크
@@ -401,7 +398,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             dmgBonus: buff.buffEffect?.dmgBonus,
             fireDmgBonus: buff.buffEffect?.fireDmgBonus,
           });
-          skillCooldowns[buff.id] = buff.reuseDelayTicks || 1;
+          skillCooldowns[buff.id] = now + (buff.reuseDelayMs || 3000);
           const matLabel = buff.consumeItemId === 40319 ? '정령옥' : buff.consumeItemId === 40318 ? '마력의돌' : '';
           const matText = matLabel && buff.consumeAmount ? ` (${matLabel} -${buff.consumeAmount})` : '';
           newLogs.push({
@@ -610,7 +607,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (monsterHp > 0 && huntMp > 0) {
           const classSkills = getAvailableSkills(state.playerClass, state.level)
             .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
-              && (skillCooldowns[s.id] ?? 0) <= 0 && equipped.includes(s.id) && !disabled.includes(s.id)
+              && (skillCooldowns[s.id] ?? 0) <= now && equipped.includes(s.id) && !disabled.includes(s.id)
               && (!s.consumeItemId || (newMaterials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)))
             .sort((a, b) => {
               // 서클0(클래스 전용) 최우선
@@ -623,7 +620,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           if (classSkills.length > 0) {
             const classSkill = classSkills[0];
             huntMp -= classSkill.consumeMp;
-            skillCooldowns[classSkill.id] = classSkill.reuseDelayTicks || 1;
+            skillCooldowns[classSkill.id] = now + (classSkill.reuseDelayMs || 3000);
             // 재료 소모
             if (classSkill.consumeItemId && classSkill.consumeAmount) {
               const matKey = `e_${classSkill.consumeItemId}`;
@@ -902,10 +899,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
       // ── 몬스터 스킬 AI (L1J mob_skills — 4종 행동 + 5종 트리거) ──
       const mobSkillCooldowns = { ...(hunt.mobSkillCooldowns ?? {}) };
-      // 쿨다운 감소 (매 틱)
-      for (const key of Object.keys(mobSkillCooldowns)) {
-        if (mobSkillCooldowns[key] > 0) mobSkillCooldowns[key]--;
-      }
+      // 틱 감소 루프 제거 — 타임스탬프 기반
 
       if (!killed && monsterHp > 0 && newCurrentHp > 0) {
         const npcIdMatch = monster.id.match(/^npc_(\d+)$/);
@@ -915,7 +909,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (skills.length > 0) {
           for (const skill of skills) {
             const cdKey = `${monster.id}_${skill.skillName}`;
-            if ((mobSkillCooldowns[cdKey] ?? 0) > 0) continue;
+            if ((mobSkillCooldowns[cdKey] ?? 0) > now) continue;
 
             // 5종 트리거 AND 체크
             const hpPct = (monsterHp / monster.hp) * 100;
@@ -989,8 +983,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             }
 
             // 쿨다운 설정
-            if (skill.cooldownTicks) {
-              mobSkillCooldowns[cdKey] = skill.cooldownTicks;
+            if (skill.cooldownMs) {
+              mobSkillCooldowns[cdKey] = now + skill.cooldownMs;
             }
             break; // 틱당 1스킬만 발동
           }
@@ -1081,14 +1075,14 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= 30) {
           const healSpell = getBestHealSpell(state.playerClass, state.level, huntMp, equipped, disabled);
-          if (healSpell && (skillCooldowns[healSpell.id] ?? 0) <= 0) {
+          if (healSpell && (skillCooldowns[healSpell.id] ?? 0) <= now) {
             huntMp -= healSpell.consumeMp;
             const healAmt = rollSpellDamage(
               healSpell.damageValue, healSpell.damageDice, healSpell.damageDiceCount,
               playerInt, totalSp, state.level, state.playerClass,
             );
             newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + healAmt);
-            skillCooldowns[healSpell.id] = healSpell.reuseDelayTicks || 1;
+            skillCooldowns[healSpell.id] = now + (healSpell.reuseDelayMs || 3000);
             newLogs.push({
               id: genLogId(), type: 'skill',
               text: `${healSpell.name} 시전! HP +${healAmt} (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
@@ -1111,9 +1105,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         }
       }
 
-      // ── 물약 자동 사용 (쿨타임: 1틱 = 3초) ──
-      const POTION_COOLDOWN_MS = 3000;
-      const potionCooldownReady = now - state.lastPotionUsedAt >= POTION_COOLDOWN_MS;
+      // ── 물약 자동 사용 (물약별 쿨타임 차등) ──
+      const potionCooldownReady = now - state.lastPotionUsedAt >= (state.lastPotionCooldownMs || 3000);
       if (newCurrentHp > 0 && newCurrentHp < newMaxHp + hpBonus && state.potionAutoUse && potionCooldownReady) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= state.potionAutoThreshold) {
@@ -1127,6 +1120,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + heal);
               newPotions[pid] = pCount - 1;
               newLastPotionUsedAt = now;
+              newLastPotionCooldownMs = potion.cooldownMs ?? 3000;
               newLogs.push({
                 id: genLogId(), type: 'potion',
                 text: `${potion.name} 사용! HP +${heal} (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
@@ -1187,6 +1181,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         inventory: newInventory, materials: newMaterials,
         potions: newPotions, activeBuffs: newActiveBuffs,
         lastPotionUsedAt: newLastPotionUsedAt,
+        lastPotionCooldownMs: newLastPotionCooldownMs,
         combatLog: [...state.combatLog, ...newLogs].slice(-80),
         hunt: {
           ...hunt,

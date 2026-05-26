@@ -24,6 +24,7 @@ import HuntMetrics from './HuntMetrics';
 import HpPotionModal from './HpPotionModal';
 import TransformScrollModal from './TransformScrollModal';
 import MiniChatFeed from './MiniChatFeed';
+import { useTimer } from './BuffPotionButton';
 import type { ViewMode } from '../../types';
 
 /* ── 가격 포맷 ── */
@@ -84,6 +85,8 @@ export default function MobileHuntLayout() {
   const bluePotionEnabled    = useGameStore(s => s.bluePotionEnabled);
   const transformScrollEnabled = useGameStore(s => s.transformScrollEnabled);
   const transformScrollType    = useGameStore(s => s.transformScrollType);
+  const lastPotionUsedAt       = useGameStore(s => s.lastPotionUsedAt);
+  const lastPotionCooldownMs   = useGameStore(s => s.lastPotionCooldownMs);
   const getStr     = useGameStore(s => s.getStr);
   const getDex     = useGameStore(s => s.getDex);
   const getWis     = useGameStore(s => s.getWis);
@@ -130,6 +133,11 @@ export default function MobileHuntLayout() {
   const tsCount = transformScrollType === 'event'
     ? (materials['event_transform_scroll'] ?? 0)
     : (materials['transform_scroll'] ?? 0);
+
+  /* ── 물약 쿨다운 오버레이 ── */
+  const potionCdRemainMs = Math.max(0, (lastPotionUsedAt + (lastPotionCooldownMs || 3000)) - Date.now());
+  const potionCdProgress = lastPotionCooldownMs > 0 ? potionCdRemainMs / lastPotionCooldownMs : 0;
+  useTimer(potionCdProgress > 0);
 
   /* ── 현재 사냥터 이름 ── */
   const zoneName = zone?.name ?? '대기중';
@@ -484,6 +492,23 @@ export default function MobileHuntLayout() {
             background: 'var(--danger)',
             boxShadow: potionAutoUse ? '0 0 6px var(--danger)' : 'none',
           }} />
+          {potionCdProgress > 0 && (
+            <svg
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none' }}
+              viewBox="0 0 44 44"
+            >
+              <circle
+                cx="22" cy="22" r="18"
+                fill="none"
+                stroke="rgba(255,255,255,0.25)"
+                strokeWidth="3"
+                strokeDasharray={`${2 * Math.PI * 18}`}
+                strokeDashoffset={`${2 * Math.PI * 18 * (1 - potionCdProgress)}`}
+                transform="rotate(-90 22 22)"
+                style={{ transition: 'stroke-dashoffset 0.1s linear' }}
+              />
+            </svg>
+          )}
           <span style={potCountStyle}>{hpCount}</span>
         </button>
 

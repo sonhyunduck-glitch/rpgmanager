@@ -127,7 +127,7 @@ export interface MobSkill {
   polyValue?: number;           // 효과 수치
   // 공통
   skillName: string;            // 로그 표시용 이름
-  cooldownTicks?: number;       // 쿨다운 (틱 단위, 기본 0)
+  cooldownMs?: number;          // 쿨다운 (ms 단위, 시간 기반)
 }
 
 export interface Monster {
@@ -203,7 +203,7 @@ export interface HuntSession {
   monsterCurrentHp: number;
   joinedMonsters: JoinedMonster[];
   approachingMonsters: ApproachingMonster[];
-  mobSkillCooldowns: Record<string, number>;  // skillKey → 남은 쿨다운 틱
+  mobSkillCooldowns: Record<string, number>;  // skillKey → cooldown end timestamp (ms)
   lastMagicHitAt: number;       // 마법 연속 감쇠 추적 (timestamp)
   consecutiveMagicHits: number; // 연속 마법 피격 횟수
   // HP/MP regen (벽시계 기준 고정 주기)
@@ -211,7 +211,7 @@ export interface HuntSession {
   lastHpRegenAt: number;       // 마지막 HP 자연회복 시각 (timestamp)
   lastMpRegenAt: number;       // 마지막 MP 자연회복 시각 (timestamp)
   // Skill tracking
-  skillCooldowns: Record<number, number>;  // skillId → remaining cooldown ticks
+  skillCooldowns: Record<number, number>;  // skillId → cooldown end timestamp (ms)
   monsterStunnedTicks: number; // 몬스터 스턴 남은 틱
   windShackleTicks: number;    // 윈드 셰클 남은 틱 (몬스터 공격속도 감소)
   regenWaitTicks: number;      // 몬스터 리젠 대기 틱 (접속자 수에 따라 킬 후 대기)
@@ -249,6 +249,7 @@ export interface Potion {
   moveSpeedMult?: number;     // 이동속도 배율
   spBonus?: number;           // SP 보너스 (마법 대미지 계수, L1J wisdom)
   classRestriction?: PlayerClass[];  // 사용 가능 클래스 (없으면 전클래스)
+  cooldownMs?: number;              // 물약별 쿨타임 (ms, 기본 3000)
 }
 
 export interface ActiveBuff {

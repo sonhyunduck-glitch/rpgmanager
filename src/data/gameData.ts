@@ -108,9 +108,9 @@ export function getPlayerDotColor(level: number): string {
 
 // ── Potions ──
 export const POTIONS: Record<string, Potion> = {
-  red_potion:     { id: 'red_potion',     name: '빨간 물약', healMin: 6,  healMax: 27,  buyPrice: 37,  requiredLevel: 1 },
-  crimson_potion: { id: 'crimson_potion', name: '주홍 물약', healMin: 26, healMax: 68,  buyPrice: 200, requiredLevel: 1 },
-  clear_potion:   { id: 'clear_potion',   name: '맑은 물약', healMin: 44, healMax: 107, buyPrice: 600, requiredLevel: 1 },
+  red_potion:     { id: 'red_potion',     name: '빨간 물약', healMin: 6,  healMax: 27,  buyPrice: 37,  requiredLevel: 1, cooldownMs: 3000 },
+  crimson_potion: { id: 'crimson_potion', name: '주홍 물약', healMin: 26, healMax: 68,  buyPrice: 200, requiredLevel: 1, cooldownMs: 5000 },
+  clear_potion:   { id: 'clear_potion',   name: '맑은 물약', healMin: 44, healMax: 107, buyPrice: 600, requiredLevel: 1, cooldownMs: 6000 },
   blue_potion:    { id: 'blue_potion',    name: '파란 물약', healMin: 0,  healMax: 0,   buyPrice: 700, requiredLevel: 1,
                     buffDuration: 600 },  // L1J: 10분 MP리젠 버프
   green_potion:   { id: 'green_potion',   name: '초록 물약', healMin: 0,  healMax: 0,   buyPrice: 200, requiredLevel: 1,
