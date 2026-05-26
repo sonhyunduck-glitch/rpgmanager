@@ -18,7 +18,7 @@ import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES, getBravePotionId } from '../../data/gameData';
 import { CLASS_CONFIGS } from '../../data/classData';
 import { finalAC, finalMR } from '../../data/statFormulas';
-import { getAllEquipped } from '../../store/storeTypes';
+import { getAllEquipped, ROOMS_PER_ZONE } from '../../store/storeTypes';
 import Minimap from './Minimap';
 import HuntMetrics from './HuntMetrics';
 import HpPotionModal from './HpPotionModal';
@@ -57,6 +57,7 @@ export default function MobileHuntLayout() {
   const [showHpModal, setShowHpModal] = useState(false);
   const [showTsModal, setShowTsModal] = useState(false);
   const [showBuffModal, setShowBuffModal] = useState(false);
+  const [showRoomSelector, setShowRoomSelector] = useState(false);
 
   /* ── store selectors ── */
   const viewMode     = useGameStore(s => s.viewMode);
@@ -82,6 +83,7 @@ export default function MobileHuntLayout() {
   const getDex     = useGameStore(s => s.getDex);
   const getWis     = useGameStore(s => s.getWis);
   const getTotalDefense = useGameStore(s => s.getTotalDefense);
+  const moveToRoom = useGameStore(s => s.moveToRoom);
 
   const maxHp = baseMaxHp + getTotalHpBonus();
   const maxMp = getMaxMp();
@@ -289,7 +291,7 @@ export default function MobileHuntLayout() {
         </div>
       </div>
 
-      {/* ━━━ ZONE LABEL (우측, 탑바 아래) ━━━ */}
+      {/* ━━━ ZONE LABEL (우측, 탑바 아래) — 클릭 시 구역 선택 ━━━ */}
       <div style={{
         position: 'absolute',
         top: 86, right: 12,
@@ -298,12 +300,31 @@ export default function MobileHuntLayout() {
         color: 'var(--text-dim)',
         textAlign: 'right',
         textShadow: '0 0 4px rgba(0,0,0,0.9)',
-        zIndex: 5,
-        pointerEvents: 'none',
+        zIndex: 15,
       }}>
-        <div style={{ color: 'var(--text)', fontWeight: 700, fontSize: 12.5 }}>
+        <button
+          onClick={() => { if (isHunting) setShowRoomSelector(v => !v); }}
+          style={{
+            background: 'none', border: 'none', padding: '4px 8px',
+            margin: '-4px -8px',
+            cursor: isHunting ? 'pointer' : 'default',
+            color: 'var(--text)', fontWeight: 700, fontSize: 12.5,
+            fontFamily: 'var(--font-mono)',
+            textShadow: '0 0 4px rgba(0,0,0,0.9)',
+            display: 'flex', alignItems: 'center', gap: 4,
+            justifyContent: 'flex-end',
+          }}
+        >
           {zoneName} {roomNum > 0 && `${roomNum}구역`}
-        </div>
+          {isHunting && (
+            <span style={{
+              fontSize: 8, color: 'var(--text-mute)',
+              transform: showRoomSelector ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.15s',
+              display: 'inline-block',
+            }}>▼</span>
+          )}
+        </button>
         {isHunting && (
           <div style={{
             color: 'var(--success)', fontSize: 10, marginTop: 2,
@@ -319,6 +340,70 @@ export default function MobileHuntLayout() {
             }} />
             자동 사냥
           </div>
+        )}
+
+        {/* ── 구역 선택 드롭다운 ── */}
+        {showRoomSelector && isHunting && (
+          <>
+            <div
+              onClick={() => setShowRoomSelector(false)}
+              style={{ position: 'fixed', inset: 0, zIndex: -1 }}
+            />
+            <div style={{
+              marginTop: 6,
+              background: 'rgba(10,12,16,0.92)',
+              border: '1px solid var(--border-soft)',
+              borderRadius: 8,
+              padding: '4px 0',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+              minWidth: 120,
+            }}>
+              {Array.from({ length: ROOMS_PER_ZONE }, (_, i) => {
+                const room = i + 1;
+                const isCurrent = room === roomNum;
+                const isCleared = room <= hunt.roomCleared;
+                const isNext = room === hunt.roomCleared + 1;
+                const isLocked = room > hunt.roomCleared + 1;
+
+                return (
+                  <button
+                    key={room}
+                    disabled={isLocked}
+                    onClick={() => {
+                      if (!isLocked && !isCurrent) {
+                        moveToRoom(room);
+                      }
+                      setShowRoomSelector(false);
+                    }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      width: '100%', padding: '8px 14px',
+                      background: isCurrent ? 'rgba(255,255,255,0.06)' : 'transparent',
+                      border: 'none',
+                      cursor: isLocked ? 'not-allowed' : 'pointer',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11, fontWeight: isCurrent ? 700 : 500,
+                      color: isLocked ? 'var(--text-faint)'
+                        : isCurrent ? 'var(--accent)'
+                        : isCleared ? 'var(--text)'
+                        : isNext ? 'var(--success)'
+                        : 'var(--text-dim)',
+                      textAlign: 'right',
+                      justifyContent: 'flex-end',
+                      textShadow: 'none',
+                      opacity: isLocked ? 0.4 : 1,
+                    }}
+                  >
+                    <span style={{ fontSize: 10 }}>
+                      {isLocked ? '🔒' : isCleared ? '✓' : isCurrent ? '▶' : '○'}
+                    </span>
+                    {room}구역
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
