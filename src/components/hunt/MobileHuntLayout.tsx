@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES, getBravePotionId } from '../../data/gameData';
 import { CLASS_CONFIGS } from '../../data/classData';
-import { finalAC, finalMR } from '../../data/statFormulas';
+import { finalAC, finalMR, calcPlayerHitRate } from '../../data/statFormulas';
 import { getAllEquipped, ROOMS_PER_ZONE } from '../../store/storeTypes';
 import Minimap from './Minimap';
 import HuntMetrics from './HuntMetrics';
@@ -80,6 +80,7 @@ export default function MobileHuntLayout() {
   const bluePotionEnabled    = useGameStore(s => s.bluePotionEnabled);
   const transformScrollEnabled = useGameStore(s => s.transformScrollEnabled);
   const transformScrollType    = useGameStore(s => s.transformScrollType);
+  const getStr     = useGameStore(s => s.getStr);
   const getDex     = useGameStore(s => s.getDex);
   const getWis     = useGameStore(s => s.getWis);
   const getTotalDefense = useGameStore(s => s.getTotalDefense);
@@ -95,6 +96,7 @@ export default function MobileHuntLayout() {
   const isHunting = hunt.status === 'hunting';
 
   /* ── 전투 스탯 ── */
+  const str = getStr();
   const dex = getDex();
   const wis = getWis();
   const totalDef = getTotalDefense();
@@ -105,6 +107,9 @@ export default function MobileHuntLayout() {
   const bonusSp = allSlots.reduce((s, eq) => s + (eq?.bonuses?.sp ?? 0), 0);
   const mr = finalMR(level, wis) + bonusMr;
   const combatStyle = CLASS_CONFIGS[playerClass].combatStyle;
+  const weaponEnchant = state.equippedWeapon?.enhanceLevel ?? 0;
+  const equipBonusHit = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hit ?? 0), 0);
+  const hitRate = calcPlayerHitRate(level, str, dex, weaponEnchant, equipBonusHit);
 
   /* ── 물약 ── */
   const hpCount = potions[selectedPotionId] ?? 0;
@@ -197,7 +202,7 @@ export default function MobileHuntLayout() {
               </span>
               <span style={{ textShadow }}>
                 <span style={{ color: 'var(--text-mute)' }}>HIT</span>{' '}
-                {combatStyle === 'ranged_magic' ? '자동' : '—'}
+                {combatStyle === 'ranged_magic' ? '자동' : hitRate}
               </span>
               {bonusSp > 0 && (
                 <span style={{ textShadow }}>
