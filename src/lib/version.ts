@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.38.3 — 모바일 패널 최적화 (인벤토리/존선택/스킬 compact 레이아웃)
-export const APP_VERSION = '2.38.3';
+// v2.38.4 — 모바일 사냥 버프 뱃지+모달 (개별 아이콘→BUFF 버튼 클릭 시 모달)
+export const APP_VERSION = '2.38.4';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

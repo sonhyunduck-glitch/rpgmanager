@@ -59,6 +59,7 @@ const NAV_TABS: { mode: ViewMode; icon: string; label: string }[] = [
 export default function MobileHuntLayout() {
   const [showHpModal, setShowHpModal] = useState(false);
   const [showTsModal, setShowTsModal] = useState(false);
+  const [showBuffModal, setShowBuffModal] = useState(false);
 
   /* ── store selectors ── */
   const viewMode     = useGameStore(s => s.viewMode);
@@ -211,45 +212,41 @@ export default function MobileHuntLayout() {
           </div>
         </div>
 
-        {/* ── CENTER: 버프 슬롯 ── */}
-        <div style={{
-          justifySelf: 'center',
-          display: 'flex', gap: 4,
-          alignItems: 'center',
-          pointerEvents: 'auto',
-          flexWrap: 'wrap',
-        }}>
-          {aliveBuffs.slice(0, 5).map((buff, i) => {
-            const remainSec = Math.max(0, Math.floor((buff.expiresAt - now) / 1000));
-            const min = Math.floor(remainSec / 60);
-            const isPassive = buff.potionId?.startsWith('passive_');
-            const isTs = buff.potionId === 'transform_scroll';
-            const isGreen = buff.potionId === 'green_potion';
-            const color = isTs ? 'var(--accent)' : isGreen ? 'var(--success)' : 'oklch(0.68 0.20 305)';
-            return (
-              <div key={i} style={{
-                width: 30, height: 30,
+        {/* ── CENTER: 버프 뱃지 (클릭→모달) ── */}
+        <div style={{ justifySelf: 'center', pointerEvents: 'auto' }}>
+          {aliveBuffs.length > 0 && (
+            <button
+              onClick={() => setShowBuffModal(true)}
+              style={{
                 ...glassPanel,
-                borderRadius: 6,
-                display: 'grid', placeItems: 'center',
-                position: 'relative',
-                fontSize: 14,
-                color,
+                borderRadius: 999,
+                padding: '4px 12px',
+                display: 'flex', alignItems: 'center', gap: 5,
+                cursor: 'pointer',
+                borderColor: 'oklch(0.68 0.20 305 / 0.6)',
+              }}
+            >
+              <span style={{ fontSize: 12, color: 'oklch(0.68 0.20 305)' }}>✦</span>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10, fontWeight: 700,
+                color: 'oklch(0.68 0.20 305)',
+                textShadow,
               }}>
-                {isTs ? '⚜' : isGreen ? '✚' : '✦'}
-                {!isPassive && (
-                  <span style={{
-                    position: 'absolute', bottom: -2, right: -2,
-                    fontFamily: 'var(--font-mono)', fontSize: 8,
-                    background: 'var(--accent)', color: '#000',
-                    padding: '0 3px', borderRadius: 3, fontWeight: 700,
-                  }}>
-                    {min}m
-                  </span>
-                )}
-              </div>
-            );
-          })}
+                BUFF
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9, fontWeight: 700,
+                background: 'oklch(0.68 0.20 305)',
+                color: '#000',
+                padding: '0 5px', borderRadius: 99,
+                minWidth: 16, textAlign: 'center',
+              }}>
+                {aliveBuffs.length}
+              </span>
+            </button>
+          )}
         </div>
 
         {/* ── RIGHT: 골드 ── */}
@@ -509,6 +506,7 @@ export default function MobileHuntLayout() {
       {/* ━━━ 모달 ━━━ */}
       {showHpModal && <HpPotionModal onClose={() => setShowHpModal(false)} />}
       {showTsModal && <TransformScrollModal onClose={() => setShowTsModal(false)} />}
+      {showBuffModal && <BuffListModal buffs={aliveBuffs} now={now} onClose={() => setShowBuffModal(false)} />}
     </div>
   );
 }
@@ -572,3 +570,159 @@ const potCountStyle: React.CSSProperties = {
   color: 'var(--text)',
   textShadow: '0 0 3px rgba(0,0,0,0.95)',
 };
+
+/* ═══════════════════════════════════════════════════════════
+   버프 목록 모달
+   ═══════════════════════════════════════════════════════════ */
+import type { ActiveBuff } from '../../types';
+
+function BuffListModal({ buffs, now, onClose }: {
+  buffs: ActiveBuff[]; now: number; onClose: () => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.65)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 99999,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: 300, maxWidth: '88vw',
+          maxHeight: '70vh',
+          background: 'var(--bg-panel)',
+          border: '1px solid var(--border-soft)',
+          borderRadius: 'var(--r-md)',
+          boxShadow: 'var(--shadow-lg)',
+          display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
+          animation: 'modalIn 0.18s ease-out',
+        }}
+      >
+        {/* 헤더 */}
+        <div style={{
+          padding: '14px 16px',
+          borderBottom: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-ui)',
+            fontSize: 14, fontWeight: 700, color: 'var(--text)',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <span style={{ color: 'oklch(0.68 0.20 305)' }}>✦</span>
+            활성 버프
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: 10,
+              color: 'var(--text-mute)', fontWeight: 500,
+            }}>
+              ({buffs.length})
+            </span>
+          </span>
+          <button
+            onClick={onClose}
+            style={{
+              width: 28, height: 28, borderRadius: 6,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-soft)',
+              color: 'var(--text-mute)',
+              fontSize: 14, cursor: 'pointer',
+              display: 'grid', placeItems: 'center',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* 버프 리스트 */}
+        <div style={{ overflowY: 'auto', padding: '8px 0' }}>
+          {buffs.length === 0 ? (
+            <div style={{
+              padding: 32, textAlign: 'center',
+              color: 'var(--text-faint)', fontSize: 12,
+            }}>
+              활성화된 버프가 없습니다.
+            </div>
+          ) : buffs.map((buff, i) => {
+            const remainSec = Math.max(0, Math.floor((buff.expiresAt - now) / 1000));
+            const min = Math.floor(remainSec / 60);
+            const sec = remainSec % 60;
+            const isPassive = buff.potionId?.startsWith('passive_');
+            const isTs = buff.potionId === 'transform_scroll';
+            const isGreen = buff.potionId === 'green_potion';
+            const isSkill = !!buff.skillId;
+            const color = isTs ? 'var(--accent)'
+              : isGreen ? 'var(--success)'
+              : isSkill ? 'var(--info)'
+              : 'oklch(0.68 0.20 305)';
+            const icon = isTs ? '⚜' : isGreen ? '✚' : isSkill ? '✦' : '✦';
+
+            // 효과 요약 텍스트
+            const effects: string[] = [];
+            if (buff.atkSpeedMult > 1) effects.push(`공속 x${buff.atkSpeedMult}`);
+            if (buff.moveSpeedMult > 1) effects.push(`이속 x${buff.moveSpeedMult}`);
+            if (buff.acBonus) effects.push(`AC ${buff.acBonus}`);
+            if (buff.hitBonus) effects.push(`명중 +${buff.hitBonus}`);
+            if (buff.dmgBonus) effects.push(`추타 +${buff.dmgBonus}`);
+            if (buff.fireDmgBonus) effects.push(`화염 +${buff.fireDmgBonus}`);
+            if (buff.spBonus) effects.push(`SP +${buff.spBonus}`);
+
+            return (
+              <div key={i} style={{
+                padding: '10px 16px',
+                display: 'flex', alignItems: 'center', gap: 10,
+                borderBottom: i < buffs.length - 1
+                  ? '1px solid color-mix(in oklch, var(--border-soft) 50%, transparent)'
+                  : 'none',
+              }}>
+                {/* 아이콘 */}
+                <div style={{
+                  width: 34, height: 34, borderRadius: 7, flexShrink: 0,
+                  background: `color-mix(in oklch, ${color} 10%, transparent)`,
+                  border: `1px solid color-mix(in oklch, ${color} 30%, transparent)`,
+                  display: 'grid', placeItems: 'center',
+                  fontSize: 16, color,
+                }}>
+                  {icon}
+                </div>
+
+                {/* 이름 + 효과 */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 13, fontWeight: 600, color: 'var(--text)',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {buff.name}
+                  </div>
+                  {effects.length > 0 && (
+                    <div style={{
+                      fontSize: 10, color: 'var(--text-mute)',
+                      fontFamily: 'var(--font-mono)',
+                      marginTop: 2,
+                    }}>
+                      {effects.join(' · ')}
+                    </div>
+                  )}
+                </div>
+
+                {/* 남은 시간 */}
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11, fontWeight: 700,
+                  color: isPassive ? 'var(--text-mute)' : color,
+                  flexShrink: 0, textAlign: 'right',
+                }}>
+                  {isPassive ? '상시' : `${min}:${String(sec).padStart(2, '0')}`}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
