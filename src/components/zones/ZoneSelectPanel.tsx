@@ -627,6 +627,223 @@ function DetailRow({ label, value, color }: { label: string; value: string; colo
 }
 
 /* ═══════════════════════════════════════════
+   MobileZoneCard — 모바일 전용 존 카드 (디자인 핸드오프)
+   ═══════════════════════════════════════════ */
+function MobileZoneCard({ zone, onGo, isHere, playerLevel, materials }: {
+  zone: HuntZone;
+  onGo: (zone: HuntZone) => void;
+  isHere: boolean;
+  playerLevel: number;
+  materials: Record<string, number>;
+}) {
+  const dots = useMemo(() => generateDots(zone), [zone]);
+  const rewards = useMemo(() => estimateRewards(zone.monsters), [zone.monsters]);
+  const isLocked = playerLevel < zone.requiredLevel;
+  const rec = isRecommended(zone, playerLevel);
+  const matchLv = playerLevel >= zone.levelRange[0] && playerLevel <= zone.levelRange[1] + 5;
+  const isHard = zone.levelRange[0] > playerLevel + 5;
+
+  const needsScroll = zone.zoneType === 'dungeon' && zone.floor != null && zone.floor > 1;
+  const scrollId = needsScroll ? `scroll_${zone.id}` : '';
+  const scrollCount = needsScroll ? (materials[scrollId] ?? 0) : 0;
+
+  const borderColor = isHere
+    ? 'oklch(0.74 0.17 55 / 0.6)'
+    : rec ? 'oklch(0.74 0.17 55 / 0.4)' : 'var(--border-soft)';
+
+  return (
+    <div style={{
+      background: 'var(--bg-panel)',
+      border: `1px solid ${borderColor}`,
+      borderRadius: 10,
+      overflow: 'hidden',
+      position: 'relative',
+      opacity: isLocked ? 0.55 : 1,
+      boxShadow: isHere ? '0 0 0 1px oklch(0.74 0.17 55 / 0.2)' : 'none',
+    }}>
+      {/* 사냥중 플래그 */}
+      {isHere && (
+        <span style={{
+          position: 'absolute', top: 8, right: 10, zIndex: 2,
+          padding: '2px 8px',
+          background: 'var(--accent)', color: '#000',
+          fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+          borderRadius: 100,
+        }}>사냥중</span>
+      )}
+
+      {/* 미니맵 */}
+      <div style={{
+        height: 80,
+        background: 'radial-gradient(ellipse 60% 50% at 50% 50%, oklch(0.18 0.018 60 / 0.4), transparent), var(--bg-sunken)',
+        borderBottom: '1px solid var(--border-soft)',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {zone.floor != null && (
+          <span style={{
+            position: 'absolute', top: 4, left: 6,
+            fontFamily: 'var(--font-mono)', fontSize: 9,
+            color: 'var(--accent)',
+          }}>{zone.floor}F</span>
+        )}
+        <span style={{
+          position: 'absolute', bottom: 4, right: 6,
+          fontFamily: 'var(--font-mono)', fontSize: 8.5,
+          color: 'var(--text-faint)',
+        }}>8M</span>
+
+        <div style={{ position: 'relative', width: '88%', height: 56, margin: '12px auto 0' }}>
+          {dots.map((d, i) => (
+            <span key={i} style={{
+              position: 'absolute',
+              left: `${d.x}%`, top: `${d.y}%`,
+              width: 6, height: 6, borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: DOT_BG[d.cls] ?? 'var(--success)',
+              boxShadow: DOT_GLOW[d.cls] ?? 'none',
+            }} />
+          ))}
+          {isHere && (
+            <span style={{
+              position: 'absolute', left: '50%', top: '65%',
+              width: 10, height: 10, borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'transparent',
+              border: '1.5px solid var(--accent)',
+              boxShadow: '0 0 8px oklch(0.74 0.17 55 / 0.6)',
+            }} />
+          )}
+        </div>
+      </div>
+
+      {/* 본문 */}
+      <div style={{ padding: '10px 12px' }}>
+        {/* 이름 + 레벨 */}
+        <div style={{
+          display: 'flex', alignItems: 'baseline', gap: 8,
+          marginBottom: 6,
+        }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
+            {zone.name}
+          </span>
+          <span style={{
+            marginLeft: 'auto',
+            fontFamily: 'var(--font-mono)', fontSize: 10.5,
+            color: matchLv ? 'var(--success)' : isHard ? 'var(--danger)' : 'var(--text-mute)',
+          }}>Lv.{zone.levelRange[0]}~{zone.levelRange[1]}</span>
+        </div>
+
+        {/* 태그 */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+          {rec && (
+            <span style={{
+              fontSize: 9.5, padding: '1px 6px', borderRadius: 3,
+              color: 'var(--accent)',
+              border: '1px solid oklch(0.74 0.17 55 / 0.4)',
+              background: 'oklch(0.74 0.17 55 / 0.06)',
+            }}>★ 추천</span>
+          )}
+          {zone.zoneType === 'dungeon' && (
+            <span style={{
+              fontSize: 9.5, padding: '1px 6px', borderRadius: 3,
+              color: 'oklch(0.68 0.20 305)',
+              border: '1px solid oklch(0.68 0.20 305 / 0.3)',
+              background: 'var(--bg-deep)',
+            }}>던전</span>
+          )}
+          {zone.monsters.some(m => m.aggressive) && (
+            <span style={{
+              fontSize: 9.5, padding: '1px 6px', borderRadius: 3,
+              color: 'var(--danger)',
+              border: '1px solid oklch(0.66 0.21 25 / 0.3)',
+              background: 'var(--bg-deep)',
+            }}>선공</span>
+          )}
+          {zone.monsters.some(m => m.attackType === 'magic') && (
+            <span style={{
+              fontSize: 9.5, padding: '1px 6px', borderRadius: 3,
+              color: 'var(--info)',
+              border: '1px solid var(--border-soft)',
+              background: 'var(--bg-deep)',
+            }}>마법</span>
+          )}
+          {needsScroll && (
+            <span style={{
+              fontSize: 9.5, padding: '1px 6px', borderRadius: 3,
+              fontFamily: 'var(--font-mono)',
+              color: scrollCount > 0 ? 'var(--accent)' : 'var(--text-mute)',
+              border: `1px solid ${scrollCount > 0 ? 'oklch(0.74 0.17 55 / 0.4)' : 'var(--border-soft)'}`,
+              background: 'var(--bg-deep)',
+            }}>📜{scrollCount}</span>
+          )}
+        </div>
+
+        {/* 통계 */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+          gap: 4, paddingTop: 8, marginBottom: 10,
+          borderTop: '1px dashed var(--border-soft)',
+        }}>
+          <div style={{ fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: 9, color: 'var(--text-faint)', display: 'block', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>G/시</span>
+            <span style={{ fontSize: 11.5, color: 'var(--accent)', fontWeight: 600 }}>{fmtNum(rewards.goldHr)}</span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: 9, color: 'var(--text-faint)', display: 'block', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>XP/시</span>
+            <span style={{ fontSize: 11.5, color: 'var(--info)', fontWeight: 600 }}>{fmtNum(rewards.expHr)}</span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: 9, color: 'var(--text-faint)', display: 'block', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>몬스터</span>
+            <span style={{ fontSize: 11.5, color: 'var(--text)', fontWeight: 600 }}>{zone.monsters.length}종</span>
+          </div>
+        </div>
+
+        {/* 이동 버튼 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); if (!isLocked && !isHere) onGo(zone); }}
+          disabled={isLocked}
+          style={{
+            width: '100%', padding: 10, borderRadius: 6,
+            fontSize: 12.5, fontWeight: 700,
+            border: 'none', cursor: isLocked || isHere ? 'default' : 'pointer',
+            ...(isHere ? {
+              background: 'oklch(0.74 0.17 55 / 0.15)',
+              border: '1px solid oklch(0.74 0.17 55 / 0.4)',
+              color: 'var(--accent)',
+            } : isLocked ? {
+              background: 'var(--bg-deep)',
+              border: '1px solid var(--border-soft)',
+              color: 'var(--text-faint)',
+            } : {
+              background: 'linear-gradient(135deg, var(--success), oklch(0.66 0.16 135))',
+              color: '#fff',
+            }),
+          }}
+        >
+          {isHere ? '현재 위치'
+            : isLocked ? `★ Lv.${zone.requiredLevel} 필요`
+            : needsScroll ? `이동 (주문서 ${scrollCount > 0 ? scrollCount : 0})`
+            : '이동'}
+        </button>
+      </div>
+
+      {/* 잠금 오버레이 */}
+      {isLocked && !isHere && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'grid', placeItems: 'center',
+          background: 'rgba(6,8,11,0.55)',
+          color: 'var(--text-faint)',
+          fontFamily: 'var(--font-mono)', fontSize: 11,
+          backdropFilter: 'blur(1px)',
+          zIndex: 3,
+        }}>★ Lv.{zone.requiredLevel} 필요</div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
    메인 컴포넌트
    ═══════════════════════════════════════════ */
 export default function ZoneSelectPanel() {
@@ -721,29 +938,189 @@ export default function ZoneSelectPanel() {
     );
   }
 
-  /* 카드 뷰 (메인) */
+  /* ═══════════════════════════════════════════
+     모바일 카드 뷰 (디자인 핸드오프 기반)
+     ═══════════════════════════════════════════ */
+  if (compact) {
+    const regionCounts = useMemo(() => {
+      const counts: Record<RegionId, number> = { all: HUNT_ZONES.length, beginner: 0, intermediate: 0, advanced: 0, dungeon: 0 };
+      for (const z of HUNT_ZONES) {
+        if (z.zoneType === 'dungeon') counts.dungeon++;
+        else if (z.tier === 'beginner') counts.beginner++;
+        else if (z.tier === 'intermediate') counts.intermediate++;
+        else if (z.tier === 'advanced') counts.advanced++;
+      }
+      return counts;
+    }, []);
+
+    const huntDuration = hunt.startedAt && hunt.status !== 'idle'
+      ? Math.floor((Date.now() - hunt.startedAt) / 60000)
+      : 0;
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 16 }}>
+        {/* ── 타이틀 ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>사냥터</span>
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mute)',
+          }}>{rows.length}개</span>
+        </div>
+
+        {/* ── 현재 위치 카드 (here-card) ── */}
+        {currentZone && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '10px 12px',
+            background: 'oklch(0.74 0.17 55 / 0.08)',
+            border: '1px solid oklch(0.74 0.17 55 / 0.3)',
+            borderRadius: 8,
+          }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+              background: 'var(--success)',
+              boxShadow: '0 0 6px var(--success)',
+              animation: 'zspPulse 1.4s ease-in-out infinite',
+            }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9.5, color: 'var(--text-mute)',
+                textTransform: 'uppercase' as const, letterSpacing: '0.08em',
+              }}>현재 위치</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>
+                {currentZone.name}
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-dim)' }}>
+                {huntDuration > 0 ? `${huntDuration}분 사냥중` : '대기중'}
+                {hunt.avgKillTime > 0 && ` · ${(hunt.avgKillTime / 1000).toFixed(1)}s 평균`}
+                {hunt.kills > 0 && ` · KILLS ${hunt.kills}`}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── 칩 필터 ── */}
+        <div style={{
+          display: 'flex', gap: 6,
+          overflowX: 'auto', scrollbarWidth: 'none',
+          paddingBottom: 2,
+        }}>
+          {REGIONS.map(r => {
+            const active = region === r.id;
+            const cnt = regionCounts[r.id];
+            return (
+              <button
+                key={r.id}
+                onClick={() => setRegion(r.id)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 100,
+                  fontSize: 12, fontWeight: active ? 600 : 400,
+                  color: active ? 'var(--accent)' : 'var(--text-mute)',
+                  background: active
+                    ? 'color-mix(in oklch, var(--accent) 12%, transparent)'
+                    : 'var(--bg-panel)',
+                  border: active
+                    ? '1px solid color-mix(in oklch, var(--accent) 40%, transparent)'
+                    : '1px solid var(--border-soft)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  transition: 'all 0.12s',
+                }}
+              >
+                {r.name}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10,
+                  color: active ? 'var(--accent)' : 'var(--text-faint)',
+                }}>{cnt}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── 존 리스트 ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {rows.map(z => (
+            <MobileZoneCard
+              key={z.id}
+              zone={z}
+              onGo={handleGo}
+              isHere={huntZoneId === z.id}
+              playerLevel={level}
+              materials={materials}
+            />
+          ))}
+          {rows.length === 0 && (
+            <div style={{
+              padding: 40, textAlign: 'center',
+              color: 'var(--text-faint)', fontSize: 13,
+            }}>
+              조건에 맞는 사냥터가 없습니다.
+            </div>
+          )}
+        </div>
+
+        <style>{`
+          @keyframes zspPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+          }
+          @keyframes zspFadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+          }
+        `}</style>
+
+        {/* ── 토스트 ── */}
+        {toast && (
+          <div style={{
+            position: 'fixed', bottom: 72, left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 20px',
+            background: 'var(--bg-panel)',
+            border: '1px solid color-mix(in oklch, var(--success) 40%, transparent)',
+            borderRadius: 8,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+            fontSize: 13, color: 'var(--success)', fontWeight: 600,
+            zIndex: 9999,
+            animation: 'zspFadeIn 0.2s ease-out',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 8l3 3 7-7" />
+            </svg>
+            {toast}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ═══════════════════════════════════════════
+     데스크톱 카드 뷰 (기존 유지)
+     ═══════════════════════════════════════════ */
   return (
     <div style={{
-      padding: compact ? '0 0 12px' : '18px 22px 32px',
+      padding: '18px 22px 32px',
       display: 'flex', flexDirection: 'column',
       minHeight: '100%',
       overflow: 'auto',
     }}>
       {/* ── 브레드크럼 ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: compact ? 8 : 14,
-        marginBottom: compact ? 10 : 14, paddingBottom: compact ? 8 : 12,
+        display: 'flex', alignItems: 'center', gap: 14,
+        marginBottom: 14, paddingBottom: 12,
         borderBottom: '1px solid var(--border-soft)',
         flexWrap: 'wrap',
       }}>
         <span style={{
-          fontSize: compact ? 14 : 17, fontWeight: 600, color: 'var(--text)',
+          fontSize: 17, fontWeight: 600, color: 'var(--text)',
           fontFamily: 'var(--font-display)',
           display: 'inline-flex', alignItems: 'baseline', gap: 8,
         }}>
           사냥터
           <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: compact ? 10 : 11, color: 'var(--text-mute)',
+            fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)',
             padding: '2px 8px', borderRadius: 100, background: 'var(--bg-elevated)',
           }}>{rows.length}개</span>
         </span>
@@ -774,13 +1151,10 @@ export default function ZoneSelectPanel() {
           </span>
         )}
 
-        {/* 뷰 토글 (desktop only) */}
-        {!compact && (
-          <div style={{ display: 'flex', gap: 4 }}>
-            <ViewToggleBtn label="카드" active onClick={() => {}} />
-            <ViewToggleBtn label="월드맵" active={false} onClick={() => setPageView('worldmap')} />
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 4 }}>
+          <ViewToggleBtn label="카드" active onClick={() => {}} />
+          <ViewToggleBtn label="월드맵" active={false} onClick={() => setPageView('worldmap')} />
+        </div>
       </div>
 
       {/* ── 지역 탭 ── */}
@@ -819,12 +1193,12 @@ export default function ZoneSelectPanel() {
       </div>
 
       {/* ── 툴바 ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 10, marginBottom: compact ? 10 : 14, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
         {/* 검색 */}
         <div style={{
-          flex: 1, minWidth: compact ? '100%' : 140,
+          flex: 1, minWidth: 140,
           display: 'flex', alignItems: 'center', gap: 8,
-          padding: compact ? '6px 10px' : '8px 12px',
+          padding: '8px 12px',
           background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
         }}>
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--text-faint)" strokeWidth="1.6">
@@ -888,17 +1262,15 @@ export default function ZoneSelectPanel() {
       {/* ── 메인 바디: 카드 그리드 + 디테일 ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: compact ? '1fr' : 'minmax(0, 1fr) 340px',
-        gap: compact ? 8 : 14,
+        gridTemplateColumns: 'minmax(0, 1fr) 340px',
+        gap: 14,
         alignItems: 'start',
       }}>
         {/* 카드 그리드 */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: compact
-            ? 'repeat(auto-fill, minmax(140px, 1fr))'
-            : 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: compact ? 6 : 10,
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: 10,
         }}>
           {rows.map(z => (
             <ZoneCard
@@ -915,7 +1287,7 @@ export default function ZoneSelectPanel() {
           ))}
           {rows.length === 0 && (
             <div style={{
-              padding: compact ? 30 : 60, textAlign: 'center',
+              padding: 60, textAlign: 'center',
               color: 'var(--text-faint)', gridColumn: '1 / -1',
               fontSize: 13,
             }}>
@@ -924,16 +1296,14 @@ export default function ZoneSelectPanel() {
           )}
         </div>
 
-        {/* 디테일 사이드바 (desktop only) */}
-        {!compact && (
-          <ZoneDetail
-            zone={selectedZone}
-            onGo={handleGo}
-            isHere={huntZoneId === selectedZone?.id}
-            playerLevel={level}
-            playerHit={playerHit}
-          />
-        )}
+        {/* 디테일 사이드바 */}
+        <ZoneDetail
+          zone={selectedZone}
+          onGo={handleGo}
+          isHere={huntZoneId === selectedZone?.id}
+          playerLevel={level}
+          playerHit={playerHit}
+        />
       </div>
 
       {/* ── 토스트 ── */}

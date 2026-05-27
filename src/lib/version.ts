@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.2 — 모바일 레벨 클릭→스탯 드로어 통일 + 사냥페이지 좌측 햄버거 제거
-export const APP_VERSION = '2.39.2';
+// v2.39.3 — 모바일 사냥터 UI 리디자인 (here-card, 칩 필터, 카드 스타일)
+export const APP_VERSION = '2.39.3';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
