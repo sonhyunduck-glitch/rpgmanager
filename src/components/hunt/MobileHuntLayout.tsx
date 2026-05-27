@@ -17,14 +17,20 @@ import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES, getBravePotionId } from '../../data/gameData';
 import { CLASS_CONFIGS } from '../../data/classData';
-import { finalAC, finalMR, calcPlayerHitRate, calcBluePotionMpBonus, calcMpRegenAmount } from '../../data/statFormulas';
+import {
+  finalAC, finalMR, calcPlayerHitRate, calcBluePotionMpBonus, calcMpRegenAmount,
+  meleeHit, minDamage, maxDamage, bowMinDamage, bowMaxDamage,
+  magicDamageRange,
+  calcHpRegenRange, calcHpRegenIntervalSec,
+  calcMpRegenIntervalSec,
+} from '../../data/statFormulas';
 import { getAllEquipped, ROOMS_PER_ZONE } from '../../store/storeTypes';
 import Minimap from './Minimap';
 import HuntMetrics from './HuntMetrics';
 import HpPotionModal from './HpPotionModal';
 import TransformScrollModal from './TransformScrollModal';
 import MiniChatFeed from './MiniChatFeed';
-import type { ViewMode } from '../../types';
+import type { ViewMode, PlayerClass, CombatStyle, Equipment, ActiveBuff, StatKey } from '../../types';
 
 /* ── 물약 쿨다운 RAF 훅 (60fps 부드러운 프로그레스) ── */
 function usePotionCooldown(lastUsedAt: number, cooldownMs: number): number {
@@ -85,6 +91,7 @@ export default function MobileHuntLayout() {
   const [showTsModal, setShowTsModal] = useState(false);
   const [showBuffModal, setShowBuffModal] = useState(false);
   const [showRoomSelector, setShowRoomSelector] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /* ── store selectors ── */
@@ -112,8 +119,13 @@ export default function MobileHuntLayout() {
   const lastPotionCooldownMs   = useGameStore(s => s.lastPotionCooldownMs);
   const getStr     = useGameStore(s => s.getStr);
   const getDex     = useGameStore(s => s.getDex);
+  const getCon     = useGameStore(s => s.getCon);
   const getWis     = useGameStore(s => s.getWis);
+  const getInt     = useGameStore(s => s.getInt);
   const getTotalDefense = useGameStore(s => s.getTotalDefense);
+  const statAllocation = useGameStore(s => s.statAllocation);
+  const playerName = useGameStore(s => s.playerName);
+  const equippedWeapon = useGameStore(s => s.equippedWeapon);
   const moveToRoom = useGameStore(s => s.moveToRoom);
 
   const maxHp = baseMaxHp + getTotalHpBonus();
@@ -198,15 +210,20 @@ export default function MobileHuntLayout() {
       }}>
         {/* ── LEFT: 레벨 + HP/MP 바 + 미니 스탯 ── */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'auto' }}>
-          <span style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 22, fontWeight: 700,
-            color: 'var(--text)',
-            lineHeight: 1,
-            textShadow,
-          }}>
+          <button
+            onClick={() => setShowStatsModal(true)}
+            style={{
+              background: 'none', border: 'none', padding: 0,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 22, fontWeight: 700,
+              color: 'var(--text)',
+              lineHeight: 1,
+              textShadow,
+              cursor: 'pointer',
+            }}
+          >
             {level}
-          </span>
+          </button>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* HP Bar */}
             <HudBar
@@ -601,6 +618,41 @@ export default function MobileHuntLayout() {
       {showHpModal && <HpPotionModal onClose={() => setShowHpModal(false)} />}
       {showTsModal && <TransformScrollModal onClose={() => setShowTsModal(false)} />}
       {showBuffModal && <BuffListModal buffs={aliveBuffs} now={now} wis={wis} onClose={() => setShowBuffModal(false)} />}
+      {/* ━━━ STATS DRAWER (좌측 슬라이드 — MobileShell과 동일 방식) ━━━ */}
+      <div
+        onClick={() => setShowStatsModal(false)}
+        style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          opacity: showStatsModal ? 1 : 0,
+          pointerEvents: showStatsModal ? 'auto' : 'none',
+          transition: 'opacity 0.22s ease',
+          zIndex: 900,
+        }}
+      />
+      <StatsDrawer
+        open={showStatsModal}
+        playerName={playerName}
+        playerClass={playerClass}
+        level={level}
+        currentHp={currentHp}
+        maxHp={maxHp}
+        currentMp={currentMp}
+        maxMp={maxMp}
+        str={str}
+        dex={dex}
+        con={getCon()}
+        wis={wis}
+        int_={getInt()}
+        statAllocation={statAllocation}
+        ac={ac}
+        mr={mr}
+        hitRate={hitRate}
+        combatStyle={combatStyle}
+        bonusSp={bonusSp}
+        equippedWeapon={equippedWeapon}
+        activeBuffs={activeBuffs}
+      />
     </div>
   );
 }
@@ -669,8 +721,6 @@ const potCountStyle: React.CSSProperties = {
 /* ═══════════════════════════════════════════════════════════
    버프 목록 모달
    ═══════════════════════════════════════════════════════════ */
-import type { ActiveBuff } from '../../types';
-
 function BuffListModal({ buffs, now, wis, onClose }: {
   buffs: ActiveBuff[]; now: number; wis: number; onClose: () => void;
 }) {
@@ -825,6 +875,211 @@ function BuffListModal({ buffs, now, wis, onClose }: {
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATS DRAWER — 레벨 클릭 시 좌측 슬라이드
+   MobileShell의 Stats drawer와 동일한 UX
+   ═══════════════════════════════════════════════════════════ */
+const STAT_COLORS: Record<StatKey, string> = {
+  str: 'var(--danger)',
+  dex: 'var(--info)',
+  con: 'var(--success)',
+  wis: 'oklch(0.74 0.16 200)',
+  int: 'oklch(0.68 0.20 305)',
+};
+
+const CLASS_ICON_DRAWER: Record<string, string> = { knight: '⚔', elf: '⌬', wizard: '✦' };
+
+function StatsDrawer({ open, playerName, playerClass, level,
+  currentHp, maxHp, currentMp, maxMp,
+  str, dex, con, wis, int_,
+  statAllocation, ac, mr, hitRate, combatStyle, bonusSp,
+  equippedWeapon, activeBuffs,
+}: {
+  open: boolean;
+  playerName: string; playerClass: PlayerClass; level: number;
+  currentHp: number; maxHp: number; currentMp: number; maxMp: number;
+  str: number; dex: number; con: number; wis: number; int_: number;
+  statAllocation: Record<StatKey, number>;
+  ac: number; mr: number; hitRate: number;
+  combatStyle: CombatStyle; bonusSp: number;
+  equippedWeapon: Equipment | null;
+  activeBuffs: ActiveBuff[];
+}) {
+  const baseStats = CLASS_CONFIGS[playerClass].baseStats;
+  const statGetters: Record<StatKey, number> = { str, dex, con, wis, int: int_ };
+
+  // 전투 스탯 계산
+  const weaponEnchant = equippedWeapon?.enhanceLevel ?? 0;
+  const weaponBaseDmgS = equippedWeapon?.baseAtk ?? 0;
+  const state = useGameStore.getState();
+  const allSlots = getAllEquipped(state);
+  const bonusExtraDmg = allSlots.reduce((s, eq) => s + (eq?.bonuses?.extraDmg ?? 0), 0);
+  const bonusBowDmg = allSlots.reduce((s, eq) => s + (eq?.bonuses?.bowDmg ?? 0), 0);
+  const equipHpr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.hpr ?? 0), 0);
+  const equipMpr = allSlots.reduce((s, eq) => s + (eq?.bonuses?.mpr ?? 0), 0);
+
+  let hit: number | string;
+  let dmgStr: string;
+
+  if (combatStyle === 'ranged_bow') {
+    hit = hitRate;
+    const dMin = bowMinDamage(level, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+    const dMax = bowMaxDamage(weaponBaseDmgS, level, weaponEnchant, dex) + bonusExtraDmg + bonusBowDmg;
+    dmgStr = `${dMin}~${dMax}`;
+  } else if (combatStyle === 'ranged_magic') {
+    hit = '자동';
+    const magicRange = magicDamageRange(weaponBaseDmgS, int_, bonusSp, level, playerClass);
+    dmgStr = `~${Math.round((magicRange.min + magicRange.max) / 2)}`;
+  } else {
+    hit = meleeHit(level, weaponEnchant, str) + allSlots.reduce((s, eq) => s + (eq?.bonuses?.hit ?? 0), 0);
+    const dMin = minDamage(level, weaponEnchant, str) + bonusExtraDmg;
+    const dMax = maxDamage(weaponBaseDmgS, level, weaponEnchant, str) + bonusExtraDmg;
+    dmgStr = `${dMin}~${dMax}`;
+  }
+
+  const hpRegenRange = calcHpRegenRange(level, con);
+  const hpRegenSec = calcHpRegenIntervalSec(level, playerClass);
+  const hasBlueBuff = activeBuffs.some(b => b.potionId === 'blue_potion' && b.expiresAt > Date.now());
+  const mpRegenBase = calcMpRegenAmount(wis);
+  const mpRegenBlueBonus = hasBlueBuff ? calcBluePotionMpBonus(wis) : 0;
+  const mpRegenTotal = mpRegenBase + equipMpr + mpRegenBlueBonus;
+  const mpRegenSec = calcMpRegenIntervalSec();
+
+  const classConfig = CLASS_CONFIGS[playerClass];
+
+  return (
+    <aside style={{
+      position: 'fixed', top: 0, left: 0, bottom: 0,
+      width: 260,
+      background: 'var(--bg-panel)',
+      borderRight: '1px solid var(--border-soft)',
+      transform: open ? 'translateX(0)' : 'translateX(-100%)',
+      transition: 'transform 0.22s cubic-bezier(.16,1,.3,1)',
+      zIndex: 910,
+      display: 'flex', flexDirection: 'column',
+      overflowY: 'auto', overflowX: 'hidden',
+    }}>
+      {/* Player header */}
+      <div style={{
+        padding: '16px 14px 12px',
+        borderBottom: '1px solid var(--border-soft)',
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <span style={{ fontSize: 22 }}>{CLASS_ICON_DRAWER[playerClass] ?? ''}</span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontFamily: 'var(--font-display)', fontWeight: 700,
+            fontSize: 14, color: 'var(--text)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {playerName}
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-mono)', fontSize: 10,
+            color: 'var(--text-mute)',
+          }}>
+            Lv.{level} {classConfig.nameKo}
+          </div>
+        </div>
+      </div>
+
+      {/* Section: STATS */}
+      <div style={{
+        padding: '10px 12px 0',
+        fontFamily: 'var(--font-mono)', fontSize: 9.5,
+        fontWeight: 700, color: 'var(--text-faint)',
+        textTransform: 'uppercase', letterSpacing: 1,
+      }}>
+        STATS
+      </div>
+      <div style={{ padding: '4px 12px 0' }}>
+        {(['str', 'dex', 'con', 'wis', 'int'] as StatKey[]).map(key => {
+          const color = STAT_COLORS[key];
+          const total = statGetters[key];
+          const base = (baseStats as Record<string, number>)[key] ?? 0;
+          const alloc = statAllocation[key];
+          return (
+            <div key={key} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '5px 0',
+              borderBottom: '1px dashed var(--border-soft)',
+            }}>
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: 11,
+                fontWeight: 700, color, minWidth: 30,
+              }}>
+                {key.toUpperCase()}
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: 13,
+                fontWeight: 800, color,
+              }}>
+                {total}
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9,
+                color: 'var(--text-faint)',
+              }}>
+                ({base}+{alloc})
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Section: COMBAT */}
+      <div style={{
+        padding: '12px 12px 0',
+        fontFamily: 'var(--font-mono)', fontSize: 9.5,
+        fontWeight: 700, color: 'var(--text-faint)',
+        textTransform: 'uppercase', letterSpacing: 1,
+      }}>
+        COMBAT
+      </div>
+      <div style={{ padding: '4px 12px 12px' }}>
+        <DrawerCombatRow label="HP" value={`${currentHp} / ${maxHp}`} color={
+          currentHp > maxHp * 0.6 ? 'var(--success)'
+            : currentHp > maxHp * 0.3 ? 'var(--warning)' : 'var(--danger)'
+        } />
+        <DrawerCombatRow label="MP" value={`${currentMp} / ${maxMp}`} color="var(--info)" />
+        <DrawerCombatRow label="HIT" value={`${hit}`} color={hit === '자동' ? 'var(--info)' : 'var(--text-dim)'} />
+        <DrawerCombatRow label="AC" value={`${ac}`} color="var(--success)" />
+        <DrawerCombatRow label={combatStyle === 'ranged_magic' ? 'E.BOLT' : 'DMG'} value={dmgStr} color="var(--warning)" />
+        {combatStyle === 'ranged_magic' && (
+          <DrawerCombatRow label="SP" value={`+${bonusSp}`} color="oklch(0.68 0.20 305)" />
+        )}
+        <DrawerCombatRow label="MR" value={`${mr}`} color="var(--info)" />
+        <DrawerCombatRow label="HPR" value={`${hpRegenRange.min + equipHpr}~${hpRegenRange.max + equipHpr}/${hpRegenSec}s`} color="var(--text-dim)" />
+        <DrawerCombatRow label="MPR" value={`${mpRegenTotal}/${mpRegenSec}s${hasBlueBuff ? ' ★' : ''}`} color="var(--text-dim)" />
+      </div>
+    </aside>
+  );
+}
+
+/** 드로어 COMBAT 행 (MobileShell과 동일 스타일) */
+function DrawerCombatRow({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '5px 0',
+      borderBottom: '1px dashed var(--border-soft)',
+    }}>
+      <span style={{
+        fontFamily: 'var(--font-mono)', fontSize: 10,
+        fontWeight: 600, color: 'var(--text-mute)', minWidth: 30,
+      }}>
+        {label}
+      </span>
+      <span style={{
+        fontFamily: 'var(--font-mono)', fontSize: 12,
+        fontWeight: 700, color,
+      }}>
+        {value}
+      </span>
     </div>
   );
 }

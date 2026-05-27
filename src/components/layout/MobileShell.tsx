@@ -122,44 +122,31 @@ export default function MobileShell({ children }: { children: ReactNode }) {
       position: 'relative', overflow: 'hidden',
     }}>
 
-      {/* ═══════════ TOP BAR ═══════════ */}
-      <header style={{
+      {/* ═══════════ TOP BAR (사냥 페이지에서는 숨김 — 자체 HUD 사용) ═══════════ */}
+      {viewMode !== 'main' && <header style={{
         height: 52, flexShrink: 0,
         background: 'var(--bg-sunken)',
         borderBottom: '1px solid var(--border-soft)',
-        display: 'grid',
-        gridTemplateColumns: '32px 1fr auto',
+        display: 'flex',
         alignItems: 'center',
         padding: '6px 10px',
         gap: 8,
       }}>
-        {/* Hamburger */}
-        <button
-          onClick={() => setDrawerOpen(true)}
-          style={{
-            width: 44, height: 44,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'none', border: 'none',
-            cursor: 'pointer', padding: 0, margin: '-6px',
-          }}
-          aria-label="Open stats"
-        >
-          <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
-            <rect y="0" width="18" height="2" rx="1" fill="var(--text-mute)" />
-            <rect y="6" width="18" height="2" rx="1" fill="var(--text-mute)" />
-            <rect y="12" width="18" height="2" rx="1" fill="var(--text-mute)" />
-          </svg>
-        </button>
-
-        {/* Center: Level + HP/MP bars */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <span style={{
-            fontFamily: 'var(--font-mono)', fontWeight: 800,
-            fontSize: 16, color: 'var(--text)',
-            flexShrink: 0, lineHeight: 1,
-          }}>
+        {/* Level (클릭 → 스탯 드로어) + HP/MP bars */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+          <button
+            onClick={() => setDrawerOpen(true)}
+            style={{
+              fontFamily: 'var(--font-mono)', fontWeight: 800,
+              fontSize: 16, color: 'var(--text)',
+              flexShrink: 0, lineHeight: 1,
+              background: 'none', border: 'none',
+              cursor: 'pointer', padding: 0,
+            }}
+            aria-label="Open stats"
+          >
             {level}
-          </span>
+          </button>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
             {/* HP bar */}
             <div style={{ position: 'relative', height: 8, borderRadius: 4, overflow: 'hidden', background: 'oklch(0.2 0.01 25 / 0.5)' }}>
@@ -217,14 +204,14 @@ export default function MobileShell({ children }: { children: ReactNode }) {
             {fmtG(gold)}
           </span>
         </div>
-      </header>
+      </header>}
 
       {/* ═══════════ BODY (children) ═══════════ */}
       <main
         style={{
           flex: 1,
           overflowY: 'auto', overflowX: 'hidden',
-          padding: '12px 10px',
+          padding: viewMode === 'main' ? 0 : '12px 10px',
           scrollbarWidth: 'none' as const,
         }}
         /* Webkit scrollbar hiding via className would be ideal,
