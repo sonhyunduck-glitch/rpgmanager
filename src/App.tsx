@@ -37,6 +37,7 @@ export default function App({ userId }: AppProps) {
   const viewMode = useGameStore(s => s.viewMode);
   const huntStatus = useGameStore(s => s.hunt.status);
   const tickHunt = useGameStore(s => s.tickHunt);
+  const tickSpatial = useGameStore(s => s.tickSpatial);
   const getAtkSpeedMult = useGameStore(s => s.getAtkSpeedMult);
   const dbReady = useGameStore(s => s.dbReady);
   const pendingSubclassChoice = useGameStore(s => s.pendingSubclassChoice);
@@ -94,6 +95,17 @@ export default function App({ userId }: AppProps) {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [dbReady, huntStatus, tickHunt, getAtkSpeedMult]);
+
+  // 고빈도 공간 업데이트 (60ms) — 이동/투사체 보간 전용
+  const spatialRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    if (!dbReady || huntStatus !== 'hunting') {
+      if (spatialRef.current) { clearInterval(spatialRef.current); spatialRef.current = null; }
+      return;
+    }
+    spatialRef.current = setInterval(tickSpatial, 60);
+    return () => { if (spatialRef.current) clearInterval(spatialRef.current); };
+  }, [dbReady, huntStatus, tickSpatial]);
 
   const viewingProfileId = useGameStore(s => s.viewingProfileId);
 

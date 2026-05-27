@@ -211,6 +211,7 @@ export interface GameState {
 
   // Spatial combat
   consumeCombatEvents: () => void;
+  tickSpatial: () => void;
 
   // Subclass
   selectSubclass: (subclass: KnightSubclass) => void;

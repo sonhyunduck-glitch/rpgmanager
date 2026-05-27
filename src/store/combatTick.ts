@@ -72,12 +72,12 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
 
       // ══════════════════════════════════════════════
-      // Phase 0: 공간 업데이트 (이동, 투사체, 리스폰)
+      // Phase 0: 공간 상태 동기 (리스폰만 — 이동/투사체는 tickSpatial이 60ms 간격 처리)
       // ══════════════════════════════════════════════
 
-      const spatialDeltaSec = 3 / (state.getAtkSpeedMult?.() ?? 1);
       const spatialNow = Date.now();
-      const spatialResult = tickSpatialUpdate(hunt.spatial, spatialDeltaSec, spatialNow);
+      // delta=0: 이동/투사체 전진 없이 리스폰 체크 + combatEvent 수집만
+      const spatialResult = tickSpatialUpdate(hunt.spatial, 0, spatialNow);
 
       // 공간 상태를 로컬 변수에 보관 (Phase 7에서 최종 merge)
       let updatedSpatial = {

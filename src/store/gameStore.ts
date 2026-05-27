@@ -30,7 +30,7 @@ import { createHuntActions } from './huntActions';
 import { createCombatTick } from './combatTick';
 import { createEquipActions } from './equipActions';
 import { createShopActions } from './shopActions';
-import { createEmptySpatialState } from './spatialEngine';
+import { createEmptySpatialState, tickSpatialUpdate } from './spatialEngine';
 
 // Re-export GameState for consumers
 export type { GameState } from './storeTypes';
@@ -473,6 +473,35 @@ export const useGameStore = create<GameState>((set, get) => ({
         spatial: {
           ...hunt.spatial,
           combatEvents: [],
+        },
+      },
+    });
+  },
+
+  /* 고빈도 공간 업데이트 (60ms 간격) — 이동 + 투사체 보간 전용
+     전투 판정은 tickHunt(3s)에서 처리. 여기서는 위치만 갱신. */
+  tickSpatial: () => {
+    const state = get();
+    const { hunt } = state;
+    if (hunt.status !== 'hunting' || !hunt.zoneId) return;
+    // moveOrders/projectiles 없으면 스킵 (불필요한 갱신 방지)
+    if (hunt.spatial.moveOrders.size === 0 && hunt.spatial.projectiles.length === 0) return;
+
+    const now = Date.now();
+    const deltaSec = 0.06; // 60ms 고정 (호출 간격과 동일)
+    const result = tickSpatialUpdate(hunt.spatial, deltaSec, now);
+    set({
+      hunt: {
+        ...hunt,
+        spatial: {
+          ...hunt.spatial,
+          entities: result.entities,
+          projectiles: result.projectiles,
+          moveOrders: result.moveOrders,
+          combatEvents: [
+            ...hunt.spatial.combatEvents,
+            ...result.combatEvents,
+          ],
         },
       },
     });
