@@ -30,6 +30,7 @@ import { createHuntActions } from './huntActions';
 import { createCombatTick } from './combatTick';
 import { createEquipActions } from './equipActions';
 import { createShopActions } from './shopActions';
+import { createEmptySpatialState } from './spatialEngine';
 
 // Re-export GameState for consumers
 export type { GameState } from './storeTypes';
@@ -348,6 +349,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         currentMp: 0, lastHpRegenAt: 0, lastMpRegenAt: 0, skillCooldowns: {},
         monsterStunnedTicks: 0, windShackleTicks: 0, regenWaitTicks: 0,
         monsterAtkAccum: 0,
+        spatial: createEmptySpatialState(),
+        playerEntityId: 'player',
+        targetEntityId: null,
       } as HuntSession,
       offlineReward: null,
       viewMode: 'main',
@@ -404,7 +408,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       startedAt: 0, currentTargetId: null, monsterCurrentHp: 0,
       joinedMonsters: [], approachingMonsters: [],
       mobSkillCooldowns: {}, lastMagicHitAt: 0, consecutiveMagicHits: 0,
-      currentMp: 0, lastHpRegenAt: 0, lastMpRegenAt: 0, skillCooldowns: {}, monsterStunnedTicks: 0, windShackleTicks: 0, regenWaitTicks: 0, monsterAtkAccum: 0,
+      currentMp: 0, lastHpRegenAt: 0, lastMpRegenAt: 0, skillCooldowns: {},
+      monsterStunnedTicks: 0, windShackleTicks: 0, regenWaitTicks: 0, monsterAtkAccum: 0,
+      spatial: createEmptySpatialState(),
+      playerEntityId: 'player',
+      targetEntityId: null,
     } as HuntSession;
     return {
       ...h,
@@ -420,6 +428,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       windShackleTicks: h.windShackleTicks ?? 0,
       regenWaitTicks: h.regenWaitTicks ?? 0,
       monsterAtkAccum: h.monsterAtkAccum ?? 0,
+      // 공간 상태 (Map은 JSON 직렬화 불가 — 항상 새로 생성)
+      spatial: createEmptySpatialState(),
+      playerEntityId: 'player',
+      targetEntityId: null,
     } as HuntSession;
   })(),
   combatLog: [],
@@ -451,9 +463,20 @@ export const useGameStore = create<GameState>((set, get) => ({
   transformScrollEnabled: (saved?.transformScrollEnabled as boolean) ?? true,
   transformScrollType: (saved?.transformScrollType as 'normal' | 'event') ?? 'normal',
 
-  // ── Movement ──
-  isPlayerMoving: false,
-  setPlayerMoving: (moving) => set({ isPlayerMoving: moving }),
+  // ── Spatial Combat ──
+  consumeCombatEvents: () => {
+    const hunt = get().hunt;
+    if (hunt.spatial.combatEvents.length === 0) return;
+    set({
+      hunt: {
+        ...hunt,
+        spatial: {
+          ...hunt.spatial,
+          combatEvents: [],
+        },
+      },
+    });
+  },
 
   // ── UI ──
   viewMode: 'main',

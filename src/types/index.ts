@@ -1,6 +1,7 @@
 /* =========================================================
    TYPE DEFINITIONS — 모든 게임 타입 중앙 관리
    ========================================================= */
+import type { SpatialState } from './spatial';
 
 // ── Class ──
 export type PlayerClass = 'knight' | 'elf' | 'wizard';
@@ -217,6 +218,10 @@ export interface HuntSession {
   windShackleTicks: number;    // 윈드 셰클 남은 틱 (몬스터 공격속도 감소)
   regenWaitTicks: number;      // 몬스터 리젠 대기 틱 (접속자 수에 따라 킬 후 대기)
   monsterAtkAccum: number;     // 몬스터 공격 타이머 누적 (ms, atkSpeed 도달 시 공격)
+  // 공간 전투
+  spatial: SpatialState;
+  playerEntityId: string;          // entities에서 플레이어 조회용
+  targetEntityId: string | null;   // 현재 타겟 몬스터 엔티티 ID
 }
 
 // ── Queue & Log ──

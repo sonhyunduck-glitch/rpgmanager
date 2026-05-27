@@ -2,10 +2,11 @@
    HUNT ACTIONS — 사냥 생명주기 (시작/일시정지/부활/층 이동)
    ========================================================= */
 import { HUNT_ZONES, getMonstersForRoom } from '../data/gameData';
-import { getClassBaseStats } from '../data/classData';
+import { getClassBaseStats, getClassCombatStyle } from '../data/classData';
 import { getAvailableSkills, MAX_SKILL_SLOTS } from '../data/playerSkillData';
 import { genLogId } from './helpers';
 import { ROOMS_PER_ZONE } from './storeTypes';
+import { initHuntSpatialState, PLAYER_MOVE_SPEED } from './spatialEngine';
 import { upsertZonePresence, getZonePlayerCount, getZonePlayers, removeZonePresence } from '../lib/db';
 import type { LogEntry } from '../types';
 import type { GameState, SetState, GetState } from './storeTypes';
@@ -19,6 +20,15 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       const state = get();
       if (room < 1 || room > ROOMS_PER_ZONE) return;
       if (room > state.hunt.roomCleared + 1) return;
+      // 방 이동 시 공간 재초기화 (몬스터 종류 변경)
+      const zone = HUNT_ZONES.find(z => z.id === state.hunt.zoneId);
+      const tierMonsters = zone ? getMonstersForRoom(zone, room) : [];
+      const combatStyle = getClassCombatStyle(state.playerClass);
+      const strangersInZone = Math.max(0, (state.zonePlayerCount ?? 1) - 1);
+      const visibleCount = Math.max(1, 15 - strangersInZone);
+      const spatial = initHuntSpatialState(
+        tierMonsters.map(m => m.id), visibleCount, combatStyle, PLAYER_MOVE_SPEED,
+      );
       set({
         hunt: {
           ...state.hunt,
@@ -30,6 +40,8 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           fightStartedAt: 0,
           joinedMonsters: [],
           approachingMonsters: [],
+          spatial,
+          targetEntityId: null,
         },
       });
       save(get());
@@ -78,6 +90,17 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
         timestamp: Date.now(),
       };
 
+      // 공간 상태 초기화 (플레이어 + 몬스터 엔티티 배치)
+      const tierMonsters = getMonstersForRoom(zone, 1);
+      const combatStyle = getClassCombatStyle(state.playerClass);
+      // 접속자 수에 따른 몬스터 리젠 수 (미니맵과 동일 로직)
+      const BASE_VISIBLE = 15;
+      const strangersInZone = Math.max(0, (state.zonePlayerCount ?? 1) - 1);
+      const visibleCount = Math.max(1, BASE_VISIBLE - strangersInZone);
+      const spatial = initHuntSpatialState(
+        tierMonsters.map(m => m.id), visibleCount, combatStyle, PLAYER_MOVE_SPEED,
+      );
+
       set({
         hunt: {
           zoneId,
@@ -108,6 +131,9 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           windShackleTicks: 0,
           regenWaitTicks: 0,
           monsterAtkAccum: 0,
+          spatial,
+          playerEntityId: 'player',
+          targetEntityId: null,
         },
         combatLog: [entry],
       });

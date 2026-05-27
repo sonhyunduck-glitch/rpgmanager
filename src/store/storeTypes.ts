@@ -138,9 +138,6 @@ export interface GameState {
   queue: QueueItem[];
   queueCapacity: number;
 
-  // Movement
-  isPlayerMoving: boolean;
-
   // UI State
   viewMode: ViewMode;
   enhanceResult: EnhanceResult | null;
@@ -190,7 +187,6 @@ export interface GameState {
   sellFromInventory: (uid: string) => void;
   equipFromInventory: (uid: string) => void;
   unequipToInventory: (uid: string) => void;
-  setPlayerMoving: (moving: boolean) => void;
 
   // Shop actions
   buyPotion: (id: string, qty: number) => void;
@@ -212,6 +208,9 @@ export interface GameState {
   unequipSkill: (slotIndex: number) => void;
   autoEquipSkills: () => void;
   toggleSkillEnabled: (skillId: number) => void;
+
+  // Spatial combat
+  consumeCombatEvents: () => void;
 
   // Subclass
   selectSubclass: (subclass: KnightSubclass) => void;
