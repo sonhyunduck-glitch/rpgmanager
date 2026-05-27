@@ -202,7 +202,21 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
     resumeHunt: () => {
       const state = get();
       if (state.currentHp <= 0) return;
-      set({ hunt: { ...state.hunt, status: 'hunting' } });
+      // 공간 상태가 비어있으면 재초기화 (재접속 후 resume 시)
+      let spatial = state.hunt.spatial;
+      if (spatial.entities.size === 0 && state.hunt.zoneId) {
+        const zone = HUNT_ZONES.find(z => z.id === state.hunt.zoneId);
+        if (zone) {
+          const tierMonsters = getMonstersForRoom(zone, state.hunt.currentRoom ?? 1);
+          const combatStyle = getClassCombatStyle(state.playerClass);
+          const strangersInZone = Math.max(0, (state.zonePlayerCount ?? 1) - 1);
+          const visibleCount = Math.max(1, 15 - strangersInZone);
+          spatial = initHuntSpatialState(
+            tierMonsters.map(m => m.id), visibleCount, combatStyle, PLAYER_MOVE_SPEED,
+          );
+        }
+      }
+      set({ hunt: { ...state.hunt, status: 'hunting', spatial, targetEntityId: null, currentTargetId: null } });
       save(get());
     },
 

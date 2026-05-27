@@ -3,7 +3,7 @@
    각 액션 모듈에서 로직을 가져와 조합
    ========================================================= */
 import { create } from 'zustand';
-import { HUNT_ZONES, getBravePotionId } from '../data/gameData';
+import { HUNT_ZONES, getBravePotionId, getMonstersForRoom } from '../data/gameData';
 import { BASE_STATS, startingHp } from '../data/statFormulas';
 import {
   loadState, saveState as _saveState, enforceEpochGate,
@@ -21,7 +21,7 @@ import type {
   StatAllocation, ActiveBuff,
 } from '../types';
 import { getAvailableSkills, MAX_SKILL_SLOTS, PLAYER_SKILLS } from '../data/playerSkillData';
-import { CLASS_CONFIGS } from '../data/classData';
+import { CLASS_CONFIGS, getClassCombatStyle } from '../data/classData';
 
 // ── 분리된 모듈 ──
 import type { GameState } from './storeTypes';
@@ -30,7 +30,7 @@ import { createHuntActions } from './huntActions';
 import { createCombatTick } from './combatTick';
 import { createEquipActions } from './equipActions';
 import { createShopActions } from './shopActions';
-import { createEmptySpatialState, tickSpatialUpdate } from './spatialEngine';
+import { createEmptySpatialState, initHuntSpatialState, tickSpatialUpdate, PLAYER_MOVE_SPEED } from './spatialEngine';
 
 // Re-export GameState for consumers
 export type { GameState } from './storeTypes';
@@ -429,7 +429,21 @@ export const useGameStore = create<GameState>((set, get) => ({
       regenWaitTicks: h.regenWaitTicks ?? 0,
       monsterAtkAccum: h.monsterAtkAccum ?? 0,
       // 공간 상태 (Map은 JSON 직렬화 불가 — 항상 새로 생성)
-      spatial: createEmptySpatialState(),
+      // hunting 중 재접속이면 몬스터 엔티티 배치 필요
+      spatial: (() => {
+        if (h.status === 'hunting' && h.zoneId) {
+          const z = HUNT_ZONES.find(z => z.id === h.zoneId);
+          if (z) {
+            const room = h.currentRoom ?? 1;
+            const tm = getMonstersForRoom(z, room);
+            const pc = (saved?.playerClass as string) ?? 'knight';
+            const cs = getClassCombatStyle(pc as import('../types').PlayerClass);
+            const vis = Math.max(1, 15);
+            return initHuntSpatialState(tm.map(m => m.id), vis, cs, PLAYER_MOVE_SPEED);
+          }
+        }
+        return createEmptySpatialState();
+      })(),
       playerEntityId: 'player',
       targetEntityId: null,
     } as HuntSession;
