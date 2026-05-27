@@ -266,6 +266,8 @@ export interface ActiveBuff {
   hitBonus?: number;           // Hit rate bonus
   dmgBonus?: number;           // Damage bonus
   fireDmgBonus?: number;       // Fire element damage added to attacks
+  strBonus?: number;           // STR bonus (인챈트 마이티 등)
+  dexBonus?: number;           // DEX bonus (인챈트 덱스터리티 등)
 }
 
 // ── Enhance ──

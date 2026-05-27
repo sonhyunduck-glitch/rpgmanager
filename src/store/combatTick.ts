@@ -303,6 +303,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             hitBonus: pb.buffEffect?.hitBonus,
             dmgBonus: pb.buffEffect?.dmgBonus,
             fireDmgBonus: pb.buffEffect?.fireDmgBonus,
+            strBonus: pb.buffEffect?.strBonus,
+            dexBonus: pb.buffEffect?.dexBonus,
           });
         }
       }
@@ -398,6 +400,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             hitBonus: buff.buffEffect?.hitBonus,
             dmgBonus: buff.buffEffect?.dmgBonus,
             fireDmgBonus: buff.buffEffect?.fireDmgBonus,
+            strBonus: buff.buffEffect?.strBonus,
+            dexBonus: buff.buffEffect?.dexBonus,
           });
           skillCooldowns[buff.id] = now + (buff.reuseDelayMs || 3000);
           const matLabel = buff.consumeItemId === 40319 ? '정령옥' : buff.consumeItemId === 40318 ? '마력의돌' : '';
@@ -486,19 +490,20 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
 
       // ── 스킬 버프 보너스 수집 ──
-      const skillBuffHit = newActiveBuffs
-        .filter(b => b.skillId && b.expiresAt > now)
-        .reduce((s, b) => s + (b.hitBonus ?? 0), 0);
-      const skillBuffDmg = newActiveBuffs
-        .filter(b => b.skillId && b.expiresAt > now)
-        .reduce((s, b) => s + (b.dmgBonus ?? 0), 0);
-      const skillBuffFireDmg = newActiveBuffs
-        .filter(b => b.skillId && b.expiresAt > now)
-        .reduce((s, b) => s + (b.fireDmgBonus ?? 0), 0);
-      const skillBuffAc = newActiveBuffs
-        .filter(b => b.skillId && b.expiresAt > now)
-        .reduce((s, b) => s + (b.acBonus ?? 0), 0);
-      const effectivePlayerAC = playerAC + skillBuffAc;
+      const activeSkillBuffs = newActiveBuffs.filter(b => b.skillId && b.expiresAt > now);
+      const skillBuffHit = activeSkillBuffs.reduce((s, b) => s + (b.hitBonus ?? 0), 0);
+      const skillBuffDmg = activeSkillBuffs.reduce((s, b) => s + (b.dmgBonus ?? 0), 0);
+      const skillBuffFireDmg = activeSkillBuffs.reduce((s, b) => s + (b.fireDmgBonus ?? 0), 0);
+      const skillBuffAc = activeSkillBuffs.reduce((s, b) => s + (b.acBonus ?? 0), 0);
+      const skillBuffStr = activeSkillBuffs.reduce((s, b) => s + (b.strBonus ?? 0), 0);
+      const skillBuffDex = activeSkillBuffs.reduce((s, b) => s + (b.dexBonus ?? 0), 0);
+      // 버프 적용된 유효 스탯 (인챈트 마이티 STR+5, 인챈트 덱스터리티 DEX+5 등)
+      const effectiveStr = playerStr + skillBuffStr;
+      const effectiveDex = playerDex + skillBuffDex;
+      // DEX 버프가 AC에도 영향 → 유효 AC 재계산
+      const effectivePlayerAC = (skillBuffDex > 0
+        ? finalAC(armorDef, state.level, effectiveDex, state.playerClass)
+        : playerAC) + skillBuffAc;
 
       // ── 플레이어 → 몬스터 공격 (3갈래 분기 — L1J D20) ──
       const isUndead = monster.undead && state.equippedWeapon?.bonuses?.undeadSlayer;
@@ -528,7 +533,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         usedSpellName = CLASS_CONFIGS[state.playerClass].atkName;
         const hitBonusForBow = combatStyle === 'ranged_bow' ? equipBonusBowHit : 0;
         const hitRate = calcPlayerHitRate(
-          state.level, playerStr, playerDex,
+          state.level, effectiveStr, effectiveDex,
           weaponEnchant, equipBonusHit + hitBonusForBow + skillBuffHit,
         );
         const { hit } = rollD20PcNpcHit(hitRate, monster.ac);
@@ -537,7 +542,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         if (hit) {
           if (combatStyle === 'ranged_bow') {
             // 요정: DEX 기반 활 대미지
-            const bowDmg = rollBowDamage(weaponBaseDmg, state.level, weaponEnchant, playerDex);
+            const bowDmg = rollBowDamage(weaponBaseDmg, state.level, weaponEnchant, effectiveDex);
             // 은 화살 소모 (L1J L1Attack.java — 매 발사마다 1개 소모)
             // 기본 대미지: dmg_small=7 → random(0~6)+1 = 1~7
             // 은 재질 vs 언데드: random(0~19)+1 = 1~20 추가 (calcMaterialBlessDmg)
@@ -554,7 +559,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             finalDmg = bowDmg + equipBonusExtraDmg + equipBonusBowDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus + silverArrowDmg;
           } else {
             // 기사: STR 기반 근접 대미지
-            finalDmg = rollDamage(weaponBaseDmg, state.level, weaponEnchant, playerStr)
+            finalDmg = rollDamage(weaponBaseDmg, state.level, weaponEnchant, effectiveStr)
               + equipBonusExtraDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
           }
           isCrit = secureRandom() < 0.1;
@@ -634,7 +639,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               // 트리플 애로우: 3회 활 공격
               let tripleTotal = 0;
               for (let i = 0; i < 3; i++) {
-                const bowDmg = rollBowDamage(weaponBaseDmg, state.level, weaponEnchant, playerDex);
+                const bowDmg = rollBowDamage(weaponBaseDmg, state.level, weaponEnchant, effectiveDex);
                 const arrowDmg = bowDmg + equipBonusExtraDmg + equipBonusBowDmg + skillBuffDmg + skillBuffFireDmg;
                 tripleTotal += arrowDmg;
               }
@@ -672,7 +677,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               // 공격형 기사: STR 기반 물리 스킬 (MR 무시)
               const physDmg = rollPhysicalSkillDamage(
                 classSkill.damageValue, classSkill.damageDice, classSkill.damageDiceCount,
-                state.level, weaponEnchant, playerStr,
+                state.level, weaponEnchant, effectiveStr,
               );
               const physFinal = physDmg + equipBonusExtraDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
               monsterHp = Math.max(0, monsterHp - physFinal);

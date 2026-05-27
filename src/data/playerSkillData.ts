@@ -40,6 +40,8 @@ export interface PlayerSkill {
     hitBonus?: number;           // 명중 보너스
     dmgBonus?: number;           // 추가 대미지
     fireDmgBonus?: number;       // 화염 속성 대미지 추가
+    strBonus?: number;           // STR 보너스 (인챈트 마이티, L1J +5 STR)
+    dexBonus?: number;           // DEX 보너스 (인챈트 덱스터리티, L1J +5 DEX)
   };
   passive?: boolean;              // true = 패시브 (습득 즉시 상시 적용, MP 0)
   subclassRestriction?: import('../types').KnightSubclass;  // 기사 서브클래스 제한
@@ -63,41 +65,6 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   // ── 서클 1 ────────────────────────────────────────────────────────────────
   // ⚠️ 에너지 볼트(id:4)는 마법사 기본 공격으로 분리됨 (MP 미소모, classData.atkName)
   // 스킬 슬롯에 장착하는 시전 마법이 아님
-  // 공격
-  {
-    id: 6,
-    name: '아이스 대거',
-    skillCategory: 'magic',
-    skillCircle: 1,
-    consumeMp: 4,
-    reuseDelayMs: 0, // L1J reuse_delay: 10ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 10,
-    damageDice: 10,
-    damageDiceCount: 1,
-    attr: 4, // 물
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '얼음 단검을 발사',
-  },
-  {
-    id: 7,
-    name: '윈드 커터',
-    skillCategory: 'magic',
-    skillCircle: 1,
-    consumeMp: 4,
-    reuseDelayMs: 0,
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 10,
-    damageDice: 10,
-    damageDiceCount: 1,
-    attr: 8, // 바람
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '바람의 칼날을 발사',
-  },
   // 힐
   {
     id: 1,
@@ -157,69 +124,16 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   },
 
   // ── 서클 2 ────────────────────────────────────────────────────────────────
-  {
-    id: 15,
-    name: '파이어 애로우',
-    skillCategory: 'magic',
-    skillCircle: 2,
-    consumeMp: 6,
-    reuseDelayMs: 0,
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 10,
-    damageDice: 10,
-    damageDiceCount: 2,
-    attr: 2, // 불
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '화염 화살을 발사',
-  },
-  {
-    id: 16,
-    name: '스탈락',
-    skillCategory: 'magic',
-    skillCircle: 2,
-    consumeMp: 6,
-    reuseDelayMs: 0,
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 10,
-    damageDice: 10,
-    damageDiceCount: 2,
-    attr: 1, // 땅
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '암석을 떨어뜨려 공격',
-  },
-  // 공격
-  {
-    id: 10,
-    name: '칠 터치',
-    skillCategory: 'magic',
-    skillCircle: 2,
-    consumeMp: 8,
-    reuseDelayMs: 0, // L1J reuse_delay: 0ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 10,
-    damageDice: 10,
-    damageDiceCount: 2,
-    attr: 4, // 물
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '냉기의 손길로 공격',
-  },
   // 버프
   {
     id: 12,
     name: '인챈트 웨폰',
     skillCategory: 'magic',
     skillCircle: 2,
-    consumeMp: 0,
+    consumeMp: 20,             // L1J 원본
     reuseDelayMs: 0,
-    buffDuration: 0,
+    buffDuration: 1800,        // L1J 원본 30분
     skillType: 'buff',
-    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -227,55 +141,20 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     buffEffect: { dmgBonus: 2 },
     classes: ['wizard'],
     requiredLevel: 1,
-    description: '무기를 마법으로 강화 (+2 추가 대미지)',
+    description: '무기를 마법으로 강화 (+2 추가 대미지, 30분)',
   },
 
   // ── 서클 3 ────────────────────────────────────────────────────────────────
-  {
-    id: 17,
-    name: '라이트닝',
-    skillCategory: 'magic',
-    skillCircle: 3,
-    consumeMp: 20,
-    reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 0,
-    damageDice: 10,
-    damageDiceCount: 4,
-    attr: 8, // 바람
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '번개를 내리쳐 공격',
-  },
-  {
-    id: 22,
-    name: '프로즌 클라우드',
-    skillCategory: 'magic',
-    skillCircle: 3,
-    consumeMp: 20,
-    reuseDelayMs: 3000, // L1J reuse_delay: 300ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 0,
-    damageDice: 4,
-    damageDiceCount: 8,
-    attr: 4, // 물
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '얼음 구름으로 공격',
-  },
   // 버프
   {
     id: 21,
     name: '블레스드 아머',
     skillCategory: 'magic',
     skillCircle: 3,
-    consumeMp: 0,
+    consumeMp: 20,             // L1J 원본
     reuseDelayMs: 0,
-    buffDuration: 0,
+    buffDuration: 1800,        // L1J 원본 30분
     skillType: 'buff',
-    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
@@ -283,7 +162,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     buffEffect: { acBonus: -3 },
     classes: ['wizard'],
     requiredLevel: 1,
-    description: '방어구를 마법으로 강화 (AC -3)',
+    description: '방어구를 마법으로 강화 (AC -3, 30분)',
   },
   // 힐
   {
@@ -322,78 +201,27 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 1,
     description: '거대한 화염구를 발사',
   },
-  {
-    id: 28,
-    name: '뱀파이어릭 터치',
-    skillCategory: 'magic',
-    skillCircle: 4,
-    consumeMp: 12,
-    reuseDelayMs: 0, // L1J reuse_delay: 100ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 15,
-    damageDice: 10,
-    damageDiceCount: 3,
-    attr: 4, // 물
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '생명력을 흡수하는 어둠의 손길',
-  },
-  {
-    id: 30,
-    name: '어스 재일',
-    skillCategory: 'magic',
-    skillCircle: 4,
-    consumeMp: 24,
-    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 0,
-    damageDice: 8,
-    damageDiceCount: 5,
-    attr: 1, // 땅
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '대지의 감옥으로 공격',
-  },
   // 버프
   {
     id: 26,
     name: '인챈트 덱스터리티',
     skillCategory: 'magic',
     skillCircle: 4,
-    consumeMp: 0,
+    consumeMp: 50,             // L1J 원본
     reuseDelayMs: 0,
-    buffDuration: 0,
+    buffDuration: 1200,        // L1J 원본 20분
     skillType: 'buff',
-    passive: true,
     damageValue: 0,
     damageDice: 0,
     damageDiceCount: 0,
     attr: 8, // 바람
-    classes: ['wizard'],
+    buffEffect: { dexBonus: 5 }, // L1J 원본: +5 DEX
+    classes: ['wizard', 'elf'],  // L1J: 엘프 C4 접근 가능
     requiredLevel: 1,
-    description: '민첩성 증가 버프',
+    description: 'DEX +5 증가 (20분)',
   },
 
   // ── 서클 5 ────────────────────────────────────────────────────────────────
-  {
-    id: 34,
-    name: '콜 라이트닝',
-    skillCategory: 'magic',
-    skillCircle: 5,
-    consumeMp: 18,
-    reuseDelayMs: 3000, // L1J reuse_delay: 400ms (콘 오브 콜드와 동일 서클)
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 40,
-    damageDice: 8,
-    damageDiceCount: 5,
-    attr: 8, // 바람
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '강력한 낙뢰를 소환',
-  },
   {
     id: 38,
     name: '콘 오브 콜드',
@@ -431,11 +259,50 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
   },
 
   // ── 서클 6 ────────────────────────────────────────────────────────────────
+  // 버프
+  {
+    id: 42,
+    name: '인챈트 마이티',
+    skillCategory: 'magic',
+    skillCircle: 6,
+    consumeMp: 50,             // L1J 원본
+    reuseDelayMs: 0,
+    buffDuration: 1200,        // L1J 원본 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 2, // 불
+    buffEffect: { strBonus: 5 }, // L1J 원본: +5 STR
+    classes: ['wizard', 'elf'],  // L1J: 엘프 C6 접근 가능
+    requiredLevel: 1,
+    description: 'STR +5 증가 (20분)',
+  },
+  {
+    id: 43,
+    name: '헤이스트',
+    skillCategory: 'magic',
+    skillCircle: 6,
+    consumeMp: 40,             // L1J 원본
+    reuseDelayMs: 0,
+    buffDuration: 1200,        // L1J 원본 20분
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 8, // 바람
+    buffEffect: { atkSpeedMult: 1.33, moveSpeedMult: 1.33 },
+    classes: ['wizard', 'elf'],
+    requiredLevel: 1,
+    description: '공격·이동 속도 33% 증가 (20분)',
+  },
+
+  // ── 서클 7 ────────────────────────────────────────────────────────────────
   {
     id: 45,
     name: '이럽션',
     skillCategory: 'magic',
-    skillCircle: 6,
+    skillCircle: 7,            // C6→C7 이동
     consumeMp: 20,
     reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
@@ -444,121 +311,12 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 3,
     damageDiceCount: 5,
     attr: 1, // 땅
-    classes: ['wizard'],
+    classes: ['wizard'],       // C7 = 위저드 전용
     requiredLevel: 1,
     description: '지면을 폭발시켜 공격',
   },
-  {
-    id: 46,
-    name: '선 버스트',
-    skillCategory: 'magic',
-    skillCircle: 6,
-    consumeMp: 20,
-    reuseDelayMs: 3000, // L1J reuse_delay: 500ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 40,
-    damageDice: 5,
-    damageDiceCount: 16,
-    attr: 2, // 불
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '태양의 불꽃으로 공격',
-  },
-  // 버프
-  {
-    id: 43,
-    name: '헤이스트',
-    skillCategory: 'magic',
-    skillCircle: 6,
-    consumeMp: 0,
-    reuseDelayMs: 0,
-    buffDuration: 0,
-    skillType: 'buff',
-    passive: true,
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 8, // 바람
-    buffEffect: { atkSpeedMult: 1.33, moveSpeedMult: 1.33 },
-    classes: ['wizard', 'elf'],
-    requiredLevel: 1,
-    description: '공격·이동 속도 33% 증가',
-  },
-  {
-    id: 42,
-    name: '인챈트 마이티',
-    skillCategory: 'magic',
-    skillCircle: 6,
-    consumeMp: 0,
-    reuseDelayMs: 0,
-    buffDuration: 0,
-    skillType: 'buff',
-    passive: true,
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 2, // 불
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '힘 증가 버프',
-  },
-
-  // ── 서클 7 ────────────────────────────────────────────────────────────────
-  {
-    id: 50,
-    name: '아이스 랜스',
-    skillCategory: 'magic',
-    skillCircle: 7,
-    consumeMp: 36,
-    reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 50,
-    damageDice: 5,
-    damageDiceCount: 6,
-    attr: 4, // 물
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '얼음 창을 투척',
-  },
-  {
-    id: 53,
-    name: '토네이도',
-    skillCategory: 'magic',
-    skillCircle: 7,
-    consumeMp: 40,
-    reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 20,
-    damageDice: 10,
-    damageDiceCount: 5,
-    attr: 8, // 바람
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '거대한 회오리바람으로 공격',
-  },
 
   // ── 서클 8 ────────────────────────────────────────────────────────────────
-  // 공격
-  {
-    id: 58,
-    name: '파이어월',
-    skillCategory: 'magic',
-    skillCircle: 8,
-    consumeMp: 60,
-    reuseDelayMs: 0, // L1J reuse_delay: 0ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 41,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 2, // 불
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '화염의 벽으로 공격',
-  },
   {
     id: 59,
     name: '블리자드',
@@ -575,23 +333,6 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     classes: ['wizard'],
     requiredLevel: 1,
     description: '눈보라를 소환하여 광역 공격',
-  },
-  {
-    id: 62,
-    name: '어스 퀘이크',
-    skillCategory: 'magic',
-    skillCircle: 8,
-    consumeMp: 40,
-    reuseDelayMs: 3000, // L1J reuse_delay: 500ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 40,
-    damageDice: 10,
-    damageDiceCount: 6,
-    attr: 1, // 땅
-    classes: ['wizard'],
-    requiredLevel: 1,
-    description: '대지진으로 광역 공격',
   },
   // 힐
   {
