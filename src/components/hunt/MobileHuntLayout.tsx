@@ -13,7 +13,7 @@
    사냥 화면은 MobileShell 없이 독립 전체화면.
    다른 페이지 이동은 하단 네비 바 통해서.
    ========================================================= */
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { HUNT_ZONES, getBravePotionId } from '../../data/gameData';
 import { CLASS_CONFIGS } from '../../data/classData';
@@ -24,8 +24,31 @@ import HuntMetrics from './HuntMetrics';
 import HpPotionModal from './HpPotionModal';
 import TransformScrollModal from './TransformScrollModal';
 import MiniChatFeed from './MiniChatFeed';
-import { useTimer } from './BuffPotionButton';
 import type { ViewMode } from '../../types';
+
+/* ── 물약 쿨다운 RAF 훅 (60fps 부드러운 프로그레스) ── */
+function usePotionCooldown(lastUsedAt: number, cooldownMs: number): number {
+  const [progress, setProgress] = useState(0);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    if (cooldownMs <= 0 || lastUsedAt <= 0) {
+      setProgress(0);
+      return;
+    }
+    const endAt = lastUsedAt + cooldownMs;
+    const tick = () => {
+      const remaining = Math.max(0, endAt - Date.now());
+      const p = remaining / cooldownMs;
+      setProgress(p);
+      if (p > 0) rafRef.current = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [lastUsedAt, cooldownMs]);
+
+  return progress;
+}
 
 /* ── 가격 포맷 ── */
 function fmtG(n: number): string {
@@ -134,10 +157,8 @@ export default function MobileHuntLayout() {
     ? (materials['event_transform_scroll'] ?? 0)
     : (materials['transform_scroll'] ?? 0);
 
-  /* ── 물약 쿨다운 오버레이 ── */
-  const potionCdRemainMs = Math.max(0, (lastPotionUsedAt + (lastPotionCooldownMs || 3000)) - Date.now());
-  const potionCdProgress = lastPotionCooldownMs > 0 ? potionCdRemainMs / lastPotionCooldownMs : 0;
-  useTimer(potionCdProgress > 0);
+  /* ── 물약 쿨다운 오버레이 (RAF 60fps) ── */
+  const potionCdProgress = usePotionCooldown(lastPotionUsedAt, lastPotionCooldownMs || 3000);
 
   /* ── 현재 사냥터 이름 ── */
   const zoneName = zone?.name ?? '대기중';
@@ -505,7 +526,6 @@ export default function MobileHuntLayout() {
                 strokeDasharray={`${2 * Math.PI * 18}`}
                 strokeDashoffset={`${2 * Math.PI * 18 * (1 - potionCdProgress)}`}
                 transform="rotate(-90 22 22)"
-                style={{ transition: 'stroke-dashoffset 0.1s linear' }}
               />
             </svg>
           )}
