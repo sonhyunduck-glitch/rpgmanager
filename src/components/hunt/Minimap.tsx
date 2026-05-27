@@ -885,6 +885,42 @@ export default function Minimap() {
                   {'⚔️'}
                 </span>
               )}
+              {/* 선공 링 — 닷 뒤에 붉은 외곽 링 (선공 몬스터만) */}
+              {isAggressive && !isDead && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: (isCurrentTarget || isJoined)
+                      ? (isLarge ? 'calc(var(--mm-dot-active-lg) + 5px)' : 'calc(var(--mm-dot-active) + 5px)')
+                      : (isLarge ? 'calc(var(--mm-dot-lg) + 5px)' : 'calc(var(--mm-dot) + 5px)'),
+                    height: (isCurrentTarget || isJoined)
+                      ? (isLarge ? 'calc(var(--mm-dot-active-lg) + 5px)' : 'calc(var(--mm-dot-active) + 5px)')
+                      : (isLarge ? 'calc(var(--mm-dot-lg) + 5px)' : 'calc(var(--mm-dot) + 5px)'),
+                    borderRadius: '50%',
+                    border: '1.5px solid rgba(255,70,70,0.5)',
+                    animation: 'mmAggroGlow 2s ease-in-out infinite',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+              {/* 비선공 링 — 은은한 외곽 링 (비선공 몬스터만) */}
+              {!isAggressive && !isDead && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: (isCurrentTarget || isJoined)
+                      ? (isLarge ? 'calc(var(--mm-dot-active-lg) + 4px)' : 'calc(var(--mm-dot-active) + 4px)')
+                      : (isLarge ? 'calc(var(--mm-dot-lg) + 4px)' : 'calc(var(--mm-dot) + 4px)'),
+                    height: (isCurrentTarget || isJoined)
+                      ? (isLarge ? 'calc(var(--mm-dot-active-lg) + 4px)' : 'calc(var(--mm-dot-active) + 4px)')
+                      : (isLarge ? 'calc(var(--mm-dot-lg) + 4px)' : 'calc(var(--mm-dot) + 4px)'),
+                    borderRadius: '50%',
+                    border: `1px solid ${dotColor}55`,
+                    boxShadow: `0 0 3px ${dotColor}33`,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
               {/* 닷 — large 몬스터는 큰 닷 */}
               <div
                 style={{
@@ -903,18 +939,8 @@ export default function Minimap() {
                     ? `0 0 8px ${dotColor}`
                     : isJoined
                       ? `0 0 6px ${dotColor}`
-                      : isAggressive
-                        ? `0 0 5px 1px rgba(255,60,60,0.55), inset 0 0 2px rgba(255,60,60,0.3)`
-                        : `0 0 4px 1px ${dotColor}44`,
-                  border: isDead ? 'none'
-                    : isAggressive
-                      ? '1px solid rgba(255,70,70,0.6)'
-                      : '1px solid rgba(255,255,255,0.18)',
-                  animation: (isCurrentTarget || isJoined) && isHunting
-                    ? 'mmMonsterPulse 1s infinite'
-                    : isAggressive && !isDead
-                      ? 'mmAggroGlow 2s ease-in-out infinite'
-                      : 'none',
+                      : `0 0 4px 1px ${dotColor}33`,
+                  animation: (isCurrentTarget || isJoined) && isHunting ? 'mmMonsterPulse 1s infinite' : 'none',
                 }}
               />
             </div>
@@ -1395,8 +1421,8 @@ export default function Minimap() {
           50% { transform: translateY(-3px); }
         }
         @keyframes mmAggroGlow {
-          0%, 100% { box-shadow: 0 0 5px 1px rgba(255,60,60,0.55), inset 0 0 2px rgba(255,60,60,0.3); }
-          50% { box-shadow: 0 0 8px 2px rgba(255,60,60,0.75), inset 0 0 3px rgba(255,60,60,0.5); }
+          0%, 100% { box-shadow: 0 0 3px 0px rgba(255,60,60,0.3); border-color: rgba(255,70,70,0.45); }
+          50% { box-shadow: 0 0 6px 1px rgba(255,60,60,0.6); border-color: rgba(255,70,70,0.75); }
         }
         @keyframes mmBurst {
           0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.5); }
