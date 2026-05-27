@@ -27,21 +27,18 @@ const MONSTER_MOVE_RANGE_M = 2;      // 이동 반경 (m)
 const ATTACK_RANGE_M = 8;           // 원거리 공격 거리 (m)
 const ATTACK_RANGE_PCT = (ATTACK_RANGE_M / MAP_SIZE_M) * 100; // 16%
 
-/* ── 몬스터 색상 팔레트 (12색) ── */
-const MONSTER_PALETTE = [
-  '#ef5350', // red
-  '#ff7043', // orange
-  '#ffa726', // amber
-  '#66bb6a', // green
-  '#26a69a', // teal
-  '#42a5f5', // blue
-  '#7e57c2', // purple
-  '#ec407a', // pink
-  '#26c6da', // cyan
-  '#8d6e63', // brown
-  '#78909c', // blue-grey
-  '#d4e157', // lime
-];
+/* ── 몬스터 색상: 이름 해시 → HSL 고정 색상 ──
+   같은 이름 = 어느 존에서든 같은 색상
+   HSL hue를 황금각(137.508°)으로 분산 → 인접 몬스터도 색 겹침 최소화 */
+function monsterNameToColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  }
+  // 황금각 기반 hue 분산 (0~360)
+  const hue = ((hash >>> 0) * 137.508) % 360;
+  return `hsl(${Math.round(hue)}, 70%, 60%)`;
+}
 
 /* ── 타입 ── */
 interface MapDot {
@@ -299,11 +296,11 @@ export default function Minimap() {
   }, [getMoveSpeedMult]);
 
 
-  /* ── 몬스터별 색상 맵 (티어 필터링된 몬스터 기준) ── */
+  /* ── 몬스터별 색상 맵 (이름 해시 기반 — 전역 고정) ── */
   const monsterColorMap = useMemo(() => {
     const map = new Map<number, string>();
-    tierMonsters.forEach((_, i) => {
-      map.set(i, MONSTER_PALETTE[i % MONSTER_PALETTE.length]);
+    tierMonsters.forEach((m, i) => {
+      map.set(i, monsterNameToColor(m.name));
     });
     return map;
   }, [tierMonsters]);
