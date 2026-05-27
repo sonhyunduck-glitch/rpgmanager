@@ -12,7 +12,7 @@ import {
 import {
   setSyncUserId, setStateGetter, setStoreSetter, markDirty,
   syncProfile, syncAllItems, syncMaterials, syncPotions,
-  loadFromDB, flushNow,
+  loadFromDB, flushNow, stampLastActive,
 } from '../lib/dbSync';
 import { calcOfflineReward } from '../lib/db';
 import { safeNumber } from '../lib/utils';
@@ -245,7 +245,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     // 오프라인 보상
-    if (dbData?.profile) {
+    // 1) localStorage에 미수령 보상이 있으면 그것을 복원 (stampLastActive 이후 새로고침 케이스)
+    const cachedReward = saved?.offlineReward as import('../lib/db').OfflineReward | null;
+    if (cachedReward && cachedReward.kills > 0) {
+      set({ offlineReward: cachedReward });
+    } else if (dbData?.profile) {
+      // 2) 캐시 없으면 DB last_active_at 기반으로 새로 계산
       const p = dbData.profile as Record<string, any>;
       const lastZoneId = p.last_zone_id as string | null;
       const lastActiveAt = p.last_active_at as string;
@@ -266,7 +271,13 @@ export const useGameStore = create<GameState>((set, get) => ({
           level: s.level,
         },
       );
-      if (reward) set({ offlineReward: reward });
+      if (reward) {
+        set({ offlineReward: reward });
+        // ⚠️ 즉시 last_active_at 갱신 — 새로고침 시 중복 보상 방지
+        //    보상은 localStorage + offlineReward 상태에 보관되어 있으므로
+        //    수령 전 새로고침해도 DB 재계산 되지 않고 캐시에서 복원
+        stampLastActive(userId).catch(() => {});
+      }
     }
 
     set({ dbReady: true });
@@ -490,7 +501,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     saveState(get());
     void flushNow(); // 즉시 DB 동기화 → last_active_at 갱신 (재접속 시 중복 보상 방지)
   },
-  dismissOfflineReward: () => set({ offlineReward: null }),
+  dismissOfflineReward: () => {
+    set({ offlineReward: null });
+    _saveState(get());
+  },
 
   // ── Skill Actions ──
   equipSkill: (skillId: number, slotIndex: number) => {

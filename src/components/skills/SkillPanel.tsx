@@ -685,7 +685,6 @@ export default function SkillPanel() {
                       {sk.skillType === 'buff' && sk.buffDuration > 0 && (
                         <SheetStatCell k="지속" v={`${Math.floor(sk.buffDuration / 60)}분`} vColor="var(--info)" />
                       )}
-                      <SheetStatCell k="사거리" v="8M" />
                       <SheetStatCell k="시전" v="즉시" />
                     </>
                   )}

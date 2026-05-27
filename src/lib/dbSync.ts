@@ -347,6 +347,15 @@ async function heartbeatOnly() {
   } catch { /* ignore */ }
 }
 
+/** last_active_at 즉시 갱신 (오프라인 보상 계산 직후 호출 — 새로고침 중복 방지) */
+export async function stampLastActive(userId: string) {
+  try {
+    await supabase.from('profiles').update({
+      last_active_at: new Date().toISOString(),
+    }).eq('id', userId);
+  } catch { /* ignore */ }
+}
+
 /** 존 접속자 수 + 목록 갱신 (30초마다 호출) */
 async function refreshZonePlayerCount() {
   if (!_userId || !_getState || !_setStore) return;

@@ -3,6 +3,7 @@
    gameStore.ts 에서 분리된 순수 함수 & 상수
    ========================================================= */
 import type { Equipment, HuntSession, QueueItem, StatAllocation, ActiveBuff, PlayerClass, KnightSubclass } from '../types';
+import type { OfflineReward } from '../lib/db';
 import { EQUIPMENT_TEMPLATES } from '../data/gameData';
 import { APP_EPOCH } from '../lib/version';
 
@@ -154,6 +155,7 @@ export function saveState(state: {
   transformScrollType?: 'normal' | 'event';
   equippedSkills: number[];
   disabledSkills?: number[];
+  offlineReward?: OfflineReward | null;
 }): void {
   try {
     const {
@@ -168,6 +170,7 @@ export function saveState(state: {
       activeBuffs,
       bluePotionEnabled, greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
       equippedSkills, disabledSkills,
+      offlineReward,
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       epoch: APP_EPOCH,
@@ -183,6 +186,7 @@ export function saveState(state: {
       activeBuffs,
       bluePotionEnabled, greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
       equippedSkills, disabledSkills,
+      offlineReward: offlineReward ?? null,
     }));
   } catch {
     /* localStorage may be full or unavailable — silently ignore */
