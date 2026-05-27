@@ -538,7 +538,7 @@ function buildAllMonsters(): Monster[] {
       damDiceSides: monsterDamDiceSides(size, name),
       extraDam,
       ...(undead > 0 ? { undead: true } : {}),
-      aggressive: agro > 0,
+      aggressive: agro > 0 || level >= 30,  // Lv.30+ 몬스터는 모두 선공
       moveSpeed: moveSpd <= 0 ? 0.8 : Math.max(0.4, Math.min(1.0, moveSpd / 1600)),
       atkSpeed: atkSpd || 1200,
       expReward: exp,
@@ -588,6 +588,7 @@ interface ZoneSource {
   requiredLevel: number;
   zoneType: 'field' | 'dungeon';
   npcIds: number[];
+  floors?: number; // 층수 직접 지정 (미지정 시 레벨 범위로 자동 계산)
 }
 
 // 훈련소 (튜토리얼 존 — Lv12까지 빠른 성장)
@@ -631,9 +632,7 @@ const DUNGEON_SOURCES: ZoneSource[] = [
   { id: 'dg_532',  name: '라스타바드 성역',     levelRange: [45, 49], requiredLevel: 45, zoneType: 'dungeon', npcIds: [45978,45979,45980,45982,45983,45984,45985,45986,45987,45988,45989,45991,45992,45994,45995] },
   { id: 'dg_0',    name: '기란 감옥',          levelRange: [16, 60], requiredLevel: 16, zoneType: 'dungeon', npcIds: [99038,99039,99041,99042,99043,99044,99045,99048,99049,99050,99051,99052,99054,99055,99056,99057,99058,99060,99061,99063,99064,99066,99067,99068,99069,99081,99268] },
   { id: 'dg_534',  name: '라스타바드',         levelRange: [50, 55], requiredLevel: 50, zoneType: 'dungeon', npcIds: [45996,45998,45999,46000,46001,46003,46007,46008,46009,46014] },
-  { id: 'dg_78',   name: '상아탑 1층',         levelRange: [50, 55], requiredLevel: 50, zoneType: 'dungeon', npcIds: [46168,46169,46170,46171,46172,46173,46174,46175,46176] },
-  { id: 'dg_79',   name: '상아탑 2층',         levelRange: [50, 58], requiredLevel: 50, zoneType: 'dungeon', npcIds: [46169,46177,46178,46179,46180,46181,46182] },
-  { id: 'dg_80',   name: '상아탑 3층',         levelRange: [50, 60], requiredLevel: 50, zoneType: 'dungeon', npcIds: [46169,46182,46183,46184,46185,46186,46187] },
+  { id: 'dg_78',   name: '상아탑',             levelRange: [50, 60], requiredLevel: 50, zoneType: 'dungeon', floors: 11, npcIds: [46168,46169,46170,46171,46172,46173,46174,46175,46176,46177,46178,46179,46180,46181,46182,46183,46184,46185,46186,46187] },
   { id: 'dg_783',  name: '자드 섬',           levelRange: [6, 60],  requiredLevel: 6,  zoneType: 'dungeon', npcIds: [90500,90501,90502,90503,90504,90505,90506,90507,90508,90509,90510,90511,90512,90513,90514,90515,90516,90517] },
   { id: 'dg_1002', name: '용의 서식지',        levelRange: [38, 70], requiredLevel: 38, zoneType: 'dungeon', npcIds: [91157,91158,91159,91160,91161,91162,91163,91164,91165,91173,91174,91180,91181,91182,91183] },
   { id: 'dg_1020', name: '페르티아',          levelRange: [63, 65], requiredLevel: 63, zoneType: 'dungeon', npcIds: [91606,91607,91608,91609,91610,91611,91612,91613,91614] },
@@ -660,26 +659,41 @@ function buildDungeonFloors(src: ZoneSource): ZoneDef[] {
 
   let maxFloor: number;
   let dungeonSize: 'small' | 'medium' | 'large';
-  if (span <= 8) { maxFloor = 3; dungeonSize = 'small'; }
+  if (src.floors) {
+    // 층수 직접 지정
+    maxFloor = src.floors;
+    dungeonSize = maxFloor <= 3 ? 'small' : maxFloor <= 7 ? 'medium' : 'large';
+  } else if (span <= 8) { maxFloor = 3; dungeonSize = 'small'; }
   else if (span <= 15) { maxFloor = 5; dungeonSize = 'medium'; }
   else { maxFloor = 7; dungeonSize = 'large'; }
 
   const floorSpan = span / maxFloor;
-  return Array.from({ length: maxFloor }, (_, f) => ({
-    id: `${src.id}_${f + 1}f`,
-    name: `${src.name} ${f + 1}F`,
-    levelRange: [
-      Math.round(lvMin + floorSpan * f),
-      Math.round(lvMin + floorSpan * (f + 1)),
-    ] as [number, number],
-    requiredLevel: src.requiredLevel,
-    zoneType: 'dungeon' as const,
-    dungeonSize,
-    floor: f + 1,
-    maxFloor,
-    dungeonGroup: src.id,
-    npcIds: src.npcIds,
-  }));
+
+  // 층당 레벨 범위 오버랩: 각 층에 3~5종 몬스터가 섞이도록 상하 여유를 줌
+  // overlap = floorSpan의 1.2배 (최소 2) — 인접 층 몬스터가 자연스럽게 공유됨
+  // 던전 전체 범위 [lvMin, lvMax] 클램프가 과다 확장 방지
+  const overlap = Math.max(2, Math.round(floorSpan * 1.2));
+
+  return Array.from({ length: maxFloor }, (_, f) => {
+    const center = lvMin + floorSpan * (f + 0.5);
+    const rawLo = Math.round(center - overlap);
+    const rawHi = Math.round(center + overlap);
+    // 던전 전체 범위 내로 클램프
+    const lo = Math.max(lvMin, rawLo);
+    const hi = Math.min(lvMax, rawHi);
+    return {
+      id: `${src.id}_${f + 1}f`,
+      name: `${src.name} ${f + 1}F`,
+      levelRange: [lo, hi] as [number, number],
+      requiredLevel: src.requiredLevel,
+      zoneType: 'dungeon' as const,
+      dungeonSize,
+      floor: f + 1,
+      maxFloor,
+      dungeonGroup: src.id,
+      npcIds: src.npcIds,
+    };
+  });
 }
 
 // 모든 존 정의 합산
@@ -741,24 +755,34 @@ export function generateHuntZones(): HuntZone[] {
       monsters = getMonstersByIds(def.npcIds);
     }
 
-    // 던전 층: 최소 4종 보장 (하위 레벨 필러 — 같은 존 풀에서)
-    if (def.zoneType === 'dungeon' && monsters.length < 4) {
+    // 던전 층: 최소 5종 보장 (같은 존 풀에서 우선 충원)
+    if (def.zoneType === 'dungeon' && monsters.length < 5) {
       const zonePool = getMonstersByIds(def.npcIds);
+      // 하위 레벨 몬스터 우선
       const lower = zonePool
         .filter(m => m.level < lvMin && !monsters.some(b => b.id === m.id))
         .sort((a, b) => b.level - a.level);
-      const needed = 4 - monsters.length;
+      let needed = 5 - monsters.length;
       monsters = [...monsters, ...lower.slice(0, needed)];
 
+      // 하위로 부족하면 상위 레벨 몬스터도 충원
+      if (monsters.length < 5) {
+        const upper = zonePool
+          .filter(m => m.level > lvMax && !monsters.some(b => b.id === m.id))
+          .sort((a, b) => a.level - b.level);
+        needed = 5 - monsters.length;
+        monsters = [...monsters, ...upper.slice(0, needed)];
+      }
+
       // 존 풀로도 부족하면 글로벌 풀에서 보충
-      if (monsters.length < 4) {
-        monsters = addLowerFiller(monsters, lvMin, 4);
+      if (monsters.length < 5) {
+        monsters = addLowerFiller(monsters, lvMin, 5);
       }
     }
 
-    // 필드: 최소 3종 보장
-    if (def.zoneType === 'field' && monsters.length < 3) {
-      monsters = addLowerFiller(monsters, lvMin, 3);
+    // 필드: 최소 5종 보장
+    if (def.zoneType === 'field' && monsters.length < 5) {
+      monsters = addLowerFiller(monsters, lvMin, 5);
     }
 
     // 존 난이도 분류

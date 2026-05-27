@@ -16,7 +16,7 @@ import { LABEL } from '../../styles/shared';
 import type { ActiveBuff, CombatStyle } from '../../types';
 
 /* ── 상수 ── */
-const BASE_VISIBLE_MONSTERS = 8;
+const BASE_VISIBLE_MONSTERS = 15;
 const MIN_VISIBLE_MONSTERS = 1;
 const RESPAWN_DELAY = 3000;
 const MAP_SIZE_M = 50;          // 맵 한 변 = 50m (화면 크기 무관)
