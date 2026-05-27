@@ -249,6 +249,8 @@ export default function Minimap() {
   const [joinedDotIdxs, setJoinedDotIdxs] = useState<Set<number>>(new Set());
   // 투사체 이펙트 (원거리 전투)
   const [projectile, setProjectile] = useState<Projectile | null>(null);
+  // 근접 타격 임팩트 이펙트 (기사)
+  const [meleeImpact, setMeleeImpact] = useState<{ id: string; pos: { x: number; y: number }; isCrit: boolean } | null>(null);
   // 몬스터 스킬 이펙트
   const [skillEffect, setSkillEffect] = useState<SkillEffect | null>(null);
   const [showPlayerList, setShowPlayerList] = useState(false);
@@ -629,6 +631,13 @@ export default function Minimap() {
       setTimeout(() => setProjectile(null), projType === 'arrow' ? 250 : 350);
     };
 
+    /** ── 근접 타격 임팩트 (기사) ── */
+    const fireMeleeImpact = (targetPos: { x: number; y: number }, isCrit: boolean) => {
+      const impId = `imp-${Date.now()}`;
+      setMeleeImpact({ id: impId, pos: targetPos, isCrit });
+      setTimeout(() => setMeleeImpact(null), 400);
+    };
+
     /** ── 몬스터 → 플레이어 역방향 투사체 (마법 몬스터/스킬) ── */
     const fireMonsterProjectile = (fromPos: { x: number; y: number }, projType: 'monster_magic' | 'monster_skill') => {
       const projId = `mproj-${Date.now()}`;
@@ -652,6 +661,10 @@ export default function Minimap() {
       );
       if (shouldFireProjectile && combatEntry.type !== 'miss') {
         fireProjectile(currentTarget, combatStyle === 'ranged_bow' ? 'arrow' : 'magic');
+      }
+      // 근접: 공격 이벤트 시 타격 임팩트
+      if (!isRanged && (combatEntry.type === 'battle' || combatEntry.type === 'crit' || combatEntry.type === 'kill')) {
+        fireMeleeImpact(currentTarget, combatEntry.type === 'crit');
       }
 
       if (isKillEvent) {
@@ -1099,6 +1112,52 @@ export default function Minimap() {
             >
               <animate attributeName="r" from="3" to="7" dur="0.2s" fill="freeze" />
               <animate attributeName="opacity" from="0.8" to="0" dur="0.3s" fill="freeze" />
+            </circle>
+          </svg>
+        )}
+
+        {/* 근접 타격 임팩트 (기사) */}
+        {meleeImpact && (
+          <svg
+            key={`imp-${meleeImpact.id}`}
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              zIndex: 7, pointerEvents: 'none',
+              overflow: 'visible',
+            }}
+          >
+            {/* 십자 슬래시 */}
+            <line
+              x1={`${meleeImpact.pos.x - 2.5}%`} y1={`${meleeImpact.pos.y - 2.5}%`}
+              x2={`${meleeImpact.pos.x + 2.5}%`} y2={`${meleeImpact.pos.y + 2.5}%`}
+              stroke={meleeImpact.isCrit ? '#FFD54F' : '#ffffff'}
+              strokeWidth={meleeImpact.isCrit ? 3 : 2}
+              strokeLinecap="round"
+              opacity="0.9"
+            >
+              <animate attributeName="opacity" from="0.9" to="0" dur="0.35s" fill="freeze" />
+            </line>
+            <line
+              x1={`${meleeImpact.pos.x + 2.5}%`} y1={`${meleeImpact.pos.y - 2.5}%`}
+              x2={`${meleeImpact.pos.x - 2.5}%`} y2={`${meleeImpact.pos.y + 2.5}%`}
+              stroke={meleeImpact.isCrit ? '#FFD54F' : '#ffffff'}
+              strokeWidth={meleeImpact.isCrit ? 3 : 2}
+              strokeLinecap="round"
+              opacity="0.9"
+            >
+              <animate attributeName="opacity" from="0.9" to="0" dur="0.35s" fill="freeze" />
+            </line>
+            {/* 충격파 링 */}
+            <circle
+              cx={`${meleeImpact.pos.x}%`} cy={`${meleeImpact.pos.y}%`}
+              r="2"
+              fill="none"
+              stroke={meleeImpact.isCrit ? '#FFD54F' : 'rgba(255,255,255,0.7)'}
+              strokeWidth={meleeImpact.isCrit ? 2 : 1.5}
+            >
+              <animate attributeName="r" from="2" to="12" dur="0.35s" fill="freeze" />
+              <animate attributeName="opacity" from="0.8" to="0" dur="0.35s" fill="freeze" />
             </circle>
           </svg>
         )}
