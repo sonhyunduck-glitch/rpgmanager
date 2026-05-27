@@ -5,6 +5,7 @@ import type {
   Equipment, QueueItem, LogEntry, HuntSession,
   EnhanceResult, ViewMode, ScrollType,
   StatAllocation, StatKey, ActiveBuff, PlayerClass,
+  KnightSubclass,
 } from '../types';
 import type { OfflineReward, ZonePlayer } from '../lib/db';
 
@@ -70,6 +71,8 @@ export interface GameState {
 
   // Player
   playerClass: PlayerClass;
+  subclass: KnightSubclass | null;        // 기사 전직 (Lv.30, null=미선택)
+  pendingSubclassChoice: boolean;         // 전직 선택 모달 표시
   playerName: string;
   guildId: string | null;
   guildName: string | null;
@@ -209,6 +212,10 @@ export interface GameState {
   unequipSkill: (slotIndex: number) => void;
   autoEquipSkills: () => void;
   toggleSkillEnabled: (skillId: number) => void;
+
+  // Subclass
+  selectSubclass: (subclass: KnightSubclass) => void;
+  dismissSubclassChoice: () => void;
 
   // Profile
   openProfile: (userId: string) => void;

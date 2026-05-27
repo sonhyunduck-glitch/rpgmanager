@@ -42,6 +42,7 @@ export interface PlayerSkill {
     fireDmgBonus?: number;       // 화염 속성 대미지 추가
   };
   passive?: boolean;              // true = 패시브 (습득 즉시 상시 적용, MP 0)
+  subclassRestriction?: import('../types').KnightSubclass;  // 기사 서브클래스 제한
   consumeItemId?: number;        // 소모 아이템 ID (40318=마력의돌, 40319=정령옥)
   consumeAmount?: number;        // 소모 수량 (기본 0)
   classes: PlayerClass[];        // 습득 가능 클래스
@@ -950,10 +951,10 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
 
   {
     id: 87,
-    name: '쇼크 스턴',
+    name: '버서커',
     skillCategory: 'technique',
     skillCircle: 0,
-    consumeMp: 15,
+    consumeMp: 4,
     reuseDelayMs: 9000, // L1J reuse_delay: 1500ms
     buffDuration: 64,
     skillType: 'buff',
@@ -962,16 +963,17 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDiceCount: 0,
     attr: 0,
     buffEffect: { atkSpeedMult: 1.33 },
+    subclassRestriction: 'attack',
     classes: ['knight'],
     requiredLevel: 20,
-    description: '전투 집중으로 공격 속도 증가 (×1.33)',
+    description: '광전사 모드로 공격 속도 증가 (×1.33)',
   },
   {
     id: 88,
     name: '리덕션 아머',
     skillCategory: 'technique',
     skillCircle: 0,
-    consumeMp: 7,
+    consumeMp: 2,
     reuseDelayMs: 12000, // L1J reuse_delay: 3000ms
     buffDuration: 192,
     skillType: 'buff',
@@ -980,6 +982,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDiceCount: 0,
     attr: 0,
     buffEffect: { acBonus: -3 },
+    subclassRestriction: 'tank',
     classes: ['knight'],
     requiredLevel: 15,
     description: '대미지 경감 방어 (AC -3)',
@@ -989,7 +992,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '바운스 어택',
     skillCategory: 'technique',
     skillCircle: 0,
-    consumeMp: 10,
+    consumeMp: 3,
     reuseDelayMs: 15000, // L1J reuse_delay: 5000ms
     buffDuration: 64,
     skillType: 'buff',
@@ -998,6 +1001,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDiceCount: 0,
     attr: 0,
     buffEffect: { dmgBonus: 5 },
+    subclassRestriction: 'attack',
     classes: ['knight'],
     requiredLevel: 20,
     description: '반격 태세로 추가 대미지 (+5)',
@@ -1007,7 +1011,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '솔리드 캐리지',
     skillCategory: 'technique',
     skillCircle: 0,
-    consumeMp: 10,
+    consumeMp: 3,
     reuseDelayMs: 12000, // L1J reuse_delay: 3000ms
     buffDuration: 64,
     skillType: 'buff',
@@ -1016,6 +1020,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDiceCount: 0,
     attr: 0,
     buffEffect: { acBonus: -2 },
+    subclassRestriction: 'tank',
     classes: ['knight'],
     requiredLevel: 25,
     description: '견고한 자세로 방어력 증가 (AC -2)',
@@ -1025,7 +1030,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '카운터 배리어',
     skillCategory: 'technique',
     skillCircle: 0,
-    consumeMp: 10,
+    consumeMp: 3,
     reuseDelayMs: 0, // L1J reuse_delay: 0ms
     buffDuration: 64,
     skillType: 'buff',
@@ -1034,9 +1039,149 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDiceCount: 0,
     attr: 0,
     buffEffect: { acBonus: -1 },
+    subclassRestriction: 'tank',
     classes: ['knight'],
     requiredLevel: 30,
     description: '반격 방어막 (AC -1)',
+  },
+
+  // =========================================================================
+  // 기사 전직 스킬 — 탱커형 (Lv.30+ 방어 버프)
+  // =========================================================================
+
+  {
+    id: 92,
+    name: '아이언 스킨',
+    skillCategory: 'technique',
+    skillCircle: 0,
+    consumeMp: 4,
+    reuseDelayMs: 15000,
+    buffDuration: 300,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { acBonus: -4 },
+    subclassRestriction: 'tank',
+    classes: ['knight'],
+    requiredLevel: 30,
+    description: '강철 피부로 방어력 대폭 증가 (AC -4)',
+  },
+  {
+    id: 93,
+    name: '포트리스',
+    skillCategory: 'technique',
+    skillCircle: 0,
+    consumeMp: 5,
+    reuseDelayMs: 18000,
+    buffDuration: 300,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { acBonus: -3, dmgBonus: -2 },
+    subclassRestriction: 'tank',
+    classes: ['knight'],
+    requiredLevel: 35,
+    description: '요새 자세 — 방어력 증가 (AC -3) 대신 공격력 감소 (추타 -2)',
+  },
+  {
+    id: 94,
+    name: '가디언 오라',
+    skillCategory: 'technique',
+    skillCircle: 0,
+    consumeMp: 6,
+    reuseDelayMs: 21000,
+    buffDuration: 300,
+    skillType: 'buff',
+    damageValue: 0,
+    damageDice: 0,
+    damageDiceCount: 0,
+    attr: 0,
+    buffEffect: { acBonus: -5 },
+    subclassRestriction: 'tank',
+    classes: ['knight'],
+    requiredLevel: 40,
+    description: '수호의 기운으로 최상급 방어 (AC -5)',
+  },
+
+  // =========================================================================
+  // 기사 전직 스킬 — 공격형 (Lv.30+ STR 기반 물리 공격)
+  // =========================================================================
+
+  {
+    id: 95,
+    name: '파워 슬래시',
+    skillCategory: 'technique',
+    skillCircle: 0,
+    consumeMp: 3,
+    reuseDelayMs: 6000,
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 15,
+    damageDice: 8,
+    damageDiceCount: 2,
+    attr: 0,
+    subclassRestriction: 'attack',
+    classes: ['knight'],
+    requiredLevel: 30,
+    description: '강력한 일격 (15 + 2d8 + STR 보너스)',
+  },
+  {
+    id: 96,
+    name: '크러싱 블로우',
+    skillCategory: 'technique',
+    skillCircle: 0,
+    consumeMp: 5,
+    reuseDelayMs: 9000,
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 25,
+    damageDice: 10,
+    damageDiceCount: 3,
+    attr: 0,
+    subclassRestriction: 'attack',
+    classes: ['knight'],
+    requiredLevel: 35,
+    description: '분쇄 타격 (25 + 3d10 + STR 보너스)',
+  },
+  {
+    id: 97,
+    name: '베르세르크',
+    skillCategory: 'technique',
+    skillCircle: 0,
+    consumeMp: 6,
+    reuseDelayMs: 15000,
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 40,
+    damageDice: 12,
+    damageDiceCount: 4,
+    attr: 0,
+    subclassRestriction: 'attack',
+    classes: ['knight'],
+    requiredLevel: 40,
+    description: '광전사의 일격 (40 + 4d12 + STR 보너스)',
+  },
+  {
+    id: 98,
+    name: '엑스큐션',
+    skillCategory: 'technique',
+    skillCircle: 0,
+    consumeMp: 9,
+    reuseDelayMs: 21000,
+    buffDuration: 0,
+    skillType: 'attack',
+    damageValue: 60,
+    damageDice: 15,
+    damageDiceCount: 5,
+    attr: 0,
+    subclassRestriction: 'attack',
+    classes: ['knight'],
+    requiredLevel: 48,
+    description: '처형의 일격 (60 + 5d15 + STR 보너스)',
   },
 ];
 
@@ -1060,6 +1205,7 @@ export const MAX_SKILL_SLOTS = 16;
 export function getAvailableSkills(
   playerClass: PlayerClass,
   level: number,
+  subclass?: import('../types').KnightSubclass | null,
 ): PlayerSkill[] {
   const mlvl = magicLevel(level, playerClass);
   return PLAYER_SKILLS.filter(skill => {
@@ -1067,6 +1213,9 @@ export function getAvailableSkills(
     if (skill.requiredLevel > level) return false;
     // 마법 서클 스킬: 충분한 magicLevel 필요
     if (skill.skillCircle > 0 && skill.skillCircle > mlvl) return false;
+    // 서브클래스 제한: subclass가 있으면 해당 서브클래스만 통과
+    // subclass가 null(Lv.30 미만)이면 제한 없음 → 기존 5개 모두 사용
+    if (skill.subclassRestriction && subclass && skill.subclassRestriction !== subclass) return false;
     return true;
   });
 }
@@ -1083,8 +1232,9 @@ export function getBestAttackSpell(
   cooldowns?: Record<number, number>,
   equippedIds?: number[],
   disabledIds?: number[],
+  subclass?: import('../types').KnightSubclass | null,
 ): PlayerSkill | null {
-  let available = getAvailableSkills(playerClass, level)
+  let available = getAvailableSkills(playerClass, level, subclass)
     .filter(s => s.skillType === 'attack' && s.consumeMp <= currentMp && s.skillCircle > 0
       && (cooldowns ? (cooldowns[s.id] ?? 0) <= Date.now() : true));
   if (equippedIds) available = available.filter(s => equippedIds.includes(s.id));
@@ -1103,8 +1253,9 @@ export function getBestHealSpell(
   currentMp: number,
   equippedIds?: number[],
   disabledIds?: number[],
+  subclass?: import('../types').KnightSubclass | null,
 ): PlayerSkill | null {
-  let available = getAvailableSkills(playerClass, level)
+  let available = getAvailableSkills(playerClass, level, subclass)
     .filter(s => s.skillType === 'heal' && s.consumeMp <= currentMp);
   if (equippedIds) available = available.filter(s => equippedIds.includes(s.id));
   if (disabledIds) available = available.filter(s => !disabledIds.includes(s.id));
@@ -1120,8 +1271,9 @@ export function getAvailableBuffs(
   level: number,
   currentMp: number,
   activeSkillBuffIds: number[],
+  subclass?: import('../types').KnightSubclass | null,
 ): PlayerSkill[] {
-  return getAvailableSkills(playerClass, level)
+  return getAvailableSkills(playerClass, level, subclass)
     .filter(s =>
       s.skillType === 'buff' &&
       !s.passive &&            // 패시브 제외 (상시 적용)
@@ -1137,7 +1289,8 @@ export function getAvailableBuffs(
 export function getPassiveBuffs(
   playerClass: PlayerClass,
   level: number,
+  subclass?: import('../types').KnightSubclass | null,
 ): PlayerSkill[] {
-  return getAvailableSkills(playerClass, level)
+  return getAvailableSkills(playerClass, level, subclass)
     .filter(s => s.passive && s.skillType === 'buff');
 }

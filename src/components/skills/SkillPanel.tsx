@@ -80,6 +80,7 @@ function formatBuffEffect(skill: PlayerSkill): string {
    ══════════════════════════════════════════════ */
 export default function SkillPanel() {
   const playerClass = useGameStore(s => s.playerClass);
+  const subclass = useGameStore(s => s.subclass);
   const level = useGameStore(s => s.level);
   const equippedSkills = useGameStore(s => s.equippedSkills);
   const equipSkill = useGameStore(s => s.equipSkill);
@@ -101,9 +102,11 @@ export default function SkillPanel() {
   const mpPct = maxMp > 0 ? Math.min(100, (currentMp / maxMp) * 100) : 0;
 
   // 해금/잠긴 스킬
-  const unlockedSkills = getAvailableSkills(playerClass, level);
+  const unlockedSkills = getAvailableSkills(playerClass, level, subclass);
   const lockedSkills = PLAYER_SKILLS.filter(s => {
     if (!s.classes.includes(playerClass)) return false;
+    // 반대 서브클래스 스킬 완전 숨김
+    if (s.subclassRestriction && subclass && s.subclassRestriction !== subclass) return false;
     return !unlockedSkills.find(u => u.id === s.id);
   }).sort((a, b) => a.skillCircle - b.skillCircle || a.requiredLevel - b.requiredLevel);
 

@@ -22,6 +22,7 @@ import {
   calcHpRegenIntervalMs, calcHpRegenAmount,
   calcMpRegenAmount, calcBluePotionMpBonus, MP_REGEN_INTERVAL_MS,
   rollSpellDamage, calcAttrBonus,
+  rollPhysicalSkillDamage,
 } from '../data/statFormulas';
 import {
   getAvailableSkills, getBestHealSpell, getAvailableBuffs, getPassiveBuffs,
@@ -282,7 +283,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       }
 
       // ── 패시브 버프 상시 적용 (습득 조건 충족 시 만료 없이 활성) ──
-      const passives = getPassiveBuffs(state.playerClass, state.level);
+      const passives = getPassiveBuffs(state.playerClass, state.level, state.subclass);
       const validPassiveIds = new Set(passives.map(pb => pb.id));
       // 현재 클래스/레벨에서 무효한 패시브 제거 (이전 버전 잔존 데이터 정리)
       newActiveBuffs = newActiveBuffs.filter(b =>
@@ -368,7 +369,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         const activeSkillBuffIds = newActiveBuffs
           .filter(b => b.skillId != null && b.skillId > 0 && b.expiresAt > now)
           .map(b => b.skillId!);
-        const buffSkills = getAvailableBuffs(state.playerClass, state.level, huntMp, activeSkillBuffIds)
+        const buffSkills = getAvailableBuffs(state.playerClass, state.level, huntMp, activeSkillBuffIds, state.subclass)
           .filter(s => equipped.includes(s.id) && !disabled.includes(s.id));
         // 초록물약 활성 여부 (헤이스트 스킬 중복 방지용)
         const hasGreenBuff = newActiveBuffs.some(b => b.potionId === 'green_potion' && b.expiresAt > now);
@@ -605,7 +606,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         // ── 클래스 스킬 사용 (트리플 애로우, 쇼크 스턴, 서클 마법 등 — 슬롯 장착 스킬만) ──
         // 우선순위: 서클0(클래스 전용) > 서클 마법(높은 서클 우선)
         if (monsterHp > 0 && huntMp > 0) {
-          const classSkills = getAvailableSkills(state.playerClass, state.level)
+          const classSkills = getAvailableSkills(state.playerClass, state.level, state.subclass)
             .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
               && (skillCooldowns[s.id] ?? 0) <= now && equipped.includes(s.id) && !disabled.includes(s.id)
               && (!s.consumeItemId || (newMaterials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)))
@@ -665,6 +666,19 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
               newLogs.push({
                 id: genLogId(), type: 'skill',
                 text: `${classSkill.name}! ${monster.name}에게 ${skillFinalDmg} 마법 대미지${mrPct > 0 ? ` (MR ${mrPct}%)` : ''}${sMText}`,
+                timestamp: Date.now(),
+              });
+            } else if (classSkill.skillCategory === 'technique' && classSkill.skillType === 'attack') {
+              // 공격형 기사: STR 기반 물리 스킬 (MR 무시)
+              const physDmg = rollPhysicalSkillDamage(
+                classSkill.damageValue, classSkill.damageDice, classSkill.damageDiceCount,
+                state.level, weaponEnchant, playerStr,
+              );
+              const physFinal = physDmg + equipBonusExtraDmg + skillBuffDmg + skillBuffFireDmg + undeadBonus;
+              monsterHp = Math.max(0, monsterHp - physFinal);
+              newLogs.push({
+                id: genLogId(), type: 'skill',
+                text: `${classSkill.name}! ${monster.name}에게 ${physFinal} 물리 대미지${sMText}`,
                 timestamp: Date.now(),
               });
             }
@@ -756,6 +770,15 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             });
             if (newLevel >= 20) newTitle = '숙련 모험가';
             if (newLevel >= 30) newTitle = '베테랑';
+            // 기사 Lv.30 전직 트리거
+            if (newLevel === 30 && state.playerClass === 'knight' && !state.subclass) {
+              setTimeout(() => {
+                const s = get();
+                if (s.playerClass === 'knight' && !s.subclass && s.level >= 30) {
+                  set({ pendingSubclassChoice: true });
+                }
+              }, 500);
+            }
           }
 
           // Monster drops (L1J drop_items.csv 기반)
@@ -1074,7 +1097,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       if (newCurrentHp > 0 && huntMp > 0) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= 30) {
-          const healSpell = getBestHealSpell(state.playerClass, state.level, huntMp, equipped, disabled);
+          const healSpell = getBestHealSpell(state.playerClass, state.level, huntMp, equipped, disabled, state.subclass);
           if (healSpell && (skillCooldowns[healSpell.id] ?? 0) <= now) {
             huntMp -= healSpell.consumeMp;
             const healAmt = rollSpellDamage(

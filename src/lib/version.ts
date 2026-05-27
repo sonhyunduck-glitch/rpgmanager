@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.38.25 — 물약 쿨다운 프로그레스바 부드러운 애니메이션 (RAF 60fps)
-export const APP_VERSION = '2.38.25';
+// v2.39.1 — 기사 스킬 MP 1/4 감소 + 쇼크스턴→버서커 이름 변경
+export const APP_VERSION = '2.39.1';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

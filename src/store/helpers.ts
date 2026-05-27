@@ -2,7 +2,7 @@
    STORE HELPERS — UID 생성, 장비 유틸, localStorage 영속화
    gameStore.ts 에서 분리된 순수 함수 & 상수
    ========================================================= */
-import type { Equipment, HuntSession, QueueItem, StatAllocation, ActiveBuff, PlayerClass } from '../types';
+import type { Equipment, HuntSession, QueueItem, StatAllocation, ActiveBuff, PlayerClass, KnightSubclass } from '../types';
 import { EQUIPMENT_TEMPLATES } from '../data/gameData';
 import { APP_EPOCH } from '../lib/version';
 
@@ -111,6 +111,7 @@ export function loadState(): Record<string, unknown> | null {
  */
 export function saveState(state: {
   playerClass: PlayerClass;
+  subclass?: KnightSubclass | null;
   playerName: string;
   level: number;
   exp: number;
@@ -156,7 +157,7 @@ export function saveState(state: {
 }): void {
   try {
     const {
-      playerClass, playerName, level, exp, gold, title, currentHp, maxMp, currentMp,
+      playerClass, subclass, playerName, level, exp, gold, title, currentHp, maxMp, currentMp,
       equippedWeapon, equippedTshirt, equippedArmor, equippedHelmet, equippedCloak,
       equippedGloves, equippedBoots, equippedShield,
       equippedNecklace, equippedRing, equippedRing2, equippedBelt, equippedEarring,
@@ -170,7 +171,7 @@ export function saveState(state: {
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       epoch: APP_EPOCH,
-      playerClass, playerName, level, exp, gold, title, currentHp, maxMp, currentMp,
+      playerClass, subclass, playerName, level, exp, gold, title, currentHp, maxMp, currentMp,
       equippedWeapon, equippedTshirt, equippedArmor, equippedHelmet, equippedCloak,
       equippedGloves, equippedBoots, equippedShield,
       equippedNecklace, equippedRing, equippedRing2, equippedBelt, equippedEarring,

@@ -20,7 +20,7 @@ import type {
   Equipment, HuntSession, ScrollType,
   StatAllocation, ActiveBuff,
 } from '../types';
-import { getAvailableSkills, MAX_SKILL_SLOTS } from '../data/playerSkillData';
+import { getAvailableSkills, MAX_SKILL_SLOTS, PLAYER_SKILLS } from '../data/playerSkillData';
 import { CLASS_CONFIGS } from '../data/classData';
 
 // ── 분리된 모듈 ──
@@ -105,6 +105,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({
         authUserId: userId,
         playerClass: dbPlayerClass,
+        subclass: (p.subclass as import('../types').KnightSubclass) ?? null,
+        pendingSubclassChoice: false,
         playerName: p.name ?? '모험가',
         guildId: p.guild_id ?? null,
         level: p.level ?? 1,
@@ -216,6 +218,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       set({
         authUserId: userId, playerName: metaName, playerClass: metaClass,
+        subclass: null, pendingSubclassChoice: false,
         equippedWeapon: freshWeapon, equippedArmor: freshArmor,
         equippedHelmet: freshHelmet, equippedShield: freshShield,
         equippedTshirt: null, equippedCloak: null,
@@ -288,6 +291,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       authUserId: null,
       dbReady: false,
       playerClass: 'knight',
+      subclass: null,
+      pendingSubclassChoice: false,
       playerName: '초보 모험가',
       guildId: null,
       guildName: null,
@@ -341,6 +346,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   // ── Player State ──
   playerClass: (saved?.playerClass as import('../types').PlayerClass) ?? 'knight',
+  subclass: (saved?.subclass as import('../types').KnightSubclass) ?? null,
+  pendingSubclassChoice: false,
   playerName: (saved?.playerName as string) ?? '초보 모험가',
   guildId: null,
   guildName: null,
@@ -490,7 +497,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const state = get();
     const maxSlots = MAX_SKILL_SLOTS;
     if (slotIndex < 0 || slotIndex >= maxSlots) return;
-    const available = getAvailableSkills(state.playerClass, state.level);
+    const available = getAvailableSkills(state.playerClass, state.level, state.subclass);
     if (!available.find(s => s.id === skillId)) return;
     const newSlots = [...state.equippedSkills];
     // 패딩: 슬롯 배열이 짧으면 0으로 채움
@@ -515,7 +522,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   autoEquipSkills: () => {
     const state = get();
     const maxSlots = MAX_SKILL_SLOTS;
-    const available = getAvailableSkills(state.playerClass, state.level);
+    const available = getAvailableSkills(state.playerClass, state.level, state.subclass);
     // 우선순위: 버프 → 힐 → 공격(높은 서클 우선) → 클래스 전용
     const buffs = available.filter(s => s.skillType === 'buff').sort((a, b) => b.skillCircle - a.skillCircle);
     const heals = available.filter(s => s.skillType === 'heal').sort((a, b) => b.skillCircle - a.skillCircle);
@@ -546,6 +553,28 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ disabledSkills: disabled });
     saveState(get());
   },
+
+  // ── Subclass Actions ──
+  selectSubclass: (subclass: import('../types').KnightSubclass) => {
+    const state = get();
+    if (state.playerClass !== 'knight' || state.level < 30 || state.subclass) return;
+
+    // 반대 서브클래스 스킬 제거
+    const otherSkillIds = new Set(
+      PLAYER_SKILLS
+        .filter(s => s.subclassRestriction && s.subclassRestriction !== subclass)
+        .map(s => s.id),
+    );
+    const newEquipped = state.equippedSkills.map(id => otherSkillIds.has(id) ? 0 : id);
+
+    set({
+      subclass,
+      pendingSubclassChoice: false,
+      equippedSkills: newEquipped,
+    });
+    saveState(get());
+  },
+  dismissSubclassChoice: () => set({ pendingSubclassChoice: false }),
 
   // ── Composed Actions ──
   ...createDerivedStats(get),

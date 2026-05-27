@@ -67,6 +67,11 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       const state = get();
       if (state.currentHp <= 0) return;
 
+      // 기존 Lv.30+ 기사: 전직 미선택 시 모달 트리거
+      if (state.playerClass === 'knight' && state.level >= 30 && !state.subclass) {
+        set({ pendingSubclassChoice: true });
+      }
+
       const entry: LogEntry = {
         id: genLogId(), type: 'enter',
         text: `${zone.name}에 진입했습니다.`,
@@ -111,7 +116,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       const afterHunt = get();
       if (!afterHunt.equippedSkills || afterHunt.equippedSkills.filter(id => id > 0).length === 0) {
         const maxSlots = MAX_SKILL_SLOTS;
-        const available = getAvailableSkills(afterHunt.playerClass, afterHunt.level);
+        const available = getAvailableSkills(afterHunt.playerClass, afterHunt.level, afterHunt.subclass);
         const buffs = available.filter(s => s.skillType === 'buff').sort((a, b) => b.skillCircle - a.skillCircle);
         const heals = available.filter(s => s.skillType === 'heal').sort((a, b) => b.skillCircle - a.skillCircle);
         const attacks = available.filter(s => s.skillType === 'attack').sort((a, b) => b.skillCircle - a.skillCircle);

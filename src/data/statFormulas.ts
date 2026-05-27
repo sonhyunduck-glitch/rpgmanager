@@ -80,6 +80,27 @@ export function rollDamage(
   return secureRandomInt(min, max);
 }
 
+/**
+ * 물리 기술 스킬 대미지 (기사 공격형 전직)
+ * = damageValue + sum(damageDiceCount × d(damageDice)) + meleeAdditionalDamage(STR)
+ * MR 무시 (물리 공격), D20 명중 불필요 (기존 근접 명중 후 발동)
+ */
+export function rollPhysicalSkillDamage(
+  damageValue: number,
+  damageDice: number,
+  damageDiceCount: number,
+  level: number,
+  enchantLevel: number,
+  str: number,
+): number {
+  let total = damageValue;
+  for (let i = 0; i < damageDiceCount; i++) {
+    total += secureRandomInt(1, damageDice);
+  }
+  total += meleeAdditionalDamage(level, enchantLevel, str);
+  return Math.max(1, total);
+}
+
 // ── CON 관련 ──
 
 /**

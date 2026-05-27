@@ -4,6 +4,7 @@
 
 // ── Class ──
 export type PlayerClass = 'knight' | 'elf' | 'wizard';
+export type KnightSubclass = 'tank' | 'attack';
 export type CombatStyle = 'melee' | 'ranged_bow' | 'ranged_magic';
 
 // ── Skill Category ──

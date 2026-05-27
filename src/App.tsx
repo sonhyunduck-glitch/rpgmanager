@@ -24,6 +24,7 @@ import MobileShell from './components/layout/MobileShell';
 import OfflineRewardModal from './components/offline/OfflineRewardModal';
 import UpdateModal from './components/update/UpdateModal';
 import RotateOverlay from './components/ui/RotateOverlay';
+import SubclassSelectModal from './components/hunt/SubclassSelectModal';
 
 const BASE_TICK_MS = 3000;
 
@@ -37,6 +38,7 @@ export default function App({ userId }: AppProps) {
   const tickHunt = useGameStore(s => s.tickHunt);
   const getAtkSpeedMult = useGameStore(s => s.getAtkSpeedMult);
   const dbReady = useGameStore(s => s.dbReady);
+  const pendingSubclassChoice = useGameStore(s => s.pendingSubclassChoice);
   const mobile = useMobile();
 
   const initFromDB = useGameStore(s => s.initFromDB);
@@ -154,6 +156,7 @@ export default function App({ userId }: AppProps) {
         {/* 전역 모달 오버레이 */}
         <OfflineRewardModal />
         <UpdateModal />
+        {pendingSubclassChoice && <SubclassSelectModal />}
       </div>
     );
   }
@@ -232,6 +235,7 @@ export default function App({ userId }: AppProps) {
       <OfflineRewardModal />
       <UpdateModal />
       <RotateOverlay />
+      {pendingSubclassChoice && <SubclassSelectModal />}
     </div>
   );
 }

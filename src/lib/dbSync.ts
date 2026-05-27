@@ -51,6 +51,7 @@ export function markDirty() {
 
 export async function syncProfile(state: {
   playerClass: string;
+  subclass?: string | null;
   level: number;
   exp: number;
   gold: number;
@@ -67,6 +68,7 @@ export async function syncProfile(state: {
   if (!_userId) return;
   await supabase.from('profiles').update({
     player_class: state.playerClass,
+    subclass: state.subclass ?? null,
     level: state.level,
     exp: state.exp,
     gold: state.gold,
