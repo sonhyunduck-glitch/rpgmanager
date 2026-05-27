@@ -848,6 +848,7 @@ export default function Minimap() {
           const isApproaching = dotApproachDuration.has(i) && !isDead;
           const dotColor = monsterColorMap.get(dot.monsterIdx) ?? '#ef5350';
           const dotMonster = tierMonsters[dot.monsterIdx];
+          const isAggressive = !!dotMonster?.aggressive;
           const isLarge = dotMonster?.size === 'large';
           const approachMs = dotApproachDuration.get(i);
           const moveTrans = approachMs
@@ -902,8 +903,18 @@ export default function Minimap() {
                     ? `0 0 8px ${dotColor}`
                     : isJoined
                       ? `0 0 6px ${dotColor}`
+                      : isAggressive
+                        ? `0 0 5px 1px rgba(255,60,60,0.55), inset 0 0 2px rgba(255,60,60,0.3)`
+                        : `0 0 4px 1px ${dotColor}44`,
+                  border: isDead ? 'none'
+                    : isAggressive
+                      ? '1px solid rgba(255,70,70,0.6)'
+                      : '1px solid rgba(255,255,255,0.18)',
+                  animation: (isCurrentTarget || isJoined) && isHunting
+                    ? 'mmMonsterPulse 1s infinite'
+                    : isAggressive && !isDead
+                      ? 'mmAggroGlow 2s ease-in-out infinite'
                       : 'none',
-                  animation: (isCurrentTarget || isJoined) && isHunting ? 'mmMonsterPulse 1s infinite' : 'none',
                 }}
               />
             </div>
@@ -1382,6 +1393,10 @@ export default function Minimap() {
         @keyframes mmAggroBounce {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-3px); }
+        }
+        @keyframes mmAggroGlow {
+          0%, 100% { box-shadow: 0 0 5px 1px rgba(255,60,60,0.55), inset 0 0 2px rgba(255,60,60,0.3); }
+          50% { box-shadow: 0 0 8px 2px rgba(255,60,60,0.75), inset 0 0 3px rgba(255,60,60,0.5); }
         }
         @keyframes mmBurst {
           0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.5); }

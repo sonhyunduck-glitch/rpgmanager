@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.19 — 몬스터 사망 시 볼트 도착까지 닷 유지 (dyingDots)
-export const APP_VERSION = '2.39.19';
+// v2.39.20 — 선공/비선공 몬스터 닷 글로우 효과
+export const APP_VERSION = '2.39.20';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
