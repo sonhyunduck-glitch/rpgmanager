@@ -3,7 +3,7 @@
    각 액션 모듈에서 로직을 가져와 조합
    ========================================================= */
 import { create } from 'zustand';
-import { HUNT_ZONES } from '../data/gameData';
+import { HUNT_ZONES, getBravePotionId } from '../data/gameData';
 import { BASE_STATS, startingHp } from '../data/statFormulas';
 import {
   loadState, saveState as _saveState, enforceEpochGate,
@@ -33,6 +33,14 @@ import { createShopActions } from './shopActions';
 
 // Re-export GameState for consumers
 export type { GameState } from './storeTypes';
+
+/** 클래스별 초기 물약 지급 */
+function getStartingPotions(playerClass: import('../types').PlayerClass): Record<string, number> {
+  return {
+    red_potion: 300, green_potion: 50, blue_potion: 50,
+    [getBravePotionId(playerClass)]: 50,
+  };
+}
 
 /** localStorage 저장 + DB 동기화 플래그 */
 function saveState(state: Parameters<typeof _saveState>[0]) {
@@ -90,12 +98,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       const hasDBItems = dbItems.length > 0;
+      const dbPlayerClass = (p.player_class as import('../types').PlayerClass) ?? 'knight';
 
       // ⚠️ DB가 단일 진실 원천 — get() 폴백 제거 (구 localStorage 오염 방지)
       //    DB 값이 null이면 하드코딩 기본값 사용 (이전 기기 데이터 사용 금지)
       set({
         authUserId: userId,
-        playerClass: (p.player_class as import('../types').PlayerClass) ?? 'knight',
+        playerClass: dbPlayerClass,
         playerName: p.name ?? '모험가',
         guildId: p.guild_id ?? null,
         level: p.level ?? 1,
@@ -127,7 +136,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         } : {}),
         // ⚠️ DB가 진실 — 빈 객체도 그대로 사용 (재료/포션 0개 = 정당한 상태)
         materials: dbData.materials,
-        potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : { red_potion: 300, green_potion: 50, blue_potion: 50 },
+        potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : getStartingPotions(dbPlayerClass),
         selectedPotionId: p.selected_potion ?? 'red_potion',
         potionAutoUse: p.potion_auto_use ?? true,
         potionAutoThreshold: p.potion_auto_threshold ?? 50,
@@ -144,8 +153,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!hasDBItems) {
         // ⚠️ DB에 아이템이 없는 신규 캐릭터 — 클래스별 시작 장비 생성
         // localStorage에 이전 계정 장비가 남아 있을 수 있으므로 반드시 새로 생성
-        const pc = (p.player_class as import('../types').PlayerClass) ?? 'knight';
-        const gear = CLASS_CONFIGS[pc].startingGear;
+        const gear = CLASS_CONFIGS[dbPlayerClass].startingGear;
         const freshWeapon = createEquipment(gear.weapon);
         const freshArmor = gear.armor ? createEquipment(gear.armor) : null;
         const freshHelmet = gear.helmet ? createEquipment(gear.helmet) : null;
@@ -163,7 +171,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           equippedEarring: null,
           inventory: [],
           materials: {},
-          potions: { red_potion: 300, green_potion: 50, blue_potion: 50 },
+          potions: getStartingPotions(dbPlayerClass),
         });
 
         const s = get();
@@ -216,7 +224,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         equippedRing2: null, equippedBelt: null,
         equippedEarring: null,
         inventory: [], materials: {},
-        potions: { red_potion: 300, green_potion: 50, blue_potion: 50 },
+        potions: getStartingPotions(metaClass),
       });
 
       const s = get();
@@ -405,7 +413,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   queueCapacity: (saved?.queueCapacity as number) ?? 6,
 
   // ── Potions ──
-  potions: (saved?.potions as Record<string, number>) ?? { red_potion: 300, green_potion: 50, blue_potion: 50 },
+  potions: (saved?.potions as Record<string, number>) ?? getStartingPotions((saved?.playerClass as import('../types').PlayerClass) ?? 'knight'),
   selectedPotionId: (saved?.selectedPotionId as string) ?? 'red_potion',
   potionAutoUse: (saved?.potionAutoUse as boolean) ?? true,
   potionAutoThreshold: (saved?.potionAutoThreshold as number) ?? 50,
