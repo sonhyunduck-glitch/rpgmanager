@@ -31,7 +31,7 @@ const CATS: { id: ShopTab; nm: string; ic: string }[] = [
 
 /* ── 물약 색상 ── */
 const POTION_CLR: Record<string, string> = {
-  red_potion: '#ef5350', crimson_potion: '#ff7043', clear_potion: '#80cbc4',
+  red_potion: '#ef5350', crimson_potion: '#ff7043', clear_potion: '#e0e0e0',
   blue_potion: '#42a5f5', green_potion: '#66bb6a', courage_potion: '#ab47bc',
   elven_wafer: '#81c784', wisdom_potion: '#7986cb',
 };

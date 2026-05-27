@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.3 — 모바일 사냥터 UI 리디자인 (here-card, 칩 필터, 카드 스타일)
-export const APP_VERSION = '2.39.3';
+// v2.39.4 — 맑은 물약 색상 통일 (#e0e0e0 흰색)
+export const APP_VERSION = '2.39.4';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

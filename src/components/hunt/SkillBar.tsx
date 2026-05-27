@@ -18,7 +18,7 @@ import type { ActiveBuff } from '../../types';
 const POTION_COLORS: Record<string, string> = {
   red_potion: '#ef5350',
   crimson_potion: '#ff7043',
-  clear_potion: '#42a5f5',
+  clear_potion: '#e0e0e0',
 };
 
 const TS_COLOR = '#00e5ff';

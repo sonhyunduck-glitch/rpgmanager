@@ -548,7 +548,7 @@ function TabBuffs() {
    Tab: 소모품 (물약 + 자동설정 + 변신주문서)
    ═══════════════════════════════ */
 const POTION_COLORS: Record<string, string> = {
-  red_potion: '#ef5350', crimson_potion: '#ff7043', clear_potion: '#80cbc4',
+  red_potion: '#ef5350', crimson_potion: '#ff7043', clear_potion: '#e0e0e0',
   blue_potion: '#42a5f5', green_potion: '#66bb6a', courage_potion: '#ab47bc',
 };
 const THRESHOLDS = [30, 50, 70];
