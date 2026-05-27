@@ -253,6 +253,8 @@ export default function Minimap() {
   const [meleeImpact, setMeleeImpact] = useState<{ id: string; pos: { x: number; y: number }; isCrit: boolean } | null>(null);
   // 몬스터 스킬 이펙트
   const [skillEffect, setSkillEffect] = useState<SkillEffect | null>(null);
+  // 볼트 도착 대기 중인 죽은 몬스터 (닷 유지 → 볼트 도착 후 사라짐)
+  const [dyingDots, setDyingDots] = useState<Set<number>>(new Set());
   const [showPlayerList, setShowPlayerList] = useState(false);
 
   // 접속자 1명이면 팝업 자동 닫기
@@ -320,6 +322,7 @@ export default function Minimap() {
       }));
       setDots(initialDots);
       setDeadSet(new Set());
+      setDyingDots(new Set());
       setEvent(null);
       setTargetIdx(0);
       setJoinedDotIdxs(new Set());
@@ -586,6 +589,14 @@ export default function Minimap() {
       // FIX: 주 타겟만 죽음 처리 — 합류/접근 몬스터는 살아있는 상태 유지
       setDeadSet(updatedDeadSet);
 
+      // 원거리: 볼트가 도착할 때까지 닷을 시각적으로 유지 (dyingDots)
+      if (projDelay > 0) {
+        setDyingDots(prev => new Set(prev).add(killedIdx));
+        setTimeout(() => {
+          setDyingDots(prev => { const n = new Set(prev); n.delete(killedIdx); return n; });
+        }, projDelay);
+      }
+
       if (promotedDotIdx >= 0) {
         // 승격: 합류 몬스터가 새 주 타겟 (이미 플레이어 근처 → 이동 불필요)
         const newJoined = new Set(joinedDotIdxs);
@@ -830,7 +841,8 @@ export default function Minimap() {
 
         {/* 몬스터 점 — 종류별 색상 */}
         {dots.map((dot, i) => {
-          const isDead = deadSet.has(i);
+          const isDying = dyingDots.has(i);          // 볼트 도착 대기 — 닷 유지
+          const isDead = deadSet.has(i) && !isDying;  // dying 중이면 시각적으로 살아있음
           const isCurrentTarget = i === targetIdx && !isDead;
           const isJoined = joinedDotIdxs.has(i) && !isDead;
           const isApproaching = dotApproachDuration.has(i) && !isDead;
