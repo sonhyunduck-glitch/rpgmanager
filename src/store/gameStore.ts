@@ -127,8 +127,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         } : {}),
         // ⚠️ DB가 진실 — 빈 객체도 그대로 사용 (재료/포션 0개 = 정당한 상태)
         materials: dbData.materials,
-        potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : { potion_hp_minor: 50 },
-        selectedPotionId: p.selected_potion ?? 'potion_hp_minor',
+        potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : { red_potion: 300, green_potion: 50, blue_potion: 50 },
+        selectedPotionId: p.selected_potion ?? 'red_potion',
         potionAutoUse: p.potion_auto_use ?? true,
         potionAutoThreshold: p.potion_auto_threshold ?? 50,
         potionAutoBuy: p.potion_auto_buy ?? true,
@@ -163,7 +163,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           equippedEarring: null,
           inventory: [],
           materials: {},
-          potions: { potion_hp_minor: 50 },
+          potions: { red_potion: 300, green_potion: 50, blue_potion: 50 },
         });
 
         const s = get();
@@ -216,7 +216,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         equippedRing2: null, equippedBelt: null,
         equippedEarring: null,
         inventory: [], materials: {},
-        potions: { potion_hp_minor: 50 },
+        potions: { red_potion: 300, green_potion: 50, blue_potion: 50 },
       });
 
       const s = get();
