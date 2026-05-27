@@ -1075,52 +1075,45 @@ export default function Minimap() {
           );
         })()}
 
-        {/* 투사체 이펙트 (원거리 전투) */}
-        {projectile && (
-          <svg
-            key={`proj-${projectile.id}`}
-            style={{
-              position: 'absolute', inset: 0,
-              width: '100%', height: '100%',
-              zIndex: 6, pointerEvents: 'none',
-              overflow: 'visible',
-            }}
-          >
-            <line
-              x1={`${projectile.from.x}%`} y1={`${projectile.from.y}%`}
-              x2={`${projectile.to.x}%`}   y2={`${projectile.to.y}%`}
-              stroke={
-                projectile.type === 'arrow' ? '#FFD54F'
-                : projectile.type === 'magic' ? '#7C4DFF'
-                : projectile.type === 'monster_magic' ? '#FF4444'
-                : '#FF6B00'
-              }
-              strokeWidth={
-                projectile.type === 'arrow' ? 1.5
-                : projectile.type === 'magic' ? 2.5
-                : 2
-              }
-              strokeDasharray={
-                projectile.type === 'monster_magic' || projectile.type === 'monster_skill'
-                  ? '4,2' : 'none'
-              }
-              opacity="0.9"
+        {/* 투사체 이펙트 — CSS bolt (원거리 전투) */}
+        {projectile && (() => {
+          const dx = projectile.to.x - projectile.from.x;
+          const dy = projectile.to.y - projectile.from.y;
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          const mapW = mapRef.current?.clientWidth ?? 200;
+          const mapH = mapRef.current?.clientHeight ?? 200;
+          const distPx = Math.sqrt((dx * mapW / 100) ** 2 + (dy * mapH / 100) ** 2);
+          const color = projectile.type === 'arrow' ? '#FFD54F'
+            : projectile.type === 'magic' ? '#7C4DFF'
+            : projectile.type === 'monster_magic' ? '#FF4444'
+            : '#FF6B00';
+          const dur = projectile.type === 'arrow' ? '0.8s' : '1.1s';
+          return (
+            <div
+              key={`proj-${projectile.id}`}
+              style={{
+                position: 'absolute',
+                left: `${projectile.from.x}%`,
+                top: `${projectile.from.y}%`,
+                transform: `rotate(${angle}deg)`,
+                transformOrigin: '0 50%',
+                zIndex: 6,
+                pointerEvents: 'none' as const,
+              }}
             >
-              <animate attributeName="opacity" from="0.9" to="0" dur="0.3s" fill="freeze" />
-            </line>
-            <circle
-              cx={`${projectile.to.x}%`} cy={`${projectile.to.y}%`} r="3"
-              fill={
-                projectile.type === 'arrow' ? '#FFD54F'
-                : projectile.type === 'magic' ? '#7C4DFF'
-                : '#FF4444'
-              }
-            >
-              <animate attributeName="r" from="3" to="7" dur="0.2s" fill="freeze" />
-              <animate attributeName="opacity" from="0.8" to="0" dur="0.3s" fill="freeze" />
-            </circle>
-          </svg>
-        )}
+              <div className="mm-bolt" style={{
+                background: `linear-gradient(90deg, transparent, ${color})`,
+                ['--bolt-dist' as string]: `${distPx}px`,
+                animationDuration: dur,
+              }} />
+              <div className="mm-bolt mm-bolt-b2" style={{
+                background: `linear-gradient(90deg, transparent, ${color})`,
+                ['--bolt-dist' as string]: `${distPx}px`,
+                animationDuration: dur,
+              }} />
+            </div>
+          );
+        })()}
 
         {/* 근접 타격 임팩트 (기사) */}
         {meleeImpact && (
@@ -1404,6 +1397,19 @@ export default function Minimap() {
           0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
           40% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
           100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
+        }
+        .mm-bolt {
+          position: absolute;
+          width: 12px; height: 2px;
+          border-radius: 2px;
+          pointer-events: none;
+          animation: mmBolt 1.1s linear infinite;
+        }
+        .mm-bolt-b2 { animation-delay: .4s; opacity: .7; }
+        @keyframes mmBolt {
+          0%   { transform: translateX(0); opacity: 0; }
+          20%  { opacity: 1; }
+          100% { transform: translateX(var(--bolt-dist, 80px)); opacity: 0; }
         }
         .mm-transform-dot {
           animation: mmTransformPulse 1.2s ease-in-out infinite;

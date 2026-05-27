@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.15 — 마법 스킬 구조 개편 (공격 8개 정리, 5패시브→버프 L1J 원본, 이럽션 C7)
-export const APP_VERSION = '2.39.15';
+// v2.39.16 — 원거리 투사체 CSS bolt 이펙트 교체
+export const APP_VERSION = '2.39.16';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
