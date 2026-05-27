@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.6 — 모든 물약 버튼 원형→물약 병 SVG 아이콘 (초록/용기/파란 포함)
-export const APP_VERSION = '2.39.6';
+// v2.39.7 — 변신주문서 버튼 두루마리 SVG 아이콘
+export const APP_VERSION = '2.39.7';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

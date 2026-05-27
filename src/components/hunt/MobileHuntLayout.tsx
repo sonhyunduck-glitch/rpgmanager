@@ -604,14 +604,25 @@ export default function MobileHuntLayout() {
             cursor: 'pointer',
           }}
         >
-          <span style={{
-            width: 18, height: 18, borderRadius: '50%',
-            background: transformScrollType === 'event' ? '#F5C518' : '#00e5ff',
-            boxShadow: transformScrollEnabled
-              ? `0 0 6px ${transformScrollType === 'event' ? '#F5C518' : '#00e5ff'}`
+          <svg width="20" height="24" viewBox="0 0 20 26" style={{
+            filter: transformScrollEnabled
+              ? `drop-shadow(0 0 4px ${transformScrollType === 'event' ? '#F5C518' : '#00e5ff'})`
               : 'none',
             opacity: transformScrollEnabled ? 1 : 0.4,
-          }} />
+          }}>
+            {/* 상단 말이 */}
+            <rect x="2" y="0" width="16" height="3" rx="1.5" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.8" />
+            {/* 본문 */}
+            <rect x="4" y="3" width="12" height="18" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.5" />
+            {/* 글자 라인 */}
+            <line x1="6.5" y1="8" x2="13.5" y2="8" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+            <line x1="6.5" y1="12" x2="13.5" y2="12" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+            <line x1="6.5" y1="16" x2="11" y2="16" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+            {/* 하단 말이 */}
+            <rect x="2" y="21" width="16" height="3" rx="1.5" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.8" />
+            {/* 하이라이트 */}
+            <rect x="5" y="4" width="2" height="16" rx="1" fill="rgba(255,255,255,0.15)" />
+          </svg>
           <span style={potCountStyle}>{tsCount}</span>
         </button>
 
