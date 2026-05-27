@@ -567,11 +567,14 @@ export default function MobileHuntLayout() {
           ...slotStyle,
           borderColor: greenPotionEnabled ? 'var(--success)' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
-          <span style={{
-            width: 18, height: 18, borderRadius: '50%',
-            background: 'var(--success)',
-            boxShadow: greenPotionEnabled ? '0 0 6px var(--success)' : 'none',
-          }} />
+          <svg width="22" height="24" viewBox="0 0 22 24" style={{
+            filter: greenPotionEnabled ? 'drop-shadow(0 0 4px #66bb6a)' : 'none',
+          }}>
+            <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
+            <rect x="9" y="4" width="4" height="3" rx="0.5" fill="#66bb6a" opacity="0.7" />
+            <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z" fill="#66bb6a" />
+            <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
+          </svg>
           <span style={potCountStyle}>{greenCount}</span>
         </div>
 
@@ -579,11 +582,14 @@ export default function MobileHuntLayout() {
           ...slotStyle,
           borderColor: couragePotionEnabled ? 'oklch(0.68 0.20 305)' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
-          <span style={{
-            width: 18, height: 18, borderRadius: '50%',
-            background: 'oklch(0.68 0.20 305)',
-            boxShadow: couragePotionEnabled ? '0 0 6px oklch(0.68 0.20 305)' : 'none',
-          }} />
+          <svg width="22" height="24" viewBox="0 0 22 24" style={{
+            filter: couragePotionEnabled ? 'drop-shadow(0 0 4px #ab47bc)' : 'none',
+          }}>
+            <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
+            <rect x="9" y="4" width="4" height="3" rx="0.5" fill="#ab47bc" opacity="0.7" />
+            <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z" fill="#ab47bc" />
+            <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
+          </svg>
           <span style={potCountStyle}>{braveCount}</span>
         </div>
 
@@ -613,11 +619,14 @@ export default function MobileHuntLayout() {
           ...slotStyle,
           borderColor: bluePotionEnabled ? '#42a5f5' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
-          <span style={{
-            width: 18, height: 18, borderRadius: '50%',
-            background: '#42a5f5',
-            boxShadow: bluePotionEnabled ? '0 0 6px #42a5f5' : 'none',
-          }} />
+          <svg width="22" height="24" viewBox="0 0 22 24" style={{
+            filter: bluePotionEnabled ? 'drop-shadow(0 0 4px #42a5f5)' : 'none',
+          }}>
+            <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
+            <rect x="9" y="4" width="4" height="3" rx="0.5" fill="#42a5f5" opacity="0.7" />
+            <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z" fill="#42a5f5" />
+            <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
+          </svg>
           <span style={potCountStyle}>{blueCount}</span>
         </div>
 

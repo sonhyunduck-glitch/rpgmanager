@@ -125,14 +125,17 @@ export default function BuffPotionButton({
       </span>
 
       {/* 물약 아이콘 */}
-      <div style={{
-        width: 8, height: 8, borderRadius: '50%',
-        background: color,
-        boxShadow: isActive ? `0 0 6px ${color}` : 'none',
+      <svg width="14" height="16" viewBox="0 0 22 24" style={{
+        filter: isActive ? `drop-shadow(0 0 3px ${color})` : 'none',
         opacity: buffEnabled ? 1 : 0.4,
         zIndex: 1,
         marginBottom: 1,
-      }} />
+      }}>
+        <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
+        <rect x="9" y="4" width="4" height="3" rx="0.5" fill={color} opacity="0.7" />
+        <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z" fill={color} />
+        <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
+      </svg>
 
       {/* 남은 시간 or ON/OFF */}
       {isActive ? (
