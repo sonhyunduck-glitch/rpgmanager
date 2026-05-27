@@ -745,17 +745,23 @@ export default function Minimap() {
       }
     }
 
-    // ── 좌표 기반 선공 몬스터 감지: 5m 이내 → 접근 시작 (매 틱 항상 실행) ──
+    // ── 선공 몬스터 감지: 5m 이내 일반 어그로 + 동족인식 (매 틱 항상 실행) ──
+    // 동족인식: 현재 타겟과 같은 이름의 선공 몬스터는 거리 무관하게 자동 접근
     if (isHunting && !deadSet.has(targetIdx)) {
       const AGGRO_RANGE_M = 5;
+      const currentTargetMonster = tierMonsters[dots[targetIdx]?.monsterIdx];
+      const currentTargetName = currentTargetMonster?.name ?? '';
+
       for (let i = 0; i < dots.length; i++) {
         if (i === targetIdx || deadSet.has(i) || joinedDotIdxs.has(i) || approachingDotIdxsRef.current.has(i)) continue;
 
         const m = tierMonsters[dots[i].monsterIdx];
         if (!m?.aggressive) continue;
 
+        // 동족인식: 같은 이름의 선공 몬스터는 거리 무관 접근
+        const isSameSpecies = m.name === currentTargetName;
         const distM = calcDistM(dots[i], playerPos);
-        if (distM > AGGRO_RANGE_M) continue;
+        if (!isSameSpecies && distM > AGGRO_RANGE_M) continue;
 
         const actualDistM = Math.max(1, Math.round(distM));
         const success = startApproach(m.id, actualDistM);
