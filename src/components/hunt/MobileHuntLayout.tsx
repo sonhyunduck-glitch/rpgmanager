@@ -154,6 +154,12 @@ export default function MobileHuntLayout() {
   const hitRate = calcPlayerHitRate(level, str, dex, weaponEnchant, equipBonusHit);
 
   /* ── 물약 ── */
+  const HP_POTION_COLORS: Record<string, string> = {
+    red_potion: '#ef5350',
+    crimson_potion: '#ff7043',
+    clear_potion: '#e0e0e0',
+  };
+  const hpPotionColor = HP_POTION_COLORS[selectedPotionId] ?? '#ef5350';
   const hpCount = potions[selectedPotionId] ?? 0;
   const bravePotionId = getBravePotionId(playerClass);
   const greenCount = potions['green_potion'] ?? 0;
@@ -521,15 +527,23 @@ export default function MobileHuntLayout() {
           onClick={() => setShowHpModal(true)}
           style={{
             ...slotStyle,
-            borderColor: potionAutoUse ? 'var(--danger)' : 'oklch(0.36 0.014 260 / 0.6)',
+            borderColor: potionAutoUse ? hpPotionColor : 'oklch(0.36 0.014 260 / 0.6)',
             cursor: 'pointer',
           }}
         >
-          <span style={{
-            width: 18, height: 18, borderRadius: '50%',
-            background: 'var(--danger)',
-            boxShadow: potionAutoUse ? '0 0 6px var(--danger)' : 'none',
-          }} />
+          <svg width="22" height="24" viewBox="0 0 22 24" style={{
+            filter: potionAutoUse ? `drop-shadow(0 0 4px ${hpPotionColor})` : 'none',
+          }}>
+            {/* 뚜껑 */}
+            <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
+            {/* 목 */}
+            <rect x="9" y="4" width="4" height="3" rx="0.5" fill={hpPotionColor} opacity="0.7" />
+            {/* 몸통 */}
+            <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z"
+              fill={hpPotionColor} />
+            {/* 하이라이트 */}
+            <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
+          </svg>
           {potionCdProgress > 0 && (
             <svg
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none' }}

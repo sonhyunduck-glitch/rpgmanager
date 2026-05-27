@@ -8,7 +8,7 @@ import { POTIONS } from '../../data/gameData';
 const POTION_COLORS: Record<string, string> = {
   red_potion: '#ef5350',
   crimson_potion: '#ff7043',
-  clear_potion: '#42a5f5',
+  clear_potion: '#e0e0e0',
 };
 
 const HEAL_POTIONS = ['red_potion', 'crimson_potion', 'clear_potion'] as const;
@@ -105,11 +105,14 @@ export default function HpPotionModal({ onClose }: { onClose: () => void }) {
                   transition: 'all 0.15s',
                 }}
               >
-                <div style={{
-                  width: 16, height: 16, borderRadius: '50%',
-                  background: color,
-                  boxShadow: selected ? `0 0 8px ${color}` : 'none',
-                }} />
+                <svg width="20" height="22" viewBox="0 0 22 24" style={{
+                  filter: selected ? `drop-shadow(0 0 5px ${color})` : 'none',
+                }}>
+                  <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
+                  <rect x="9" y="4" width="4" height="3" rx="0.5" fill={color} opacity="0.7" />
+                  <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z" fill={color} />
+                  <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
+                </svg>
                 <span style={{
                   fontSize: 'var(--fs-xs)', fontWeight: 700, color,
                   fontFamily: 'var(--font-mono)',

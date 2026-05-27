@@ -99,11 +99,14 @@ export default function SkillBar() {
             fontFamily: 'var(--font-mono)', fontWeight: 700, opacity: 0.5,
           }}>1</span>
 
-          <div style={{
-            width: 8, height: 8, borderRadius: '50%',
-            background: hpColor,
-            boxShadow: potionAutoUse ? `0 0 6px ${hpColor}` : 'none',
-          }} />
+          <svg width="14" height="16" viewBox="0 0 22 24" style={{
+            filter: potionAutoUse ? `drop-shadow(0 0 3px ${hpColor})` : 'none',
+          }}>
+            <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
+            <rect x="9" y="4" width="4" height="3" rx="0.5" fill={hpColor} opacity="0.7" />
+            <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z" fill={hpColor} />
+            <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
+          </svg>
           <span style={{
             fontSize: 'var(--fs-2xs)', fontWeight: 700,
             fontFamily: 'var(--font-mono)',
