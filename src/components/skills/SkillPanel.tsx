@@ -76,6 +76,25 @@ function formatBuffEffect(skill: PlayerSkill): string {
 }
 
 /* ══════════════════════════════════════════════
+   바텀시트 스탯 셀 (모바일)
+   ══════════════════════════════════════════════ */
+function SheetStatCell({ k, v, vColor }: { k: string; v: string; vColor?: string }) {
+  return (
+    <div style={{ background: 'var(--bg-panel)', padding: '12px 14px' }}>
+      <div style={{
+        fontFamily: 'var(--font-mono)', fontSize: 9.5,
+        color: 'var(--text-mute)',
+        textTransform: 'uppercase' as const, letterSpacing: '0.08em',
+      }}>{k}</div>
+      <div style={{
+        fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700,
+        marginTop: 3, color: vColor ?? 'var(--text)',
+      }}>{v}</div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
    메인 컴포넌트
    ══════════════════════════════════════════════ */
 export default function SkillPanel() {
@@ -186,6 +205,21 @@ export default function SkillPanel() {
      COMPACT (모바일) — 디자인 핸드오프 기반 전용 렌더
      ═══════════════════════════════════════════════ */
   if (compact) {
+    const sheetSkill = selectedId ? (PLAYER_SKILLS.find(s => s.id === selectedId) ?? null) : null;
+    const sheetOpen = !!sheetSkill;
+    const closeSheet = () => setSelectedId(null);
+
+    // 시트용 헬퍼
+    const sheetEquipped = sheetSkill ? isEquipped(sheetSkill.id) : false;
+    const sheetSlotIdx = sheetSkill ? slots.indexOf(sheetSkill.id) : -1;
+
+    const KIND_LABEL: Record<string, string> = { attack: '공격', heal: '힐', buff: '버프', passive: '패시브' };
+    const ELEM_LABEL_FULL: Record<number, string> = { 1: '땅 속성', 2: '불 속성', 4: '물 속성', 8: '바람 속성', 16: '빛 속성' };
+    const ELEM_CLASS_COLOR: Record<number, string> = {
+      1: 'var(--accent)', 2: 'var(--danger)', 4: 'oklch(0.74 0.16 200)',
+      8: 'var(--success)', 16: 'oklch(0.68 0.20 305)',
+    };
+
     return (
       <div style={{
         height: '100%', display: 'flex', flexDirection: 'column',
@@ -195,14 +229,13 @@ export default function SkillPanel() {
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 0 12px' }}>
           {/* Breadcrumb */}
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            paddingBottom: 10,
-            borderBottom: '1px solid var(--border-soft)',
-            marginBottom: 10,
+            display: 'flex', alignItems: 'center', gap: 10,
+            marginBottom: 12,
           }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>스킬</span>
+            <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>스킬</span>
             <span style={{
               fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)',
+              padding: '2px 8px', background: 'var(--bg-panel)', borderRadius: 100,
             }}>
               {unlockedSkills.length}개 해금
             </span>
@@ -237,9 +270,10 @@ export default function SkillPanel() {
 
           {/* Category chips — scrollable row */}
           <div style={{
-            display: 'flex', gap: 6, marginBottom: 12,
+            display: 'flex', gap: 6, marginBottom: 10,
             overflowX: 'auto', WebkitOverflowScrolling: 'touch' as const,
-            flexShrink: 0,
+            flexShrink: 0, margin: '0 -10px 10px', padding: '0 10px 4px',
+            scrollbarWidth: 'none' as const,
           }}>
             {CATS.map(c => {
               const active = filterTab === c.id;
@@ -248,24 +282,24 @@ export default function SkillPanel() {
                   key={c.id}
                   onClick={() => setFilterTab(c.id)}
                   style={{
-                    padding: '6px 14px', borderRadius: 16,
+                    padding: '6px 12px', borderRadius: 100,
                     border: active
-                      ? '1px solid var(--accent)'
+                      ? '1px solid oklch(0.74 0.17 55 / 0.5)'
                       : '1px solid var(--border-soft)',
                     background: active
-                      ? 'color-mix(in oklch, var(--accent) 10%, transparent)'
+                      ? 'oklch(0.74 0.17 55 / 0.1)'
                       : 'var(--bg-panel)',
                     color: active ? 'var(--accent)' : 'var(--text-mute)',
-                    fontSize: 12, fontWeight: 500,
+                    fontSize: 11.5, fontWeight: 500,
                     cursor: 'pointer', flexShrink: 0,
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
                     whiteSpace: 'nowrap' as const,
                   }}
                 >
                   {c.nm}
                   <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 10,
-                    opacity: 0.7,
+                    fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                    color: active ? 'var(--accent)' : 'var(--text-faint)',
                   }}>
                     {counts[c.id] ?? 0}
                   </span>
@@ -289,7 +323,7 @@ export default function SkillPanel() {
                   onClick={() => setSelectedId(skill.id)}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '36px auto 1fr auto',
+                    gridTemplateColumns: '36px auto 1fr auto auto',
                     alignItems: 'center', columnGap: 10,
                     padding: equipped ? '10px 12px 10px 9px' : '10px 12px',
                     background: 'var(--bg-panel)',
@@ -336,9 +370,6 @@ export default function SkillPanel() {
                       ) : (
                         <>
                           <span style={{ color: 'var(--info)' }}>{skill.consumeMp} MP</span>
-                          {skill.reuseDelayMs > 0 && (
-                            <span style={{ color: 'var(--accent)' }}>{skill.reuseDelayMs / 1000}s</span>
-                          )}
                           {skill.attr > 0 && ATTR_LABEL[skill.attr] && (
                             <span style={{ color: ATTR_COLOR[skill.attr] }}>{ATTR_LABEL[skill.attr]}</span>
                           )}
@@ -461,7 +492,7 @@ export default function SkillPanel() {
               onClick={autoEquipSkills}
               style={{
                 color: 'var(--accent)', fontSize: 11, padding: '2px 8px',
-                border: '1px solid color-mix(in oklch, var(--accent) 30%, transparent)',
+                border: '1px solid oklch(0.74 0.17 55 / 0.3)',
                 borderRadius: 4, background: 'none', cursor: 'pointer',
                 fontFamily: 'var(--font-mono)', fontWeight: 500,
               }}
@@ -506,6 +537,220 @@ export default function SkillPanel() {
               );
             })}
           </div>
+        </div>
+
+        {/* ── Bottom sheet backdrop ── */}
+        <div
+          onClick={closeSheet}
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.55)',
+            zIndex: 75,
+            opacity: sheetOpen ? 1 : 0,
+            pointerEvents: sheetOpen ? 'auto' : 'none',
+            transition: 'opacity 0.2s',
+          }}
+        />
+
+        {/* ── Bottom sheet detail ── */}
+        <div
+          role="dialog"
+          aria-label="스킬 정보"
+          style={{
+            position: 'fixed',
+            left: 0, right: 0, bottom: 0,
+            background: 'var(--bg-panel)',
+            borderTop: '1px solid var(--border)',
+            borderRadius: '14px 14px 0 0',
+            zIndex: 80,
+            transform: sheetOpen ? 'translateY(0)' : 'translateY(100%)',
+            transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)',
+            maxWidth: 420, margin: '0 auto',
+            boxShadow: '0 -8px 24px rgba(0,0,0,0.5)',
+            maxHeight: '80%',
+            overflowY: 'auto',
+          }}
+        >
+          {/* Grip */}
+          <div style={{
+            width: 40, height: 4,
+            background: 'var(--border)', borderRadius: 100,
+            margin: '8px auto 14px',
+          }} />
+
+          {sheetSkill && (() => {
+            const sk = sheetSkill;
+            const isP = !!sk.passive;
+            const knd = isP ? 'passive' : sk.skillType;
+            const kc = KIND_COLOR[knd];
+            const ccs = CIRCLE_STYLE[sk.skillCircle] ?? CIRCLE_STYLE[0];
+
+            return (
+              <>
+                {/* Head */}
+                <div style={{
+                  padding: '0 16px 12px',
+                  borderBottom: '1px solid var(--border-soft)',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{
+                    width: 52, height: 52, flexShrink: 0,
+                    background: 'var(--bg-sunken)',
+                    border: `1px solid color-mix(in oklch, ${kc} 30%, transparent)`,
+                    borderRadius: 10,
+                    display: 'grid', placeItems: 'center',
+                    fontSize: 26, color: kc,
+                  }}>
+                    {KIND_ICON[knd]}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 17, fontWeight: 700, color: 'var(--text)',
+                      display: 'flex', alignItems: 'center', gap: 8,
+                    }}>
+                      <span>{sk.name}</span>
+                      <span style={{
+                        fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                        padding: '2px 6px', borderRadius: 4,
+                        background: 'var(--bg-sunken)', color: ccs.color,
+                      }}>
+                        {sk.skillCircle > 0 ? `C${sk.skillCircle}` : 'EX'}
+                      </span>
+                    </div>
+                    <div style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 11,
+                      color: 'var(--text-mute)', marginTop: 4,
+                      display: 'flex', flexWrap: 'wrap' as const, gap: 8,
+                    }}>
+                      <span style={{ color: kc }}>{KIND_LABEL[knd]}</span>
+                      <span style={{ color: 'var(--text-faint)' }}>·</span>
+                      <span>서클 {sk.skillCircle || 'EX'}</span>
+                      {sk.attr > 0 && ATTR_LABEL[sk.attr] && (
+                        <>
+                          <span style={{ color: 'var(--text-faint)' }}>·</span>
+                          <span style={{ color: ELEM_CLASS_COLOR[sk.attr] ?? 'var(--text-mute)' }}>
+                            {ELEM_LABEL_FULL[sk.attr] ?? ''}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div style={{
+                  padding: '14px 16px',
+                  fontSize: 12.5, lineHeight: 1.55,
+                  color: 'var(--text-dim)',
+                  borderBottom: '1px solid var(--border-soft)',
+                }}>
+                  {sk.description}
+                </div>
+
+                {/* Stat grid (2-col) */}
+                <div style={{
+                  display: 'grid', gridTemplateColumns: '1fr 1fr',
+                  gap: 1,
+                  background: 'var(--border-soft)',
+                  borderBottom: '1px solid var(--border-soft)',
+                }}>
+                  {isP ? (
+                    <>
+                      <SheetStatCell k="MP 소모" v="상시" />
+                      <SheetStatCell k="쿨타임" v="—" />
+                      <SheetStatCell k="효과" v={formatBuffEffect(sk)} vColor="var(--accent)" />
+                      <SheetStatCell k="조건" v={`Lv.${sk.requiredLevel}+`} />
+                    </>
+                  ) : (
+                    <>
+                      <SheetStatCell k="MP 소모" v={String(sk.consumeMp)} vColor="var(--info)" />
+                      <SheetStatCell k="쿨타임" v={sk.reuseDelayMs > 0 ? `${sk.reuseDelayMs / 1000}s` : '3s'} vColor="var(--accent)" />
+                      {sk.skillType === 'attack' && sk.damageValue > 0 && (
+                        <SheetStatCell
+                          k="데미지"
+                          v={`${sk.damageValue}${sk.damageDiceCount > 0 ? `~${sk.damageValue + sk.damageDiceCount * sk.damageDice}` : ''}`}
+                          vColor="var(--danger)"
+                        />
+                      )}
+                      {sk.skillType === 'heal' && sk.damageValue > 0 && (
+                        <SheetStatCell
+                          k="회복량"
+                          v={`+${sk.damageValue}~${sk.damageValue + (sk.damageDiceCount || 0) * (sk.damageDice || 0)}`}
+                          vColor="var(--success)"
+                        />
+                      )}
+                      {sk.skillType === 'buff' && (
+                        <SheetStatCell k="효과" v={formatBuffEffect(sk)} vColor="oklch(0.68 0.20 305)" />
+                      )}
+                      {sk.skillType === 'buff' && sk.buffDuration > 0 && (
+                        <SheetStatCell k="지속" v={`${Math.floor(sk.buffDuration / 60)}분`} vColor="var(--info)" />
+                      )}
+                      <SheetStatCell k="사거리" v="8M" />
+                      <SheetStatCell k="시전" v="즉시" />
+                    </>
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div style={{
+                  display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 8,
+                  padding: '14px 16px 16px',
+                }}>
+                  <button
+                    onClick={closeSheet}
+                    style={{
+                      padding: 13, borderRadius: 8,
+                      fontSize: 13, fontWeight: 700,
+                      background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                      color: 'var(--text)', cursor: 'pointer',
+                    }}
+                  >
+                    닫기
+                  </button>
+                  {isP ? (
+                    <button
+                      disabled
+                      style={{
+                        padding: 13, borderRadius: 8,
+                        fontSize: 13, fontWeight: 700,
+                        background: 'oklch(0.74 0.17 55 / 0.1)',
+                        border: '1px solid oklch(0.74 0.17 55 / 0.4)',
+                        color: 'var(--accent)', cursor: 'default',
+                      }}
+                    >
+                      ★ 상시 발동중
+                    </button>
+                  ) : sheetEquipped ? (
+                    <button
+                      onClick={() => { handleToggleSlot(sk); closeSheet(); }}
+                      style={{
+                        padding: 13, borderRadius: 8,
+                        fontSize: 13, fontWeight: 700,
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--danger)',
+                        color: 'var(--danger)', cursor: 'pointer',
+                      }}
+                    >
+                      슬롯 #{sheetSlotIdx + 1}에서 제거
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => { handleToggleSlot(sk); closeSheet(); }}
+                      style={{
+                        padding: 13, borderRadius: 8,
+                        fontSize: 13, fontWeight: 700,
+                        background: 'linear-gradient(135deg, var(--success), oklch(0.66 0.16 135))',
+                        border: 'none',
+                        color: '#fff', cursor: 'pointer',
+                      }}
+                    >
+                      슬롯에 추가
+                    </button>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
     );
