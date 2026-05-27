@@ -55,20 +55,24 @@ export default function MiniChatFeed() {
 
   /* ── dedup + cap (global) ── */
   const addGlobalMsg = useCallback((msg: ChatMessage) => {
+    let isNew = false;
     setGlobalMessages(prev => {
       if (prev.some(m => m.id === msg.id)) return prev;
+      isNew = true;
       return [...prev, msg].slice(-FEED_MAX);
     });
-    if (globalInitDone.current) setGlobalNewCount(c => c + 1);
+    if (isNew && globalInitDone.current) setGlobalNewCount(c => c + 1);
   }, []);
 
   /* ── dedup + cap (guild) ── */
   const addGuildMsg = useCallback((msg: ChatMessage) => {
+    let isNew = false;
     setGuildMessages(prev => {
       if (prev.some(m => m.id === msg.id)) return prev;
+      isNew = true;
       return [...prev, msg].slice(-FEED_MAX);
     });
-    if (guildInitDone.current) setGuildNewCount(c => c + 1);
+    if (isNew && guildInitDone.current) setGuildNewCount(c => c + 1);
   }, []);
 
   /* ── global 구독 (항상) ── */
