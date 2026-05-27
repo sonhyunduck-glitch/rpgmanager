@@ -503,6 +503,19 @@ export default function Minimap() {
     const currentTarget = dots[targetIdx];
     const targetColor = currentTarget ? (monsterColorMap.get(currentTarget.monsterIdx) ?? '#ef5350') : '#ef5350';
 
+    // 원거리 볼트 도달까지 데미지 표시 지연 (ms)
+    const projDelay = isRanged ? (combatStyle === 'ranged_bow' ? 300 : 400) : 0;
+
+    /** 원거리 볼트 도달 후 데미지/킬 이벤트 표시 (근접은 즉시) */
+    const showDmgEvent = (ev: MapEvent) => {
+      if (projDelay > 0) {
+        setTimeout(() => { setEvent(ev); setTimeout(() => setEvent(null), 900); }, projDelay);
+      } else {
+        setEvent(ev);
+        setTimeout(() => setEvent(null), 900);
+      }
+    };
+
     // 킬 여부 판정: kill 타입 OR crit+처치
     const isKillEvent = combatEntry && (
       combatEntry.type === 'kill' ||
@@ -537,7 +550,7 @@ export default function Minimap() {
     const handleKill = () => {
       if (!currentTarget) return;
       const killDmg = extractDamage(combatEntry!.text);
-      setEvent({
+      showDmgEvent({
         type: combatEntry!.type === 'crit' ? 'crit' : 'kill',
         pos: currentTarget, id: combatEntry!.id, color: targetColor,
         dmgText: killDmg ?? undefined,
@@ -555,7 +568,6 @@ export default function Minimap() {
       if (promotionLog && joinedDotIdxs.size > 0) {
         const nameMatch = promotionLog.text.match(/^(.+?)이\(가\) 주 타겟으로/);
         const promotedName = nameMatch ? nameMatch[1] : null;
-        // 이름 매칭으로 승격 닷 찾기
         if (promotedName) {
           for (const jIdx of joinedDotIdxs) {
             const d = dots[jIdx];
@@ -565,35 +577,31 @@ export default function Minimap() {
             }
           }
         }
-        // 이름 매칭 실패 시 첫 번째 합류 닷 승격
         if (promotedDotIdx < 0) {
           const first = joinedDotIdxs.values().next();
           if (!first.done) promotedDotIdx = first.value;
         }
       }
 
-      // 합류/접근 몬스터: 승격 닷만 살리고 나머지 죽임
-      for (const jIdx of joinedDotIdxs) {
-        if (jIdx !== promotedDotIdx) updatedDeadSet.add(jIdx);
-      }
-      for (const aIdx of approachingDotIdxsRef.current) updatedDeadSet.add(aIdx);
+      // FIX: 주 타겟만 죽음 처리 — 합류/접근 몬스터는 살아있는 상태 유지
       setDeadSet(updatedDeadSet);
-      setJoinedDotIdxs(new Set());
-      approachingDotIdxsRef.current = new Set();
-      setDotApproachDuration(new Map());
 
       if (promotedDotIdx >= 0) {
         // 승격: 합류 몬스터가 새 주 타겟 (이미 플레이어 근처 → 이동 불필요)
+        const newJoined = new Set(joinedDotIdxs);
+        newJoined.delete(promotedDotIdx);
+        setJoinedDotIdxs(newJoined);
         setTargetIdx(promotedDotIdx);
       } else {
-        // 승격 없음: 다음 가장 가까운 몬스터로 이동
+        // 승격 없음: 합류 닷 클리어, 접근 닷 유지
+        setJoinedDotIdxs(new Set());
         const nextI = pickNextAlive(dots, updatedDeadSet, killedIdx, playerPos);
         if (nextI >= 0) movePlayerToTarget(nextI);
       }
 
-      // 리스폰 (승격된 닷은 updatedDeadSet에 없으므로 제외됨)
-      const respawnIdxs = [...updatedDeadSet];
-      const respawnPlayerPos = { ...playerPos }; // 캡처: 리스폰 시점의 유저 위치
+      // 리스폰: 죽은 주 타겟만 (합류/접근 닷은 살아있으므로 제외)
+      const respawnIdxs = [killedIdx];
+      const respawnPlayerPos = { ...playerPos };
       setTimeout(() => {
         const monsterCount = tierMonsters.length || 1;
         setDots(prev => {
@@ -613,8 +621,6 @@ export default function Minimap() {
           });
         }, 50);
       }, RESPAWN_DELAY);
-
-      setTimeout(() => setEvent(null), 900);
     };
 
     /** ── 다음 타겟 이동 헬퍼 (발견 시) ── */
@@ -682,8 +688,7 @@ export default function Minimap() {
         if (isRanged) {
           fireProjectile(currentTarget, combatStyle === 'ranged_bow' ? 'arrow' : 'magic');
         }
-        setEvent({ type: 'miss', pos: currentTarget, id: combatEntry.id, color: targetColor });
-        setTimeout(() => setEvent(null), 900);
+        showDmgEvent({ type: 'miss', pos: currentTarget, id: combatEntry.id, color: targetColor });
       } else if (combatEntry.type === 'miss' && combatEntry.text.includes('회피')) {
         setEvent({ type: 'miss', pos: playerPos, id: combatEntry.id, dmgText: 'DODGE' });
         setTimeout(() => setEvent(null), 900);
@@ -704,14 +709,12 @@ export default function Minimap() {
       } else if (combatEntry.type === 'crit') {
         // 크리티컬 (비킬) — 데미지만 표시
         const dmg = extractDamage(combatEntry.text);
-        setEvent({ type: 'crit', pos: currentTarget, id: combatEntry.id, color: targetColor, dmgText: dmg ?? undefined });
-        setTimeout(() => setEvent(null), 900);
+        showDmgEvent({ type: 'crit', pos: currentTarget, id: combatEntry.id, color: targetColor, dmgText: dmg ?? undefined });
       } else if (combatEntry.type === 'battle') {
         // 일반 공격 데미지
         const dmg = extractDamage(combatEntry.text);
         if (dmg) {
-          setEvent({ type: 'damage', pos: currentTarget, id: combatEntry.id, color: targetColor, dmgText: dmg });
-          setTimeout(() => setEvent(null), 900);
+          showDmgEvent({ type: 'damage', pos: currentTarget, id: combatEntry.id, color: targetColor, dmgText: dmg });
         }
         // 몬스터 스킬 시각화: 소환/변신
         if (combatEntry.text.includes('소환') || combatEntry.text.includes('구원')) {
@@ -1079,9 +1082,10 @@ export default function Minimap() {
         {projectile && (() => {
           const dx = projectile.to.x - projectile.from.x;
           const dy = projectile.to.y - projectile.from.y;
-          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
           const mapW = mapRef.current?.clientWidth ?? 200;
           const mapH = mapRef.current?.clientHeight ?? 200;
+          // 픽셀 공간 기준 각도 계산 (맵이 정사각형이 아닐 때 보정)
+          const angle = Math.atan2(dy * mapH, dx * mapW) * (180 / Math.PI);
           const distPx = Math.sqrt((dx * mapW / 100) ** 2 + (dy * mapH / 100) ** 2);
           const color = projectile.type === 'arrow' ? '#FFD54F'
             : projectile.type === 'magic' ? '#7C4DFF'
