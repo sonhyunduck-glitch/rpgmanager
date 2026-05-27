@@ -628,7 +628,7 @@ export default function Minimap() {
     const fireProjectile = (targetPos: { x: number; y: number }, projType: 'arrow' | 'magic') => {
       const projId = `proj-${Date.now()}`;
       setProjectile({ id: projId, from: { ...playerPos }, to: targetPos, type: projType });
-      setTimeout(() => setProjectile(null), projType === 'arrow' ? 250 : 350);
+      setTimeout(() => setProjectile(null), projType === 'arrow' ? 350 : 450);
     };
 
     /** ── 근접 타격 임팩트 (기사) ── */
@@ -1087,7 +1087,7 @@ export default function Minimap() {
             : projectile.type === 'magic' ? '#7C4DFF'
             : projectile.type === 'monster_magic' ? '#FF4444'
             : '#FF6B00';
-          const dur = projectile.type === 'arrow' ? '0.8s' : '1.1s';
+          const dur = projectile.type === 'arrow' ? '0.3s' : '0.4s';
           return (
             <div
               key={`proj-${projectile.id}`}
@@ -1403,12 +1403,13 @@ export default function Minimap() {
           width: 12px; height: 2px;
           border-radius: 2px;
           pointer-events: none;
-          animation: mmBolt 1.1s linear infinite;
+          animation: mmBolt 0.35s linear forwards;
         }
-        .mm-bolt-b2 { animation-delay: .4s; opacity: .7; }
+        .mm-bolt-b2 { animation-delay: .08s; opacity: .7; }
         @keyframes mmBolt {
           0%   { transform: translateX(0); opacity: 0; }
-          20%  { opacity: 1; }
+          15%  { opacity: 1; }
+          85%  { opacity: 0.9; }
           100% { transform: translateX(var(--bolt-dist, 80px)); opacity: 0; }
         }
         .mm-transform-dot {
