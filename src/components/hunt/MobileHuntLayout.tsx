@@ -30,6 +30,7 @@ import HuntMetrics from './HuntMetrics';
 import HpPotionModal from './HpPotionModal';
 import TransformScrollModal from './TransformScrollModal';
 import MiniChatFeed from './MiniChatFeed';
+import SkillFloatOverlay from './SkillFloatOverlay';
 import type { ViewMode, PlayerClass, CombatStyle, Equipment, ActiveBuff, StatKey } from '../../types';
 
 /* ── 물약 쿨다운 RAF 훅 (60fps 부드러운 프로그레스) ── */
@@ -71,6 +72,7 @@ const glassPanel = {
 } as const;
 
 const textShadow = '0 0 4px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.95)';
+
 
 /* ── 퀵 메뉴 (드롭다운) ── */
 const ALL_MENU: { mode: ViewMode; icon: string; label: string }[] = [
@@ -644,6 +646,9 @@ export default function MobileHuntLayout() {
         {/* 빈 슬롯 */}
         <div style={slotStyle} />
       </div>
+
+      {/* ━━━ 스킬 발동 플로팅 텍스트 ━━━ */}
+      <SkillFloatOverlay />
 
       {/* ━━━ 미니 채팅 (좌하단 오버레이) ━━━ */}
       <MiniChatFeed />

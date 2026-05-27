@@ -25,6 +25,7 @@ import OfflineRewardModal from './components/offline/OfflineRewardModal';
 import UpdateModal from './components/update/UpdateModal';
 import RotateOverlay from './components/ui/RotateOverlay';
 import SubclassSelectModal from './components/hunt/SubclassSelectModal';
+import SkillFloatOverlay from './components/hunt/SkillFloatOverlay';
 
 const BASE_TICK_MS = 3000;
 
@@ -204,6 +205,7 @@ export default function App({ userId }: AppProps) {
               <Minimap />
               <HuntMetrics />
               <AutoHuntIndicator />
+              <SkillFloatOverlay />
             </div>
 
             {/* 하단 채팅 — 확장 */}
