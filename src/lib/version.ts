@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.8 — 스킬 발동 시 화면 중앙에 스킬 이름 플로팅 텍스트
-export const APP_VERSION = '2.39.8';
+// v2.39.9 — 스킬 플로팅 텍스트 CSS animation으로 부드러운 전환
+export const APP_VERSION = '2.39.9';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
