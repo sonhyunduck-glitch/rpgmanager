@@ -3,7 +3,7 @@
    좌측: 카테고리 칩 + 검색/정렬 툴바 + 아이템 그리드
    우측: 착용장비 페이퍼돌 + 장비합계 / 강화 탭
    ========================================================= */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { EQUIPMENT_TEMPLATES } from '../../data/gameData';
 import type { Equipment, PlayerClass } from '../../types';
@@ -50,6 +50,23 @@ const TYPE_COLOR: Record<string, string> = {
   shield: 'var(--info)', tshirt: 'var(--text-mute)',
   ring: 'var(--warning)', necklace: 'var(--warning)', belt: 'var(--text-dim)', earring: 'var(--accent)',
 };
+
+/** 장비 타입 한글 이름 */
+const TYPE_NAME: Record<string, string> = {
+  weapon: '검', bow: '활', staff: '지팡이',
+  helmet: '투구', armor: '갑옷', cloak: '망토',
+  gloves: '장갑', boots: '장화', shield: '방패', tshirt: '티셔츠',
+  ring: '반지', necklace: '목걸이', belt: '벨트', earring: '귀걸이',
+};
+
+/** 강화 등급 한글 이름 */
+function rarityLabel(enh: number): string {
+  if (enh >= 9) return '신화';
+  if (enh >= 7) return '전설';
+  if (enh >= 4) return '희귀';
+  if (enh > 0) return '고급';
+  return '일반';
+}
 
 /** 강화 레벨 기반 "등급" 색상 */
 function enhRarityColor(enh: number): string {
@@ -426,6 +443,317 @@ function ItemRow({
 }
 
 /* ══════════════════════════════════════════════
+   모바일 아이템 카드 (디자인 핸드오프 기반)
+   3-col 그리드용 컴팩트 카드
+   ══════════════════════════════════════════════ */
+function MobileItemCard({
+  eq, isEquipped, onTap,
+}: {
+  eq: Equipment;
+  isEquipped: boolean;
+  onTap: () => void;
+}) {
+  const enh = eq.enhanceLevel;
+  const rarColor = enhRarityColor(enh);
+  const template = EQUIPMENT_TEMPLATES[eq.templateId];
+  const isWpn = eq.type === 'weapon' || eq.type === 'bow' || eq.type === 'staff';
+
+  return (
+    <button
+      onClick={onTap}
+      style={{
+        background: 'var(--bg-panel)',
+        border: '1px solid var(--border-soft)',
+        borderLeft: enh > 0 ? `2px solid ${rarColor}` : undefined,
+        borderRadius: 8,
+        padding: 8,
+        position: 'relative',
+        aspectRatio: '0.92',
+        display: 'flex', flexDirection: 'column',
+        textAlign: 'left',
+        cursor: 'pointer',
+        fontFamily: 'var(--font-ui)',
+        color: 'var(--text)',
+        boxShadow: enh >= 9
+          ? `0 0 12px color-mix(in oklch, ${rarColor} 20%, transparent)`
+          : undefined,
+      }}
+    >
+      {/* Equipped badge */}
+      {isEquipped && (
+        <span style={{
+          position: 'absolute', top: 4, right: 6,
+          width: 14, height: 14,
+          background: 'var(--accent)', color: '#000',
+          borderRadius: 3,
+          fontFamily: 'var(--font-mono)', fontSize: 8.5, fontWeight: 700,
+          display: 'grid', placeItems: 'center',
+        }}>E</span>
+      )}
+
+      {/* Icon block: icon + enhance */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+        <span style={{
+          width: 24, height: 24,
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border-soft)',
+          borderRadius: 4,
+          display: 'grid', placeItems: 'center',
+          fontFamily: 'var(--font-mono)', fontSize: 12,
+          color: TYPE_COLOR[eq.type] ?? 'var(--text-mute)',
+          flexShrink: 0,
+        }}>
+          {TYPE_ICON[eq.type] ?? '·'}
+        </span>
+        {enh > 0 && (
+          <span style={{
+            marginLeft: 'auto',
+            fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+            color: 'var(--accent)',
+          }}>+{enh}</span>
+        )}
+      </div>
+
+      {/* Name (2-line clamp) */}
+      <div style={{
+        fontSize: 11, fontWeight: 600,
+        lineHeight: 1.25,
+        overflow: 'hidden', textOverflow: 'ellipsis',
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical' as never,
+        marginBottom: 3,
+        color: nameColor(enh),
+      }}>
+        {eq.name}
+      </div>
+
+      {/* Meta footer */}
+      <div style={{
+        marginTop: 'auto',
+        fontFamily: 'var(--font-mono)', fontSize: 9,
+        color: 'var(--text-faint)',
+        display: 'flex', justifyContent: 'space-between',
+      }}>
+        <span>{(template?.minLevel ?? 0) > 0 ? `Lv.${template!.minLevel}` : ''}</span>
+        <span>
+          {isWpn
+            ? `${eq.baseAtk}/${eq.baseAtkLarge}`
+            : eq.baseDef > 0 ? `AC ${eq.baseDef}` : '~'
+          }
+        </span>
+      </div>
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   모바일 상세 시트 (바텀 드로어)
+   아이템 탭 → 카드 탭 시 상세 + 액션 표시
+   ══════════════════════════════════════════════ */
+function DetailSheet({
+  item, isEquipped, isOpen,
+  onClose, onEquip, onUnequip, onEnhance, onSell,
+}: {
+  item: Equipment;
+  isEquipped: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+  onEquip: () => void;
+  onUnequip: () => void;
+  onEnhance: () => void;
+  onSell: () => void;
+}) {
+  const enh = item.enhanceLevel;
+  const isWpn = item.type === 'weapon' || item.type === 'bow' || item.type === 'staff';
+  const template = EQUIPMENT_TEMPLATES[item.templateId];
+  const classRes = template?.classRestriction;
+
+  const statRowStyle: React.CSSProperties = {
+    display: 'flex', justifyContent: 'space-between',
+    padding: '4px 0',
+    fontFamily: 'var(--font-mono)', fontSize: 12,
+  };
+
+  const metaParts: string[] = [rarityLabel(enh)];
+  if (template?.minLevel) metaParts.push(`Lv.${template.minLevel}`);
+  metaParts.push(TYPE_NAME[item.type] ?? item.type);
+  if (classRes?.length) metaParts.push(classRes.map(c => CLASS_BADGE[c].label).join('/'));
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          zIndex: 79,
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+          transition: 'opacity 0.2s',
+        }}
+      />
+      {/* Sheet */}
+      <div style={{
+        position: 'fixed',
+        left: 0, right: 0, bottom: 0,
+        background: 'var(--bg-panel)',
+        borderTop: '1px solid var(--border)',
+        borderRadius: '14px 14px 0 0',
+        zIndex: 80,
+        maxWidth: 420, margin: '0 auto',
+        boxShadow: '0 -8px 24px rgba(0,0,0,0.5)',
+        maxHeight: '75%',
+        overflowY: 'auto',
+        transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
+        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}>
+        {/* Grip handle */}
+        <div style={{
+          width: 40, height: 4,
+          background: 'var(--border)',
+          borderRadius: 100,
+          margin: '8px auto 12px',
+        }} />
+
+        {/* Head: icon + name + meta */}
+        <div style={{
+          padding: '0 16px 12px',
+          borderBottom: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <div style={{
+            width: 48, height: 48,
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-soft)',
+            borderRadius: 8,
+            display: 'grid', placeItems: 'center',
+            fontFamily: 'var(--font-mono)', fontSize: 22,
+            color: TYPE_COLOR[item.type] ?? 'var(--text-mute)',
+            flexShrink: 0,
+          }}>
+            {TYPE_ICON[item.type] ?? '·'}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              fontSize: 16, fontWeight: 700,
+              color: nameColor(enh),
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {item.name}
+              {enh > 0 && (
+                <span style={{
+                  color: 'var(--accent)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 13, fontWeight: 700, marginLeft: 4,
+                }}>+{enh}</span>
+              )}
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-mono)', fontSize: 11,
+              color: 'var(--text-mute)', marginTop: 2,
+            }}>
+              {metaParts.join(' · ')}
+            </div>
+          </div>
+        </div>
+
+        {/* Stat rows */}
+        <div style={{
+          padding: '12px 16px',
+          borderBottom: item.bonusEffects.length > 0 ? '1px solid var(--border-soft)' : 'none',
+        }}>
+          {isWpn ? (
+            <div style={statRowStyle}>
+              <span style={{ color: 'var(--text-mute)' }}>타격</span>
+              <span style={{ color: 'var(--success)', fontWeight: 600 }}>
+                {item.baseAtk}/{item.baseAtkLarge}{enh > 0 && ` (+${enh})`}
+              </span>
+            </div>
+          ) : item.baseDef > 0 ? (
+            <div style={statRowStyle}>
+              <span style={{ color: 'var(--text-mute)' }}>AC</span>
+              <span style={{ color: 'var(--success)', fontWeight: 600 }}>
+                {item.baseDef}+{enh}
+              </span>
+            </div>
+          ) : null}
+
+          {item.bonusEffects.map((eff, i) => (
+            <div key={i} style={statRowStyle}>
+              <span style={{ color: 'var(--text-mute)' }}>{eff.replace(/[+\-\d]/g, '').trim()}</span>
+              <span style={{ color: 'var(--success)', fontWeight: 600 }}>{eff}</span>
+            </div>
+          ))}
+
+          {item.isTwoHanded && (
+            <div style={statRowStyle}>
+              <span style={{ color: 'var(--text-mute)' }}>무기 형태</span>
+              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>양손</span>
+            </div>
+          )}
+        </div>
+
+        {/* Action buttons */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8,
+          padding: '12px 16px',
+        }}>
+          <button
+            onClick={onEnhance}
+            style={{
+              padding: 12, borderRadius: 8,
+              fontWeight: 700, fontSize: 13,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              color: 'var(--text)',
+              cursor: 'pointer',
+            }}
+          >
+            강화
+          </button>
+          <button
+            onClick={isEquipped ? onUnequip : onEquip}
+            style={{
+              padding: 12, borderRadius: 8,
+              fontWeight: 700, fontSize: 13,
+              background: isEquipped
+                ? 'var(--bg-elevated)'
+                : 'linear-gradient(135deg, var(--success), oklch(0.66 0.16 135))',
+              border: isEquipped ? '1px solid var(--border)' : 'none',
+              color: isEquipped ? 'var(--accent)' : '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            {isEquipped ? '해제' : '착용하기'}
+          </button>
+        </div>
+
+        {/* Sell button (only for non-equipped items) */}
+        {!isEquipped && (
+          <div style={{ padding: '0 16px 16px' }}>
+            <button
+              onClick={onSell}
+              style={{
+                width: '100%', padding: 10, borderRadius: 8,
+                background: 'transparent',
+                border: '1px solid color-mix(in oklch, var(--danger) 30%, transparent)',
+                color: 'var(--danger)',
+                fontSize: 12, fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              판매
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════
    메인 컴포넌트
    ══════════════════════════════════════════════ */
 export default function InventoryPanel() {
@@ -470,6 +798,42 @@ export default function InventoryPanel() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [rightTab, setRightTab] = useState<'equip' | 'enhance'>('equip');
   const [mobileView, setMobileView] = useState<'items' | 'sidebar'>('items');
+  const [detailItem, setDetailItem] = useState<Equipment | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // 모바일 상세 시트 열기/닫기
+  useEffect(() => {
+    if (detailItem) {
+      requestAnimationFrame(() => setSheetOpen(true));
+    }
+  }, [detailItem]);
+
+  const closeDetail = useCallback(() => {
+    setSheetOpen(false);
+    setTimeout(() => setDetailItem(null), 260);
+  }, []);
+
+  // 상세 시트에서 판매/착용/해제 후 시트 자동 닫기
+  const handleSheetEquip = useCallback(() => {
+    if (detailItem) { equipFromInventory(detailItem.uid); closeDetail(); }
+  }, [detailItem, equipFromInventory, closeDetail]);
+
+  const handleSheetUnequip = useCallback(() => {
+    if (detailItem) { unequipToInventory(detailItem.uid); closeDetail(); }
+  }, [detailItem, unequipToInventory, closeDetail]);
+
+  const handleSheetSell = useCallback(() => {
+    if (detailItem) { sellFromInventory(detailItem.uid); closeDetail(); }
+  }, [detailItem, sellFromInventory, closeDetail]);
+
+  const handleSheetEnhance = useCallback(() => {
+    if (detailItem) {
+      setEnhanceTarget(detailItem.uid);
+      setRightTab('enhance');
+      setMobileView('sidebar');
+      closeDetail();
+    }
+  }, [detailItem, setEnhanceTarget, closeDetail]);
 
   const selectedUid = enhanceTargetUid;
   const selectedItem = selectedUid
@@ -559,46 +923,56 @@ export default function InventoryPanel() {
     <div style={{
       height: '100%',
       overflow: 'hidden',
-      display: 'grid',
-      gridTemplateColumns: compact ? '1fr' : '1fr 300px',
-      gridTemplateRows: 'auto 1fr',
-      gap: compact ? '8px' : '14px 18px',
-      padding: compact ? '0' : '18px 22px 24px',
+      ...(compact ? {
+        display: 'flex',
+        flexDirection: 'column' as const,
+      } : {
+        display: 'grid',
+        gridTemplateColumns: '1fr 300px',
+        gridTemplateRows: 'auto 1fr',
+        gap: '14px 18px',
+        padding: '18px 22px 24px',
+      }),
     }}>
       {/* ━━━ BREADCRUMB ━━━ */}
       <div style={{
         gridColumn: '1 / -1',
         display: 'flex', alignItems: 'center', gap: compact ? 8 : 14,
+        padding: compact ? '8px 10px' : undefined,
         paddingBottom: compact ? 8 : 12,
-        borderBottom: '1px solid var(--border-soft)',
+        borderBottom: compact ? 'none' : '1px solid var(--border-soft)',
+        flexShrink: 0,
       }}>
         <span style={{
-          fontSize: compact ? 14 : 17, fontWeight: 600, color: 'var(--text)',
+          fontSize: compact ? 15 : 17, fontWeight: 700, color: 'var(--text)',
           display: 'inline-flex', alignItems: 'baseline', gap: compact ? 6 : 10,
         }}>
           가방
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: compact ? 4 : 8,
-            fontFamily: 'var(--font-mono)', fontSize: compact ? 10.5 : 11.5,
-          }}>
-            <span style={{ fontWeight: 600 }}>
-              {inventory.length}<span style={{ color: 'var(--text-mute)' }}>/{inventoryCapacity}</span>
-            </span>
+          {/* Desktop: inline capacity */}
+          {!compact && (
             <span style={{
-              width: compact ? 60 : 100, height: 4,
-              background: 'var(--bg-elevated)', borderRadius: 2,
-              overflow: 'hidden', display: 'inline-block',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              fontFamily: 'var(--font-mono)', fontSize: 11.5,
             }}>
-              <div style={{
-                height: '100%', borderRadius: 2,
-                width: `${capacityPct}%`,
-                background: capacityPct > 90
-                  ? 'var(--danger)'
-                  : 'linear-gradient(90deg, var(--success), var(--accent))',
-                transition: 'width 0.2s',
-              }} />
+              <span style={{ fontWeight: 600 }}>
+                {inventory.length}<span style={{ color: 'var(--text-mute)' }}>/{inventoryCapacity}</span>
+              </span>
+              <span style={{
+                width: 100, height: 4,
+                background: 'var(--bg-elevated)', borderRadius: 2,
+                overflow: 'hidden', display: 'inline-block',
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 2,
+                  width: `${capacityPct}%`,
+                  background: capacityPct > 90
+                    ? 'var(--danger)'
+                    : 'linear-gradient(90deg, var(--success), var(--accent))',
+                  transition: 'width 0.2s',
+                }} />
+              </span>
             </span>
-          </span>
+          )}
         </span>
         <span style={{
           marginLeft: 'auto',
@@ -609,273 +983,416 @@ export default function InventoryPanel() {
         </span>
       </div>
 
-      {/* ━━━ MOBILE VIEW TOGGLE ━━━ */}
+      {/* ━━━ MOBILE: CAPACITY ROW ━━━ */}
       {compact && (
         <div style={{
-          gridColumn: '1 / -1',
-          display: 'grid', gridTemplateColumns: '1fr 1fr',
-          gap: 4, padding: 3,
-          background: 'var(--bg-elevated)', borderRadius: 6,
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '0 10px 8px',
+          flexShrink: 0,
         }}>
-          {([
-            { key: 'items' as const, label: '아이템' },
-            { key: 'sidebar' as const, label: '장비 · 강화' },
-          ]).map(v => {
-            const active = mobileView === v.key;
-            return (
-              <button key={v.key} onClick={() => setMobileView(v.key)} style={{
-                padding: '7px 0', textAlign: 'center', borderRadius: 4,
-                border: 'none', cursor: 'pointer',
-                color: active ? 'var(--accent)' : 'var(--text-mute)',
-                background: active ? 'var(--bg-panel)' : 'transparent',
-                fontSize: 12, fontWeight: active ? 600 : 400,
-                transition: 'all 0.12s',
-              }}>
-                {v.label}
-              </button>
-            );
-          })}
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}>
+            용량
+          </span>
+          <span style={{
+            flex: 1, height: 4,
+            background: 'var(--bg-panel)', borderRadius: 2,
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${capacityPct}%`,
+              background: capacityPct > 90
+                ? 'var(--danger)'
+                : 'linear-gradient(90deg, var(--success), var(--accent))',
+              transition: 'width 0.2s',
+            }} />
+          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>
+            {inventory.length}/{inventoryCapacity}
+          </span>
+        </div>
+      )}
+
+      {/* ━━━ MOBILE VIEW TABS ━━━ */}
+      {compact && (
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          background: 'var(--bg-elevated)',
+          borderRadius: 8,
+          padding: 3,
+          margin: '0 10px 8px',
+          flexShrink: 0,
+        }}>
+          <button onClick={() => setMobileView('items')} style={{
+            padding: 8, borderRadius: 6,
+            border: 'none', cursor: 'pointer',
+            color: mobileView === 'items' ? 'var(--accent)' : 'var(--text-mute)',
+            background: mobileView === 'items' ? 'var(--bg-panel)' : 'transparent',
+            fontSize: 12, fontWeight: 600,
+            transition: 'all 0.12s',
+          }}>
+            아이템
+          </button>
+          <button onClick={() => setMobileView('sidebar')} style={{
+            padding: 8, borderRadius: 6,
+            border: 'none', cursor: 'pointer',
+            color: mobileView === 'sidebar' ? 'var(--accent)' : 'var(--text-mute)',
+            background: mobileView === 'sidebar' ? 'var(--bg-panel)' : 'transparent',
+            fontSize: 12, fontWeight: 600,
+            transition: 'all 0.12s',
+          }}>
+            장착중 ({equippedItems.length})
+          </button>
         </div>
       )}
 
       {/* ━━━ LEFT: ITEMS ━━━ */}
-      {(!compact || mobileView === 'items') && <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden' }}>
-        {/* Filter tabs */}
+      {(!compact || mobileView === 'items') && (compact ? (
+        /* ═══════ MOBILE ITEMS VIEW ═══════ */
         <div style={{
-          display: 'flex', gap: 6, alignItems: 'center',
-          flexWrap: 'wrap', marginBottom: 14,
+          flex: 1, minHeight: 0,
+          overflowY: 'auto', overflowX: 'hidden',
+          padding: '0 10px 16px',
         }}>
-          {CATS.map(c => {
-            const active = cat === c.id;
-            return (
-              <button
-                key={c.id}
-                onClick={() => setCat(c.id)}
-                style={{
-                  padding: '7px 14px',
-                  background: active ? 'color-mix(in oklch, var(--accent) 6%, transparent)' : 'var(--bg-elevated)',
-                  border: active
-                    ? '1px solid color-mix(in oklch, var(--accent) 40%, transparent)'
-                    : '1px solid var(--border-soft)',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  color: active ? 'var(--accent)' : 'var(--text-mute)',
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  cursor: 'pointer',
-                  transition: 'color 0.12s, border-color 0.12s, background 0.12s',
-                }}
-              >
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: 1 }}>{c.ic}</span>
-                {c.nm}
-                <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 10,
-                  color: active ? 'var(--accent)' : 'var(--text-faint)',
-                  padding: '0 5px',
-                  background: active
-                    ? 'color-mix(in oklch, var(--accent) 10%, transparent)'
-                    : 'var(--bg-sunken)',
-                  borderRadius: 100,
-                  marginLeft: 2,
-                }}>
-                  {counts[c.id] ?? 0}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Toolbar: search + sort + view toggle */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: compact ? 6 : 10,
-          marginBottom: compact ? 10 : 14,
-          flexWrap: 'wrap',
-        }}>
-          {/* Search */}
-          <div style={{
-            flex: 1, maxWidth: compact ? undefined : 280,
-            minWidth: compact ? '100%' : undefined,
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: compact ? '6px 10px' : '7px 12px',
-            background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
-          }}>
-            <span style={{ color: 'var(--text-faint)', fontSize: 13, lineHeight: 1 }}>🔍</span>
-            <input
-              placeholder="아이템 검색"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{
-                flex: 1, fontSize: 12.5,
-                background: 'transparent', border: 'none', outline: 'none',
-                color: 'var(--text)', fontFamily: 'var(--font-ui)',
-              }}
-            />
-          </div>
-
-          {/* Sort */}
-          <select
-            value={sortKey}
-            onChange={e => setSortKey(e.target.value as SortKey)}
+          {/* Horizontal scrolling chip row */}
+          <div
+            className="hide-scrollbar"
             style={{
-              padding: '7px 28px 7px 11px',
-              background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
-              fontSize: 11.5, color: 'var(--text)',
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-              appearance: 'none' as const,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237c8696' d='M1.5 3.5L5 7l3.5-3.5z'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 10px center',
+              display: 'flex', gap: 6,
+              overflowX: 'auto',
+              margin: '0 -10px 10px',
+              padding: '0 10px 4px',
             }}
           >
-            <option value="enhDesc">강화 높은순</option>
-            <option value="enhAsc">강화 낮은순</option>
-            <option value="typeGroup">종류별</option>
-            <option value="name">이름</option>
-          </select>
-
-          {/* View toggle (desktop only) */}
-          {!compact && <div style={{
-            display: 'inline-flex', padding: 2,
-            background: 'var(--bg-elevated)', borderRadius: 5,
-          }}>
-            {([
-              { mode: 'grid' as ViewMode, label: '그리드', svg: <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg> },
-              { mode: 'list' as ViewMode, label: '리스트', svg: <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="3" width="12" height="2"/><rect x="2" y="7" width="12" height="2"/><rect x="2" y="11" width="12" height="2"/></svg> },
-            ]).map(v => (
-              <button
-                key={v.mode}
-                onClick={() => setViewMode(v.mode)}
-                style={{
-                  padding: '5px 10px', borderRadius: 3,
-                  color: viewMode === v.mode ? 'var(--accent)' : 'var(--text-mute)',
-                  background: viewMode === v.mode ? 'var(--bg-panel)' : 'transparent',
-                  border: 'none', fontSize: 11, cursor: 'pointer',
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                }}
-              >
-                {v.svg}
-                {v.label}
-              </button>
-            ))}
-          </div>}
-        </div>
-
-        {/* Multi-select action bar */}
-        {checked.size > 0 && (
-          <div style={{
-            position: 'sticky', top: 0, zIndex: 5,
-            background: 'var(--bg-panel)',
-            border: '1px solid var(--accent)',
-            borderRadius: 6,
-            padding: '8px 12px',
-            display: 'flex', alignItems: 'center', gap: 12,
-            marginBottom: 10,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          }}>
-            <span style={{
-              color: 'var(--accent)',
-              fontFamily: 'var(--font-mono)', fontSize: 12,
-            }}>
-              <span style={{ fontWeight: 700 }}>{checked.size}</span>개 선택됨
-            </span>
-            <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-              <button
-                onClick={handleBatchSell}
-                style={{
-                  padding: '6px 12px',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid color-mix(in oklch, var(--success) 30%, transparent)',
-                  color: 'var(--success)',
-                  fontSize: 11.5, borderRadius: 5, cursor: 'pointer',
-                }}
-              >
-                선택 판매 ($)
-              </button>
-              <button
-                onClick={clearChecked}
-                style={{
-                  padding: '6px 12px',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-soft)',
-                  color: 'var(--text-mute)',
-                  fontSize: 11.5, borderRadius: 5, cursor: 'pointer',
-                }}
-              >
-                해제
-              </button>
-            </span>
+            {CATS.map(c => {
+              const active = cat === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCat(c.id)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '6px 12px',
+                    background: active ? 'oklch(0.74 0.17 55 / 0.1)' : 'var(--bg-panel)',
+                    border: active
+                      ? '1px solid oklch(0.74 0.17 55 / 0.5)'
+                      : '1px solid var(--border-soft)',
+                    borderRadius: 100,
+                    fontSize: 11.5,
+                    color: active ? 'var(--accent)' : 'var(--text-mute)',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {c.nm}
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                    color: active ? 'var(--accent)' : 'var(--text-faint)',
+                  }}>
+                    {counts[c.id] ?? 0}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {/* Items grid / list */}
-        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-          {(compact || viewMode === 'grid') ? (
+          {/* Multi-select action bar (mobile) */}
+          {checked.size > 0 && (
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: compact
-                ? 'repeat(auto-fill, minmax(140px, 1fr))'
-                : 'repeat(auto-fill, minmax(180px, 1fr))',
-              gap: 8,
-              alignContent: 'start',
+              position: 'sticky', top: 0, zIndex: 5,
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--accent)',
+              borderRadius: 6,
+              padding: '6px 10px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              marginBottom: 8,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}>
-              {rows.map(eq => (
-                <ItemCard
-                  key={eq.uid}
-                  eq={eq}
-                  isEquipped={equippedUids.has(eq.uid)}
-                  isSelected={eq.uid === selectedUid}
-                  isChecked={checked.has(eq.uid)}
-                  onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); if (compact) setMobileView('sidebar'); }}
-                  onCheck={() => onCheck(eq.uid)}
-                  onAction={() => equippedUids.has(eq.uid) ? unequipToInventory(eq.uid) : equipFromInventory(eq.uid)}
-                  actionLabel={equippedUids.has(eq.uid) ? '착용중' : '착용'}
-                />
-              ))}
-              {rows.length === 0 && (
-                <div style={{
-                  padding: compact ? 30 : 60, textAlign: 'center',
-                  color: 'var(--text-faint)', gridColumn: '1 / -1',
-                  fontFamily: 'var(--font-ui)',
-                }}>
-                  {search ? '검색 결과가 없습니다.' : '조건에 맞는 아이템이 없습니다.'}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {rows.map(eq => (
-                <ItemRow
-                  key={eq.uid}
-                  eq={eq}
-                  isEquipped={equippedUids.has(eq.uid)}
-                  isSelected={eq.uid === selectedUid}
-                  isChecked={checked.has(eq.uid)}
-                  onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); }}
-                  onCheck={() => onCheck(eq.uid)}
-                  onAction={() => equippedUids.has(eq.uid) ? unequipToInventory(eq.uid) : equipFromInventory(eq.uid)}
-                  actionLabel={equippedUids.has(eq.uid) ? '착용중' : '착용'}
-                />
-              ))}
-              {rows.length === 0 && (
-                <div style={{
-                  padding: 60, textAlign: 'center',
-                  color: 'var(--text-faint)',
-                  fontFamily: 'var(--font-ui)',
-                }}>
-                  {search ? '검색 결과가 없습니다.' : '조건에 맞는 아이템이 없습니다.'}
-                </div>
-              )}
+              <span style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                <span style={{ fontWeight: 700 }}>{checked.size}</span>개
+              </span>
+              <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+                <button onClick={handleBatchSell} style={{
+                  padding: '5px 10px', background: 'var(--bg-elevated)',
+                  border: '1px solid color-mix(in oklch, var(--success) 30%, transparent)',
+                  color: 'var(--success)', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+                }}>판매</button>
+                <button onClick={clearChecked} style={{
+                  padding: '5px 10px', background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-soft)',
+                  color: 'var(--text-mute)', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+                }}>해제</button>
+              </span>
             </div>
           )}
+
+          {/* 3-column grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 6,
+            alignContent: 'start',
+          }}>
+            {rows.map(eq => (
+              <MobileItemCard
+                key={eq.uid}
+                eq={eq}
+                isEquipped={equippedUids.has(eq.uid)}
+                onTap={() => setDetailItem(eq)}
+              />
+            ))}
+            {rows.length === 0 && (
+              <div style={{
+                padding: 30, textAlign: 'center',
+                color: 'var(--text-faint)', gridColumn: '1 / -1',
+                fontFamily: 'var(--font-ui)',
+              }}>
+                {search ? '검색 결과가 없습니다.' : '아이템이 없습니다.'}
+              </div>
+            )}
+          </div>
         </div>
-      </div>}
+      ) : !compact ? (
+        /* ═══════ DESKTOP ITEMS VIEW ═══════ */
+        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden' }}>
+          {/* Filter tabs */}
+          <div style={{
+            display: 'flex', gap: 6, alignItems: 'center',
+            flexWrap: 'wrap', marginBottom: 14,
+          }}>
+            {CATS.map(c => {
+              const active = cat === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCat(c.id)}
+                  style={{
+                    padding: '7px 14px',
+                    background: active ? 'color-mix(in oklch, var(--accent) 6%, transparent)' : 'var(--bg-elevated)',
+                    border: active
+                      ? '1px solid color-mix(in oklch, var(--accent) 40%, transparent)'
+                      : '1px solid var(--border-soft)',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    color: active ? 'var(--accent)' : 'var(--text-mute)',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    cursor: 'pointer',
+                    transition: 'color 0.12s, border-color 0.12s, background 0.12s',
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: 1 }}>{c.ic}</span>
+                  {c.nm}
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 10,
+                    color: active ? 'var(--accent)' : 'var(--text-faint)',
+                    padding: '0 5px',
+                    background: active
+                      ? 'color-mix(in oklch, var(--accent) 10%, transparent)'
+                      : 'var(--bg-sunken)',
+                    borderRadius: 100,
+                    marginLeft: 2,
+                  }}>
+                    {counts[c.id] ?? 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Toolbar: search + sort + view toggle */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            marginBottom: 14,
+            flexWrap: 'wrap',
+          }}>
+            {/* Search */}
+            <div style={{
+              flex: 1, maxWidth: 280,
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '7px 12px',
+              background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
+            }}>
+              <span style={{ color: 'var(--text-faint)', fontSize: 13, lineHeight: 1 }}>🔍</span>
+              <input
+                placeholder="아이템 검색"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  flex: 1, fontSize: 12.5,
+                  background: 'transparent', border: 'none', outline: 'none',
+                  color: 'var(--text)', fontFamily: 'var(--font-ui)',
+                }}
+              />
+            </div>
+
+            {/* Sort */}
+            <select
+              value={sortKey}
+              onChange={e => setSortKey(e.target.value as SortKey)}
+              style={{
+                padding: '7px 28px 7px 11px',
+                background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 6,
+                fontSize: 11.5, color: 'var(--text)',
+                fontFamily: 'var(--font-mono)',
+                cursor: 'pointer',
+                appearance: 'none' as const,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237c8696' d='M1.5 3.5L5 7l3.5-3.5z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 10px center',
+              }}
+            >
+              <option value="enhDesc">강화 높은순</option>
+              <option value="enhAsc">강화 낮은순</option>
+              <option value="typeGroup">종류별</option>
+              <option value="name">이름</option>
+            </select>
+
+            {/* View toggle */}
+            <div style={{
+              display: 'inline-flex', padding: 2,
+              background: 'var(--bg-elevated)', borderRadius: 5,
+            }}>
+              {([
+                { mode: 'grid' as ViewMode, label: '그리드', svg: <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg> },
+                { mode: 'list' as ViewMode, label: '리스트', svg: <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="3" width="12" height="2"/><rect x="2" y="7" width="12" height="2"/><rect x="2" y="11" width="12" height="2"/></svg> },
+              ]).map(v => (
+                <button
+                  key={v.mode}
+                  onClick={() => setViewMode(v.mode)}
+                  style={{
+                    padding: '5px 10px', borderRadius: 3,
+                    color: viewMode === v.mode ? 'var(--accent)' : 'var(--text-mute)',
+                    background: viewMode === v.mode ? 'var(--bg-panel)' : 'transparent',
+                    border: 'none', fontSize: 11, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                  }}
+                >
+                  {v.svg}
+                  {v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Multi-select action bar */}
+          {checked.size > 0 && (
+            <div style={{
+              position: 'sticky', top: 0, zIndex: 5,
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--accent)',
+              borderRadius: 6,
+              padding: '8px 12px',
+              display: 'flex', alignItems: 'center', gap: 12,
+              marginBottom: 10,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            }}>
+              <span style={{
+                color: 'var(--accent)',
+                fontFamily: 'var(--font-mono)', fontSize: 12,
+              }}>
+                <span style={{ fontWeight: 700 }}>{checked.size}</span>개 선택됨
+              </span>
+              <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+                <button
+                  onClick={handleBatchSell}
+                  style={{
+                    padding: '6px 12px',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid color-mix(in oklch, var(--success) 30%, transparent)',
+                    color: 'var(--success)',
+                    fontSize: 11.5, borderRadius: 5, cursor: 'pointer',
+                  }}
+                >
+                  선택 판매 ($)
+                </button>
+                <button
+                  onClick={clearChecked}
+                  style={{
+                    padding: '6px 12px',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-soft)',
+                    color: 'var(--text-mute)',
+                    fontSize: 11.5, borderRadius: 5, cursor: 'pointer',
+                  }}
+                >
+                  해제
+                </button>
+              </span>
+            </div>
+          )}
+
+          {/* Items grid / list */}
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            {viewMode === 'grid' ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: 8,
+                alignContent: 'start',
+              }}>
+                {rows.map(eq => (
+                  <ItemCard
+                    key={eq.uid}
+                    eq={eq}
+                    isEquipped={equippedUids.has(eq.uid)}
+                    isSelected={eq.uid === selectedUid}
+                    isChecked={checked.has(eq.uid)}
+                    onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); }}
+                    onCheck={() => onCheck(eq.uid)}
+                    onAction={() => equippedUids.has(eq.uid) ? unequipToInventory(eq.uid) : equipFromInventory(eq.uid)}
+                    actionLabel={equippedUids.has(eq.uid) ? '착용중' : '착용'}
+                  />
+                ))}
+                {rows.length === 0 && (
+                  <div style={{
+                    padding: 60, textAlign: 'center',
+                    color: 'var(--text-faint)', gridColumn: '1 / -1',
+                    fontFamily: 'var(--font-ui)',
+                  }}>
+                    {search ? '검색 결과가 없습니다.' : '조건에 맞는 아이템이 없습니다.'}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {rows.map(eq => (
+                  <ItemRow
+                    key={eq.uid}
+                    eq={eq}
+                    isEquipped={equippedUids.has(eq.uid)}
+                    isSelected={eq.uid === selectedUid}
+                    isChecked={checked.has(eq.uid)}
+                    onSelect={() => { setEnhanceTarget(eq.uid); setRightTab('enhance'); }}
+                    onCheck={() => onCheck(eq.uid)}
+                    onAction={() => equippedUids.has(eq.uid) ? unequipToInventory(eq.uid) : equipFromInventory(eq.uid)}
+                    actionLabel={equippedUids.has(eq.uid) ? '착용중' : '착용'}
+                  />
+                ))}
+                {rows.length === 0 && (
+                  <div style={{
+                    padding: 60, textAlign: 'center',
+                    color: 'var(--text-faint)',
+                    fontFamily: 'var(--font-ui)',
+                  }}>
+                    {search ? '검색 결과가 없습니다.' : '조건에 맞는 아이템이 없습니다.'}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null)}
 
       {/* ━━━ RIGHT SIDEBAR ━━━ */}
       {(!compact || mobileView === 'sidebar') && <div style={{
+        flex: compact ? 1 : undefined,
+        minHeight: compact ? 0 : undefined,
         alignSelf: compact ? undefined : 'start',
         position: compact ? undefined : 'sticky',
         top: compact ? undefined : 14,
         display: 'flex', flexDirection: 'column', gap: 12,
+        padding: compact ? '0 10px' : undefined,
         maxHeight: compact ? undefined : 'calc(100vh - 120px)',
         overflow: compact ? 'auto' : 'hidden',
       }}>
@@ -1062,6 +1579,20 @@ export default function InventoryPanel() {
           </div>
         )}
       </div>}
+
+      {/* ━━━ MOBILE DETAIL SHEET ━━━ */}
+      {compact && detailItem && (
+        <DetailSheet
+          item={detailItem}
+          isEquipped={equippedUids.has(detailItem.uid)}
+          isOpen={sheetOpen}
+          onClose={closeDetail}
+          onEquip={handleSheetEquip}
+          onUnequip={handleSheetUnequip}
+          onEnhance={handleSheetEnhance}
+          onSell={handleSheetSell}
+        />
+      )}
     </div>
   );
 }
