@@ -442,6 +442,23 @@ export default function Minimap() {
                   animation: (isCurrentTarget || isJoined) && isHunting ? 'mmMonsterPulse 1s infinite' : 'none',
                 }}
               />
+              {/* 몬스터 이름 라벨 */}
+              {!isDead && dotMonster && (
+                <span
+                  style={{
+                    marginTop: 1,
+                    fontSize: '8px',
+                    color: dotColor,
+                    whiteSpace: 'nowrap',
+                    opacity: (isCurrentTarget || isJoined) ? 0.95 : 0.6,
+                    textShadow: '0 0 3px rgba(0,0,0,0.9)',
+                    lineHeight: 1,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {dotMonster.name}
+                </span>
+              )}
             </div>
           );
         })}
