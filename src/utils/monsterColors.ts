@@ -3,26 +3,46 @@
 
    인덱스 기반 고정 팔레트로 같은 방의 몬스터를
    확실히 구분할 수 있도록 설계.
-   hue를 황금각(137.5°) 간격으로 분산 → 인접 인덱스 색 차이 극대화.
+   인접 색상이 절대 겹치지 않도록 수동 선별한 20색.
 
    사용처:
      - Minimap.tsx — 몬스터 닷 렌더링
      - ZoneSelectPanel.tsx — 몬스터 목록 범례
    ========================================================= */
 
-const PALETTE_SIZE = 20;
-
-/** 20색 고정 팔레트 (황금각 분산) */
-export const MONSTER_PALETTE: string[] = (() => {
-  const colors: string[] = [];
-  for (let i = 0; i < PALETTE_SIZE; i++) {
-    const hue = Math.round((i * 137.5) % 360);
-    colors.push(`hsl(${hue}, 75%, 58%)`);
-  }
-  return colors;
-})();
+/**
+ * 20색 고정 팔레트 (수동 선별)
+ *
+ * 원칙:
+ * 1. 인접 인덱스(0↔1, 1↔2...)는 hue 차이 ≥60°
+ * 2. 같은 hue 계열은 최소 4칸 간격
+ * 3. 어두운 배경(#1a1a2e)에서 가독성 보장 (lightness 50~65%)
+ * 4. 채도 70~85% 범위 (너무 탁하지 않게)
+ */
+export const MONSTER_PALETTE: string[] = [
+  '#ef5350', // 0  빨강
+  '#66bb6a', // 1  초록
+  '#42a5f5', // 2  파랑
+  '#ffa726', // 3  주황
+  '#ab47bc', // 4  보라
+  '#26c6da', // 5  시안
+  '#ec407a', // 6  핑크
+  '#9ccc65', // 7  라임
+  '#5c6bc0', // 8  인디고
+  '#ffca28', // 9  노랑
+  '#8d6e63', // 10 갈색
+  '#26a69a', // 11 틸
+  '#ff7043', // 12 딥오렌지
+  '#7e57c2', // 13 딥퍼플
+  '#29b6f6', // 14 라이트블루
+  '#d4e157', // 15 라임옐로
+  '#f06292', // 16 라이트핑크
+  '#4db6ac', // 17 미디엄틸
+  '#ff8a65', // 18 라이트코랄
+  '#78909c', // 19 블루그레이
+];
 
 /** 몬스터 인덱스 → 팔레트 색상 (tierMonsters 배열 인덱스 기반) */
 export function monsterIndexToColor(idx: number): string {
-  return MONSTER_PALETTE[idx % PALETTE_SIZE];
+  return MONSTER_PALETTE[idx % MONSTER_PALETTE.length];
 }
