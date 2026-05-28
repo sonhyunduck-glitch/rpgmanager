@@ -548,9 +548,40 @@ export const useGameStore = create<GameState>((set, get) => ({
         for (const [eid] of moveOrders) {
           if (eid !== 'player') excludeIds.add(eid);
         }
+        // 이미 접근 중인 몬스터 엔티티도 제외
+        for (const [entId, entity] of entities) {
+          if (entity.type !== 'monster' || !entity.alive) continue;
+          if (!entity.monsterId) continue;
+          if (newApproaching.some(ap => ap.monsterId === entity.monsterId
+            && moveOrders.has(entId))) {
+            excludeIds.add(entId);
+          }
+        }
 
-        // (A) 근접 감지: AGGRO_RANGE_M(5m) 이내 선공 몬스터
-        const aggroIds = findAggroMonstersInRange(
+        // ⭐ 동족인식 우선! (B)→(A) 순서로 처리
+        // 동족인식 같은 이름 몬스터가 먼저 슬롯을 차지해야
+        // 근접 감지의 다른 이름 몬스터에 밀리지 않음
+
+        // (B) 동족인식: 현재 타겟이 선공이면, 같은 이름 선공 몬스터 (거리 무관, 최우선)
+        const aggroIds: string[] = [];
+        if (hunt.currentTargetId) {
+          const targetMon = monsters.find(m => m.id === hunt.currentTargetId)
+            ?? zone.monsters.find(m => m.id === hunt.currentTargetId);
+          if (targetMon?.aggressive) {
+            for (const [entId, entity] of entities) {
+              if (entity.type !== 'monster' || !entity.alive) continue;
+              if (excludeIds.has(entId)) continue;
+              if (!entity.monsterId) continue;
+              const m = monsters.find(x => x.id === entity.monsterId)
+                ?? zone.monsters.find(x => x.id === entity.monsterId);
+              if (!m?.aggressive || m.name !== targetMon.name) continue;
+              aggroIds.push(entId);
+            }
+          }
+        }
+
+        // (A) 근접 감지: AGGRO_RANGE_M(5m) 이내 선공 몬스터 (동족인식 이후 나머지 슬롯)
+        const proximityIds = findAggroMonstersInRange(
           entities, playerEnt.pos, AGGRO_RANGE_M, excludeIds,
           (entity) => {
             if (!entity.monsterId) return false;
@@ -559,22 +590,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             return !!m?.aggressive;
           },
         );
-
-        // (B) 동족인식: 현재 타겟이 선공이면, 같은 이름 선공 몬스터 (거리 무관)
-        if (hunt.currentTargetId) {
-          const targetMon = monsters.find(m => m.id === hunt.currentTargetId)
-            ?? zone.monsters.find(m => m.id === hunt.currentTargetId);
-          if (targetMon?.aggressive) {
-            for (const [entId, entity] of entities) {
-              if (entity.type !== 'monster' || !entity.alive) continue;
-              if (excludeIds.has(entId) || aggroIds.includes(entId)) continue;
-              if (!entity.monsterId) continue;
-              const m = monsters.find(x => x.id === entity.monsterId)
-                ?? zone.monsters.find(x => x.id === entity.monsterId);
-              if (!m?.aggressive || m.name !== targetMon.name) continue;
-              aggroIds.push(entId);
-            }
-          }
+        for (const pid of proximityIds) {
+          if (!aggroIds.includes(pid)) aggroIds.push(pid);
         }
 
         // 새 접근 몬스터 추가 (상한 2까지)
