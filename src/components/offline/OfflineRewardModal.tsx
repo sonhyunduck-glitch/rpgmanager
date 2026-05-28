@@ -31,6 +31,7 @@ export default function OfflineRewardModal() {
   const potionEntries = Object.entries(reward.potionsUsed).filter(([, q]) => q > 0);
   const scrollEntries = Object.entries(reward.scrollsUsed).filter(([, q]) => q > 0);
   const hasConsumables = potionEntries.length > 0 || scrollEntries.length > 0;
+  const itemEntries = reward.items ?? [];
 
   return (
     <div
@@ -101,6 +102,36 @@ export default function OfflineRewardModal() {
                   border: '1px solid var(--border-soft)',
                 }}>
                   {MATERIALS[matId]?.name ?? matId} x{qty}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 획득 장비 */}
+        {itemEntries.length > 0 && (
+          <div style={{
+            background: 'var(--bg-sunken)',
+            border: '1px solid color-mix(in oklch, var(--accent) 25%, var(--border-soft))',
+            borderRadius: 'var(--r-sm)',
+            padding: 'var(--s-2)',
+          }}>
+            <div style={{ ...LABEL, fontSize: 'var(--fs-2xs)', marginBottom: 4, color: 'var(--accent)' }}>
+              획득 장비
+            </div>
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: 2,
+            }}>
+              {itemEntries.map((item, i) => (
+                <span key={i} style={{
+                  fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-dim)',
+                  padding: '1px 5px',
+                  background: 'color-mix(in oklch, var(--accent) 8%, transparent)',
+                  borderRadius: 'var(--r-xs)',
+                  border: '1px solid color-mix(in oklch, var(--accent) 15%, var(--border-soft))',
+                }}>
+                  {item.name}
                 </span>
               ))}
             </div>

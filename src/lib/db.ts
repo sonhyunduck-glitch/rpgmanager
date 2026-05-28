@@ -4,6 +4,7 @@
    ========================================================= */
 import { supabase } from './supabase';
 import type { Equipment } from '../types';
+import { EQUIPMENT_TEMPLATES } from '../data/gameData';
 
 // ── 타입 ──
 
@@ -301,6 +302,7 @@ export interface OfflineReward {
   gold: number;
   exp: number;
   materials: Record<string, number>;
+  items: { templateId: string; name: string }[];  // 획득 장비 목록
   zoneName: string;
   potionsUsed: Record<string, number>;   // 소모된 물약
   scrollsUsed: Record<string, number>;   // 소모된 주문서
@@ -331,8 +333,10 @@ export function calcOfflineReward(
   lastZoneId: string | null,
   zoneData: {
     name: string;
-    monsters: { expReward: number; goldReward: number }[];
+    monsters: { id: string; expReward: number; goldReward: number }[];
     dropMaterials: { materialId: string; rate: number; minQty: number; maxQty: number }[];
+    /** 몬스터별 드롭 (L1J drop_items.csv 기반) — [gameId, chance, minQty, maxQty] */
+    monsterDrops: Record<string, [string, number, number, number][]>;
   } | null,
   playerState: OfflinePlayerState,
 ): OfflineReward | null {
@@ -414,12 +418,35 @@ export function calcOfflineReward(
     if (qty > 0) materials[drop.materialId] = qty;
   }
 
+  // 장비 드롭 (몬스터별 drop_items 기반 — 온라인과 동일 로직)
+  const items: { templateId: string; name: string }[] = [];
+  if (zoneData.monsterDrops && zoneData.monsters.length > 0) {
+    // 균등 확률: 킬당 랜덤 몬스터 → 각 몬스터 킬 수 = totalKills / monsterCount
+    const killsPerMon = totalKills / zoneData.monsters.length;
+    for (const mon of zoneData.monsters) {
+      const drops = zoneData.monsterDrops[mon.id] ?? [];
+      for (const [gameId, chance] of drops) {
+        if (gameId === '__GOLD__') continue;           // 아데나는 위에서 이미 처리
+        if (!EQUIPMENT_TEMPLATES[gameId]) continue;     // 장비 템플릿만
+        const expected = killsPerMon * Math.min(1, chance * RATE_DROP);
+        // 기대값 기반: 소수점 이하는 확률적으로 1개 추가
+        const guaranteed = Math.floor(expected);
+        const remainder = expected - guaranteed;
+        const count = guaranteed + (Math.random() < remainder ? 1 : 0);
+        for (let i = 0; i < count; i++) {
+          items.push({ templateId: gameId, name: EQUIPMENT_TEMPLATES[gameId].name });
+        }
+      }
+    }
+  }
+
   return {
     minutes: effectiveMin,
     kills: totalKills,
     gold,
     exp,
     materials,
+    items,
     zoneName: zoneData.name,
     potionsUsed,
     scrollsUsed,

@@ -15,6 +15,7 @@ import {
   loadFromDB, flushNow, stampLastActive,
 } from '../lib/dbSync';
 import { calcOfflineReward } from '../lib/db';
+import { getMonsterDrops } from '../data/dropData';
 import { safeNumber } from '../lib/utils';
 import type {
   Equipment, HuntSession, ScrollType,
@@ -259,7 +260,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       const s = get();
       const reward = calcOfflineReward(
         lastActiveAt, lastZoneId,
-        zone ? { name: zone.name, monsters: zone.monsters, dropMaterials: zone.dropMaterials } : null,
+        zone ? {
+          name: zone.name,
+          monsters: zone.monsters,
+          dropMaterials: zone.dropMaterials,
+          monsterDrops: Object.fromEntries(zone.monsters.map(m => [m.id, getMonsterDrops(m.id)])),
+        } : null,
         {
           potions: s.potions,
           selectedPotionId: s.selectedPotionId,
@@ -557,12 +563,19 @@ export const useGameStore = create<GameState>((set, get) => ({
     for (const [sid, qty] of Object.entries(reward.scrollsUsed)) {
       newMaterials[sid] = Math.max(0, (newMaterials[sid] ?? 0) - qty);
     }
+    // 획득 장비 추가 (인벤토리 용량 내)
+    const newInventory = [...state.inventory];
+    for (const item of (reward.items ?? [])) {
+      if (newInventory.length >= state.inventoryCapacity) break;
+      newInventory.push(createEquipment(item.templateId));
+    }
 
     set({
       gold: state.gold + reward.gold,
       exp: state.exp + reward.exp,
       materials: newMaterials,
       potions: newPotions,
+      inventory: newInventory,
       offlineReward: null,
     });
     saveState(get());
