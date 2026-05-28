@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.42 — 미니맵 몬스터 닷에 이름 표시
-export const APP_VERSION = '2.39.42';
+// v2.39.43 — 존 몬스터 수량 15→10
+export const APP_VERSION = '2.39.43';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

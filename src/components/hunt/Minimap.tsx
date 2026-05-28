@@ -17,7 +17,7 @@ import type { SpatialEntity, Vec2 } from '../../types/spatial';
 import { monsterIndexToColor } from '../../utils/monsterColors';
 
 /* ── 상수 ── */
-const BASE_VISIBLE_MONSTERS = 15;
+const BASE_VISIBLE_MONSTERS = 10;
 const MIN_VISIBLE_MONSTERS = 1;
 const MAP_SIZE_M = 50;
 

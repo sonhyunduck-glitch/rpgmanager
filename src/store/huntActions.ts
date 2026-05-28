@@ -25,7 +25,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       const tierMonsters = zone ? getMonstersForRoom(zone, room) : [];
       const combatStyle = getClassCombatStyle(state.playerClass);
       const strangersInZone = Math.max(0, (state.zonePlayerCount ?? 1) - 1);
-      const visibleCount = Math.max(1, 15 - strangersInZone);
+      const visibleCount = Math.max(1, 10 - strangersInZone);
       const spatial = initHuntSpatialState(
         tierMonsters.map(m => m.id), visibleCount, combatStyle, PLAYER_MOVE_SPEED,
       );
@@ -94,7 +94,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
       const tierMonsters = getMonstersForRoom(zone, 1);
       const combatStyle = getClassCombatStyle(state.playerClass);
       // 접속자 수에 따른 몬스터 리젠 수 (미니맵과 동일 로직)
-      const BASE_VISIBLE = 15;
+      const BASE_VISIBLE = 10;
       const strangersInZone = Math.max(0, (state.zonePlayerCount ?? 1) - 1);
       const visibleCount = Math.max(1, BASE_VISIBLE - strangersInZone);
       const spatial = initHuntSpatialState(
@@ -210,7 +210,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
           const tierMonsters = getMonstersForRoom(zone, state.hunt.currentRoom ?? 1);
           const combatStyle = getClassCombatStyle(state.playerClass);
           const strangersInZone = Math.max(0, (state.zonePlayerCount ?? 1) - 1);
-          const visibleCount = Math.max(1, 15 - strangersInZone);
+          const visibleCount = Math.max(1, 10 - strangersInZone);
           spatial = initHuntSpatialState(
             tierMonsters.map(m => m.id), visibleCount, combatStyle, PLAYER_MOVE_SPEED,
           );
