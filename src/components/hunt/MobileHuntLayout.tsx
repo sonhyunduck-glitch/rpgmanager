@@ -26,11 +26,11 @@ import {
 } from '../../data/statFormulas';
 import { getAllEquipped, ROOMS_PER_ZONE } from '../../store/storeTypes';
 import Minimap from './Minimap';
-import HuntMetrics from './HuntMetrics';
 import HpPotionModal from './HpPotionModal';
 import TransformScrollModal from './TransformScrollModal';
 import MiniChatFeed from './MiniChatFeed';
 import SkillFloatOverlay from './SkillFloatOverlay';
+import { PLAYER_SKILLS } from '../../data/playerSkillData';
 import type { ViewMode, PlayerClass, CombatStyle, Equipment, ActiveBuff, StatKey } from '../../types';
 
 /* ── 물약 쿨다운 RAF 훅 (60fps 부드러운 프로그레스) ── */
@@ -129,6 +129,9 @@ export default function MobileHuntLayout() {
   const playerName = useGameStore(s => s.playerName);
   const equippedWeapon = useGameStore(s => s.equippedWeapon);
   const moveToRoom = useGameStore(s => s.moveToRoom);
+  const equippedSkills = useGameStore(s => s.equippedSkills);
+  const disabledSkills = useGameStore(s => s.disabledSkills);
+  const toggleSkillEnabled = useGameStore(s => s.toggleSkillEnabled);
 
   const maxHp = baseMaxHp + getTotalHpBonus();
   const maxMp = getMaxMp();
@@ -200,7 +203,6 @@ export default function MobileHuntLayout() {
         position: 'absolute', inset: 0,
       }}>
         <Minimap />
-        <HuntMetrics />
       </div>
 
       {/* ━━━ TOP HUD BAR ━━━ */}
@@ -515,20 +517,80 @@ export default function MobileHuntLayout() {
         )}
       </div>
 
-      {/* ━━━ BOTTOM CONSUMABLE GRID (3×2) ━━━ */}
+      {/* ━━━ BOTTOM GRID (2×5): 스킬(좌) + 소모품(우) ━━━ */}
       <div style={{
         position: 'absolute',
         right: 8, bottom: 8,
         zIndex: 10,
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, 44px)',
+        gridTemplateColumns: 'repeat(2, 44px)',
+        gridTemplateRows: 'repeat(5, 44px)',
         gap: 3,
       }}>
-        {/* Row 1: HP물약 · 초록물약 · 용기물약 */}
+        {/* ── 좌측 열: 스킬 슬롯 5개 ── */}
+        {Array.from({ length: 5 }, (_, i) => {
+          const skillId = equippedSkills[i] ?? 0;
+          const skill = skillId ? PLAYER_SKILLS.find(s => s.id === skillId) : null;
+          const isOff = skill ? (disabledSkills ?? []).includes(skillId) : false;
+          const kindColor = skill
+            ? (skill.skillType === 'attack' ? 'var(--danger)'
+              : skill.skillType === 'heal' ? 'var(--success)'
+              : 'oklch(0.68 0.20 305)')
+            : undefined;
+          const kindIcon = skill
+            ? (skill.skillType === 'attack' ? '⚔'
+              : skill.skillType === 'heal' ? '✚'
+              : '✦')
+            : '';
+          return (
+            <button
+              key={`sk${i}`}
+              onClick={() => skill && toggleSkillEnabled(skillId)}
+              style={{
+                ...slotStyle,
+                gridColumn: 1,
+                gridRow: i + 1,
+                borderColor: skill
+                  ? (isOff ? 'oklch(0.30 0.01 260 / 0.5)' : `color-mix(in oklch, ${kindColor} 50%, transparent)`)
+                  : 'oklch(0.36 0.014 260 / 0.6)',
+                opacity: isOff ? 0.4 : 1,
+                cursor: skill ? 'pointer' : 'default',
+              }}
+            >
+              {skill ? (
+                <span style={{
+                  fontSize: 18, color: isOff ? 'var(--text-faint)' : kindColor,
+                  filter: isOff ? 'none' : `drop-shadow(0 0 3px ${kindColor})`,
+                  lineHeight: 1,
+                }}>{kindIcon}</span>
+              ) : (
+                <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>·</span>
+              )}
+              <span style={{
+                position: 'absolute', top: 1, left: 3,
+                fontFamily: 'var(--font-mono)', fontSize: 7,
+                color: 'var(--text-faint)',
+              }}>
+                {i + 1}
+              </span>
+              {skill && isOff && (
+                <span style={{
+                  position: 'absolute', bottom: 1, right: 2,
+                  fontFamily: 'var(--font-mono)', fontSize: 7,
+                  color: 'var(--danger)', fontWeight: 700,
+                }}>OFF</span>
+              )}
+            </button>
+          );
+        })}
+
+        {/* ── 우측 열: 소모품 5개 ── */}
+        {/* 1) HP 물약 */}
         <button
           onClick={() => setShowHpModal(true)}
           style={{
             ...slotStyle,
+            gridColumn: 2, gridRow: 1,
             borderColor: potionAutoUse ? hpPotionColor : 'oklch(0.36 0.014 260 / 0.6)',
             cursor: 'pointer',
           }}
@@ -536,14 +598,9 @@ export default function MobileHuntLayout() {
           <svg width="22" height="24" viewBox="0 0 22 24" style={{
             filter: potionAutoUse ? `drop-shadow(0 0 4px ${hpPotionColor})` : 'none',
           }}>
-            {/* 뚜껑 */}
             <rect x="8" y="0" width="6" height="4" rx="1" fill="rgba(255,255,255,0.5)" />
-            {/* 목 */}
             <rect x="9" y="4" width="4" height="3" rx="0.5" fill={hpPotionColor} opacity="0.7" />
-            {/* 몸통 */}
-            <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z"
-              fill={hpPotionColor} />
-            {/* 하이라이트 */}
+            <path d="M9,7 Q4,10 4,15 Q4,23 11,23 Q18,23 18,15 Q18,10 13,7 Z" fill={hpPotionColor} />
             <ellipse cx="8.5" cy="14" rx="2" ry="3.5" fill="rgba(255,255,255,0.25)" />
           </svg>
           {potionCdProgress > 0 && (
@@ -551,22 +608,20 @@ export default function MobileHuntLayout() {
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none' }}
               viewBox="0 0 44 44"
             >
-              <circle
-                cx="22" cy="22" r="18"
-                fill="none"
-                stroke="rgba(255,255,255,0.25)"
-                strokeWidth="3"
+              <circle cx="22" cy="22" r="18" fill="none"
+                stroke="rgba(255,255,255,0.25)" strokeWidth="3"
                 strokeDasharray={`${2 * Math.PI * 18}`}
                 strokeDashoffset={`${2 * Math.PI * 18 * (1 - potionCdProgress)}`}
-                transform="rotate(-90 22 22)"
-              />
+                transform="rotate(-90 22 22)" />
             </svg>
           )}
           <span style={potCountStyle}>{hpCount}</span>
         </button>
 
+        {/* 2) 초록 물약 */}
         <div style={{
           ...slotStyle,
+          gridColumn: 2, gridRow: 2,
           borderColor: greenPotionEnabled ? 'var(--success)' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
           <svg width="22" height="24" viewBox="0 0 22 24" style={{
@@ -580,8 +635,10 @@ export default function MobileHuntLayout() {
           <span style={potCountStyle}>{greenCount}</span>
         </div>
 
+        {/* 3) 용기 물약 */}
         <div style={{
           ...slotStyle,
+          gridColumn: 2, gridRow: 3,
           borderColor: couragePotionEnabled ? 'oklch(0.68 0.20 305)' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
           <svg width="22" height="24" viewBox="0 0 22 24" style={{
@@ -595,41 +652,10 @@ export default function MobileHuntLayout() {
           <span style={potCountStyle}>{braveCount}</span>
         </div>
 
-        {/* Row 2: 변신주문서 · 파란물약 · 빈칸 */}
-        <button
-          onClick={() => setShowTsModal(true)}
-          style={{
-            ...slotStyle,
-            borderColor: transformScrollEnabled
-              ? (transformScrollType === 'event' ? '#F5C518' : '#00e5ff')
-              : 'oklch(0.36 0.014 260 / 0.6)',
-            cursor: 'pointer',
-          }}
-        >
-          <svg width="20" height="24" viewBox="0 0 20 26" style={{
-            filter: transformScrollEnabled
-              ? `drop-shadow(0 0 4px ${transformScrollType === 'event' ? '#F5C518' : '#00e5ff'})`
-              : 'none',
-            opacity: transformScrollEnabled ? 1 : 0.4,
-          }}>
-            {/* 상단 말이 */}
-            <rect x="2" y="0" width="16" height="3" rx="1.5" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.8" />
-            {/* 본문 */}
-            <rect x="4" y="3" width="12" height="18" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.5" />
-            {/* 글자 라인 */}
-            <line x1="6.5" y1="8" x2="13.5" y2="8" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-            <line x1="6.5" y1="12" x2="13.5" y2="12" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-            <line x1="6.5" y1="16" x2="11" y2="16" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-            {/* 하단 말이 */}
-            <rect x="2" y="21" width="16" height="3" rx="1.5" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.8" />
-            {/* 하이라이트 */}
-            <rect x="5" y="4" width="2" height="16" rx="1" fill="rgba(255,255,255,0.15)" />
-          </svg>
-          <span style={potCountStyle}>{tsCount}</span>
-        </button>
-
+        {/* 4) 파란 물약 */}
         <div style={{
           ...slotStyle,
+          gridColumn: 2, gridRow: 4,
           borderColor: bluePotionEnabled ? '#42a5f5' : 'oklch(0.36 0.014 260 / 0.6)',
         }}>
           <svg width="22" height="24" viewBox="0 0 22 24" style={{
@@ -643,8 +669,34 @@ export default function MobileHuntLayout() {
           <span style={potCountStyle}>{blueCount}</span>
         </div>
 
-        {/* 빈 슬롯 */}
-        <div style={slotStyle} />
+        {/* 5) 변신주문서 */}
+        <button
+          onClick={() => setShowTsModal(true)}
+          style={{
+            ...slotStyle,
+            gridColumn: 2, gridRow: 5,
+            borderColor: transformScrollEnabled
+              ? (transformScrollType === 'event' ? '#F5C518' : '#00e5ff')
+              : 'oklch(0.36 0.014 260 / 0.6)',
+            cursor: 'pointer',
+          }}
+        >
+          <svg width="20" height="24" viewBox="0 0 20 26" style={{
+            filter: transformScrollEnabled
+              ? `drop-shadow(0 0 4px ${transformScrollType === 'event' ? '#F5C518' : '#00e5ff'})`
+              : 'none',
+            opacity: transformScrollEnabled ? 1 : 0.4,
+          }}>
+            <rect x="2" y="0" width="16" height="3" rx="1.5" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.8" />
+            <rect x="4" y="3" width="12" height="18" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.5" />
+            <line x1="6.5" y1="8" x2="13.5" y2="8" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+            <line x1="6.5" y1="12" x2="13.5" y2="12" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+            <line x1="6.5" y1="16" x2="11" y2="16" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+            <rect x="2" y="21" width="16" height="3" rx="1.5" fill={transformScrollType === 'event' ? '#F5C518' : '#00e5ff'} opacity="0.8" />
+            <rect x="5" y="4" width="2" height="16" rx="1" fill="rgba(255,255,255,0.15)" />
+          </svg>
+          <span style={potCountStyle}>{tsCount}</span>
+        </button>
       </div>
 
       {/* ━━━ 스킬 발동 플로팅 텍스트 ━━━ */}
