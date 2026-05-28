@@ -10,6 +10,7 @@ import { getMonsterDrops } from '../../data/dropData';
 import { calcHitRate, meleeHit } from '../../data/statFormulas';
 import { useCompact } from '../../lib/useCompact';
 import WorldMapPanel from '../worldmap/WorldMapPanel';
+import { monsterIndexToColor } from '../../utils/monsterColors';
 
 /* ═══════════════════════════════════════════
    상수 & 타입
@@ -28,19 +29,6 @@ const REGIONS: { id: RegionId; name: string; lv: string }[] = [
 
 const ESTIMATED_KILLS_HR = 120;
 
-/* ── 몬스터 닷 색상 ── */
-const DOT_BG: Record<string, string> = {
-  g: 'var(--success)',
-  r: 'var(--danger)',
-  p: 'oklch(0.68 0.20 305)',
-  c: 'oklch(0.82 0.12 195)',
-};
-const DOT_GLOW: Record<string, string> = {
-  g: '0 0 4px color-mix(in oklch, var(--success) 60%, transparent)',
-  r: '0 0 4px color-mix(in oklch, var(--danger) 60%, transparent)',
-  p: '0 0 4px oklch(0.68 0.20 305 / 0.5)',
-  c: '0 0 4px oklch(0.82 0.12 195 / 0.5)',
-};
 
 /* ═══════════════════════════════════════════
    유틸 함수
@@ -58,8 +46,8 @@ function monsterDotClass(m: Monster): string {
   return 'g';
 }
 
-function generateDots(zone: HuntZone): { x: number; y: number; cls: string }[] {
-  const dots: { x: number; y: number; cls: string }[] = [];
+function generateDots(zone: HuntZone): { x: number; y: number; cls: string; monsterIdx: number }[] {
+  const dots: { x: number; y: number; cls: string; monsterIdx: number }[] = [];
   const monsters = zone.monsters.slice(0, 10);
   for (let mi = 0; mi < monsters.length; mi++) {
     const m = monsters[mi];
@@ -70,6 +58,7 @@ function generateDots(zone: HuntZone): { x: number; y: number; cls: string }[] {
         x: 10 + (h % 78),
         y: 12 + ((h >>> 8) % 74),
         cls: monsterDotClass(m),
+        monsterIdx: mi,
       });
     }
   }
@@ -214,8 +203,8 @@ function ZoneCard({ zone, selected, onSelect, onGo, isHere, playerLevel, playerH
               left: `${d.x}%`, top: `${d.y}%`,
               width: 7, height: 7, borderRadius: '50%',
               transform: 'translate(-50%, -50%)',
-              background: DOT_BG[d.cls] ?? 'var(--success)',
-              boxShadow: DOT_GLOW[d.cls] ?? 'none',
+              background: monsterIndexToColor(d.monsterIdx),
+              boxShadow: `0 0 4px ${monsterIndexToColor(d.monsterIdx)}80`,
             }} />
           ))}
           {/* 현재 존이면 유저 닷 */}
@@ -431,8 +420,8 @@ function ZoneDetail({ zone, onGo, isHere, playerLevel, playerHit }: {
               left: `${d.x}%`, top: `${d.y}%`,
               width: 8, height: 8, borderRadius: '50%',
               transform: 'translate(-50%, -50%)',
-              background: DOT_BG[d.cls] ?? 'var(--success)',
-              boxShadow: DOT_GLOW[d.cls] ?? 'none',
+              background: monsterIndexToColor(d.monsterIdx),
+              boxShadow: `0 0 4px ${monsterIndexToColor(d.monsterIdx)}80`,
             }} />
           ))}
           {isHere && (
@@ -489,7 +478,7 @@ function ZoneDetail({ zone, onGo, isHere, playerLevel, playerHit }: {
           color: 'var(--text-mute)', textTransform: 'uppercase' as const,
           letterSpacing: '0.12em', fontWeight: 600,
         }}>몬스터 ({zone.monsters.length})</h5>
-        {zone.monsters.map((m) => (
+        {zone.monsters.map((m, mi) => (
           <div key={m.id} style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '6px 0',
@@ -498,7 +487,7 @@ function ZoneDetail({ zone, onGo, isHere, playerLevel, playerHit }: {
           }}>
             <span style={{
               width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-              background: DOT_BG[monsterDotClass(m)] ?? 'var(--success)',
+              background: monsterIndexToColor(mi),
             }} />
             <span style={{
               flex: 1, minWidth: 0, color: 'var(--text)',
@@ -699,8 +688,8 @@ function MobileZoneCard({ zone, onGo, isHere, playerLevel, materials }: {
               left: `${d.x}%`, top: `${d.y}%`,
               width: 6, height: 6, borderRadius: '50%',
               transform: 'translate(-50%, -50%)',
-              background: DOT_BG[d.cls] ?? 'var(--success)',
-              boxShadow: DOT_GLOW[d.cls] ?? 'none',
+              background: monsterIndexToColor(d.monsterIdx),
+              boxShadow: `0 0 4px ${monsterIndexToColor(d.monsterIdx)}80`,
             }} />
           ))}
           {isHere && (

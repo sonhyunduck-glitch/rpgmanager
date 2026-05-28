@@ -14,15 +14,14 @@ import { getClassCombatStyle } from '../../data/classData';
 import { LABEL } from '../../styles/shared';
 import type { ActiveBuff, CombatStyle } from '../../types';
 import type { SpatialEntity, Vec2 } from '../../types/spatial';
+import { monsterIndexToColor } from '../../utils/monsterColors';
 
 /* ── 상수 ── */
 const BASE_VISIBLE_MONSTERS = 15;
 const MIN_VISIBLE_MONSTERS = 1;
 const MAP_SIZE_M = 50;
 
-/* ── 몬스터 색상: 이름 해시 → HSL 고정 색상 ──
-   같은 이름 = 어느 존에서든 같은 색상
-   HSL hue를 황금각(137.508°)으로 분산 → 인접 몬스터도 색 겹침 최소화 */
+/** 폴백: 이름 해시 → 색상 (팔레트 매핑 실패 시) */
 function monsterNameToColor(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -118,11 +117,11 @@ export default function Minimap() {
     return arr;
   }, [spatial.entities]);
 
-  /* ── 몬스터별 색상 맵 (이름 해시 기반) ── */
+  /* ── 몬스터별 색상 맵 (인덱스 기반 팔레트) ── */
   const monsterColorMap = useMemo(() => {
     const map = new Map<number, string>();
-    tierMonsters.forEach((m, i) => {
-      map.set(i, monsterNameToColor(m.name));
+    tierMonsters.forEach((_m, i) => {
+      map.set(i, monsterIndexToColor(i));
     });
     return map;
   }, [tierMonsters]);
@@ -340,11 +339,8 @@ export default function Minimap() {
             j => j.monsterId === entity.monsterId,
           );
           const monsterIdx = entity.monsterIdx ?? 0;
-          const dotColor = monsterColorMap.get(monsterIdx) ?? (
-            entity.monsterId ? monsterNameToColor(
-              tierMonsters.find(m => m.id === entity.monsterId)?.name ?? '',
-            ) : '#ef5350'
-          );
+          const dotColor = monsterColorMap.get(monsterIdx)
+            ?? monsterIndexToColor(monsterIdx);
           const dotMonster = entity.monsterId
             ? tierMonsters.find(m => m.id === entity.monsterId)
             : tierMonsters[monsterIdx];
