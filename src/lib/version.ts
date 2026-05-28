@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.33 — 선공몬스터 근접 감지 + 동족인식 + 미니맵 1m 그리드
-export const APP_VERSION = '2.39.33';
+// v2.39.34 — 선공/동족인식 실시간 감지 (tickSpatial 60ms)
+export const APP_VERSION = '2.39.34';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

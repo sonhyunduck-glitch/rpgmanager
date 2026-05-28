@@ -31,7 +31,11 @@ import { createHuntActions } from './huntActions';
 import { createCombatTick } from './combatTick';
 import { createEquipActions } from './equipActions';
 import { createShopActions } from './shopActions';
-import { createEmptySpatialState, initHuntSpatialState, tickSpatialUpdate, PLAYER_MOVE_SPEED } from './spatialEngine';
+import {
+  createEmptySpatialState, initHuntSpatialState, tickSpatialUpdate,
+  findAggroMonstersInRange, distance,
+  PLAYER_MOVE_SPEED, AGGRO_RANGE_M,
+} from './spatialEngine';
 
 // Re-export GameState for consumers
 export type { GameState } from './storeTypes';
@@ -499,30 +503,124 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  /* 고빈도 공간 업데이트 (60ms 간격) — 이동 + 투사체 보간 전용
-     전투 판정은 tickHunt(3s)에서 처리. 여기서는 위치만 갱신. */
+  /* 고빈도 공간 업데이트 (60ms 간격)
+     — 이동 + 투사체 보간
+     — 선공 몬스터 실시간 감지 + 동족인식 */
   tickSpatial: () => {
     const state = get();
     const { hunt } = state;
     if (hunt.status !== 'hunting' || !hunt.zoneId) return;
-    // moveOrders/projectiles 없으면 스킵 (불필요한 갱신 방지)
-    if (hunt.spatial.moveOrders.size === 0 && hunt.spatial.projectiles.length === 0) return;
 
     const now = Date.now();
-    const deltaSec = 0.06; // 60ms 고정 (호출 간격과 동일)
-    const result = tickSpatialUpdate(hunt.spatial, deltaSec, now);
+    const deltaSec = 0.06; // 60ms 고정
+    const hasSpatialWork = hunt.spatial.moveOrders.size > 0 || hunt.spatial.projectiles.length > 0;
+
+    // ── 1. 공간 업데이트 (이동/투사체가 있을 때만) ──
+    let entities = hunt.spatial.entities;
+    let projectiles = hunt.spatial.projectiles;
+    let moveOrders = hunt.spatial.moveOrders;
+    let combatEvents = hunt.spatial.combatEvents;
+
+    if (hasSpatialWork) {
+      const result = tickSpatialUpdate(hunt.spatial, deltaSec, now);
+      entities = result.entities;
+      projectiles = result.projectiles;
+      moveOrders = result.moveOrders;
+      combatEvents = [...hunt.spatial.combatEvents, ...result.combatEvents];
+    }
+
+    // ── 2. 선공 몬스터 실시간 감지 + 동족인식 ──
+    let approachingChanged = false;
+    let newApproaching = hunt.approachingMonsters ?? [];
+    const currentJoined = hunt.joinedMonsters ?? [];
+
+    const playerEnt = entities.get('player');
+    if (playerEnt && state.currentHp > 0
+      && newApproaching.length + currentJoined.length < 2) {
+      const zone = HUNT_ZONES.find(z => z.id === hunt.zoneId);
+      if (zone) {
+        let monsters = getMonstersForRoom(zone, hunt.currentRoom ?? 1);
+        if (monsters.length === 0) monsters = zone.monsters;
+
+        // 이미 전투/이동 중인 엔티티 ID 제외
+        const excludeIds = new Set<string>();
+        if (hunt.targetEntityId) excludeIds.add(hunt.targetEntityId);
+        for (const [eid] of moveOrders) {
+          if (eid !== 'player') excludeIds.add(eid);
+        }
+
+        // (A) 근접 감지: AGGRO_RANGE_M(5m) 이내 선공 몬스터
+        const aggroIds = findAggroMonstersInRange(
+          entities, playerEnt.pos, AGGRO_RANGE_M, excludeIds,
+          (entity) => {
+            if (!entity.monsterId) return false;
+            const m = monsters.find(x => x.id === entity.monsterId)
+              ?? zone.monsters.find(x => x.id === entity.monsterId);
+            return !!m?.aggressive;
+          },
+        );
+
+        // (B) 동족인식: 현재 타겟이 선공이면, 같은 이름 선공 몬스터 (거리 무관)
+        if (hunt.currentTargetId) {
+          const targetMon = monsters.find(m => m.id === hunt.currentTargetId)
+            ?? zone.monsters.find(m => m.id === hunt.currentTargetId);
+          if (targetMon?.aggressive) {
+            for (const [entId, entity] of entities) {
+              if (entity.type !== 'monster' || !entity.alive) continue;
+              if (excludeIds.has(entId) || aggroIds.includes(entId)) continue;
+              if (!entity.monsterId) continue;
+              const m = monsters.find(x => x.id === entity.monsterId)
+                ?? zone.monsters.find(x => x.id === entity.monsterId);
+              if (!m?.aggressive || m.name !== targetMon.name) continue;
+              aggroIds.push(entId);
+            }
+          }
+        }
+
+        // 새 접근 몬스터 추가 (상한 2까지)
+        if (aggroIds.length > 0) {
+          newApproaching = [...newApproaching];
+          const newMoveOrders = new Map(moveOrders);
+          for (const entityId of aggroIds) {
+            if (newApproaching.length + currentJoined.length >= 2) break;
+            const entity = entities.get(entityId);
+            if (!entity?.monsterId) continue;
+            const m = monsters.find(x => x.id === entity.monsterId)
+              ?? zone.monsters.find(x => x.id === entity.monsterId);
+            if (!m) continue;
+
+            const dist = distance(entity.pos, playerEnt.pos);
+            newApproaching.push({
+              monsterId: m.id, hp: m.hp, distanceRemaining: dist,
+            });
+            newMoveOrders.set(entityId, {
+              entityId,
+              destination: { ...playerEnt.pos },
+              speed: 1 / (m.moveSpeed || 1),
+              stopDistance: 0,
+              onArrival: 'join' as const,
+            });
+          }
+          moveOrders = newMoveOrders;
+          approachingChanged = true;
+        }
+      }
+    }
+
+    // ── 3. 변경사항 없으면 스킵 ──
+    if (!hasSpatialWork && !approachingChanged) return;
+
+    // ── 4. 상태 업데이트 ──
     set({
       hunt: {
         ...hunt,
+        ...(approachingChanged ? { approachingMonsters: newApproaching } : {}),
         spatial: {
           ...hunt.spatial,
-          entities: result.entities,
-          projectiles: result.projectiles,
-          moveOrders: result.moveOrders,
-          combatEvents: [
-            ...hunt.spatial.combatEvents,
-            ...result.combatEvents,
-          ],
+          entities,
+          projectiles,
+          moveOrders,
+          combatEvents,
         },
       },
     });
