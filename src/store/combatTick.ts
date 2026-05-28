@@ -370,7 +370,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
           ap.distanceRemaining -= tickSec / joiner.moveSpeed;
 
-          if (ap.distanceRemaining > 0 || currentJoined.length >= 2) {
+          if (ap.distanceRemaining > 0 || currentJoined.length >= 5) {
             stillApproaching.push(ap);
             continue;
           }

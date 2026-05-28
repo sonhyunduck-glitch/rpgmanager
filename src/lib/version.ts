@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.36 — 동족인식 우선순위 수정 (같은이름 몬스터 먼저)
-export const APP_VERSION = '2.39.36';
+// v2.39.37 — 접근/합류 몬스터 상한 2→5
+export const APP_VERSION = '2.39.37';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

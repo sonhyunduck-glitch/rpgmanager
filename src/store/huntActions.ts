@@ -235,7 +235,7 @@ export function createHuntActions(set: SetState, get: GetState, save: SaveFn) {
 
       const joined = hunt.joinedMonsters;
       const approaching = hunt.approachingMonsters;
-      if (joined.length + approaching.length >= 2) return false;
+      if (joined.length + approaching.length >= 5) return false;
 
       const inFightIds = new Set([
         hunt.currentTargetId,

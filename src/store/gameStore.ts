@@ -536,7 +536,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const playerEnt = entities.get('player');
     if (playerEnt && state.currentHp > 0
-      && newApproaching.length + currentJoined.length < 2) {
+      && newApproaching.length + currentJoined.length < 5) {
       const zone = HUNT_ZONES.find(z => z.id === hunt.zoneId);
       if (zone) {
         let monsters = getMonstersForRoom(zone, hunt.currentRoom ?? 1);
@@ -599,7 +599,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           newApproaching = [...newApproaching];
           const newMoveOrders = new Map(moveOrders);
           for (const entityId of aggroIds) {
-            if (newApproaching.length + currentJoined.length >= 2) break;
+            if (newApproaching.length + currentJoined.length >= 5) break;
             const entity = entities.get(entityId);
             if (!entity?.monsterId) continue;
             const m = monsters.find(x => x.id === entity.monsterId)
