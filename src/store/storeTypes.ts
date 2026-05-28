@@ -125,6 +125,7 @@ export interface GameState {
   // Skills
   equippedSkills: number[];  // 슬롯에 장착된 스킬 ID 목록 (최대 16)
   disabledSkills: number[];  // OFF 상태 스킬 ID 목록 (전투 중 자동 시전 안 함)
+  skillMpThreshold: number;  // 스킬 사용 MP% 임계치 (0~100, 이 % 이상일 때만 사용)
 
   // Buffs
   activeBuffs: ActiveBuff[];
@@ -208,6 +209,7 @@ export interface GameState {
   unequipSkill: (slotIndex: number) => void;
   autoEquipSkills: () => void;
   toggleSkillEnabled: (skillId: number) => void;
+  setSkillMpThreshold: (pct: number) => void;
 
   // Spatial combat
   consumeCombatEvents: () => void;

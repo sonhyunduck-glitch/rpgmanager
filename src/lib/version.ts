@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.26 — 재접속 시 공간 상태 재초기화 (몬스터 리젠 복구)
-export const APP_VERSION = '2.39.26';
+// v2.39.27 — 스킬 슬롯 순서 사용 + MP% 임계치 설정
+export const APP_VERSION = '2.39.27';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

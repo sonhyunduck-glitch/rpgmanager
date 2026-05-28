@@ -386,6 +386,8 @@ function TabSkills() {
   const disabledSkills = useGameStore(s => s.disabledSkills);
   const hunt = useGameStore(s => s.hunt);
   const toggleSkillEnabled = useGameStore(s => s.toggleSkillEnabled);
+  const skillMpThreshold = useGameStore(s => s.skillMpThreshold);
+  const setSkillMpThreshold = useGameStore(s => s.setSkillMpThreshold);
   const cooldowns = hunt.skillCooldowns ?? {};
   const maxSlots = MAX_SKILL_SLOTS;
   const filledCount = equippedSkills.filter(id => id > 0).length;
@@ -477,6 +479,32 @@ function TabSkills() {
             </div>
           );
         })}
+      </div>
+      {/* MP% 임계치 슬라이더 */}
+      <div style={{
+        marginTop: 6, padding: '5px 6px',
+        background: 'var(--bg-panel)',
+        border: '1px solid var(--border-soft)',
+        borderRadius: 'var(--r-sm)',
+      }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: 3,
+        }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: F.tiny, color: 'var(--text-mute)' }}>
+            스킬 MP 임계치
+          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: F.tiny, fontWeight: 700, color: 'var(--info)' }}>
+            {skillMpThreshold}%
+          </span>
+        </div>
+        <input
+          type="range" min={0} max={100} step={5}
+          value={skillMpThreshold}
+          onChange={e => setSkillMpThreshold(Number(e.target.value))}
+          style={{ width: '100%', height: 4, cursor: 'pointer', accentColor: 'var(--info)' }}
+          title={`MP가 ${skillMpThreshold}% 이상일 때만 스킬 사용`}
+        />
       </div>
     </>
   );

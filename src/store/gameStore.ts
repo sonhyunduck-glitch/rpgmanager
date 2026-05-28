@@ -469,6 +469,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   // ── Skills ──
   equippedSkills: (saved?.equippedSkills as number[]) ?? [],
   disabledSkills: (saved?.disabledSkills as number[]) ?? [],
+  skillMpThreshold: (saved?.skillMpThreshold as number) ?? 0,
 
   // ── Buffs ──
   activeBuffs: (saved?.activeBuffs as ActiveBuff[]) ?? [],
@@ -631,6 +632,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       disabled.splice(idx, 1);
     }
     set({ disabledSkills: disabled });
+    saveState(get());
+  },
+
+  setSkillMpThreshold: (pct: number) => {
+    set({ skillMpThreshold: Math.max(0, Math.min(100, pct)) });
     saveState(get());
   },
 

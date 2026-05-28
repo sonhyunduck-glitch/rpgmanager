@@ -107,6 +107,8 @@ export default function SkillPanel() {
   const autoEquipSkills = useGameStore(s => s.autoEquipSkills);
   const hunt = useGameStore(s => s.hunt);
   const getMaxMp = useGameStore(s => s.getMaxMp);
+  const skillMpThreshold = useGameStore(s => s.skillMpThreshold);
+  const setSkillMpThreshold = useGameStore(s => s.setSkillMpThreshold);
 
   const [filterTab, setFilterTab] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
@@ -477,6 +479,38 @@ export default function SkillPanel() {
           background: 'var(--bg-sunken)',
           borderTop: '1px solid var(--border)',
         }}>
+          {/* MP% 임계치 슬라이더 */}
+          {maxMp > 0 && (
+            <div style={{
+              marginBottom: 8, padding: '8px 10px',
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border-soft)', borderRadius: 6,
+            }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginBottom: 4,
+              }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mute)' }}>
+                  스킬 MP 임계치
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: 'var(--info)' }}>
+                  {skillMpThreshold}%
+                </span>
+              </div>
+              <input
+                type="range" min={0} max={100} step={5}
+                value={skillMpThreshold}
+                onChange={e => setSkillMpThreshold(Number(e.target.value))}
+                style={{ width: '100%', height: 4, cursor: 'pointer', accentColor: 'var(--info)' }}
+              />
+              <div style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-faint)',
+                marginTop: 2,
+              }}>
+                MP {skillMpThreshold}% 이상일 때만 스킬 자동 시전
+              </div>
+            </div>
+          )}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
             marginBottom: 6,
@@ -1159,20 +1193,51 @@ export default function SkillPanel() {
         </div>
 
         {maxMp > 0 && (
-          <div style={{ padding: '10px 14px', background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}>
-              <span>MP</span>
-              <span><b style={{ color: 'var(--text)' }}>{currentMp}</b> / {maxMp}</span>
+          <>
+            <div style={{ padding: '10px 14px', background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}>
+                <span>MP</span>
+                <span><b style={{ color: 'var(--text)' }}>{currentMp}</b> / {maxMp}</span>
+              </div>
+              <div style={{ marginTop: 6, height: 4, background: 'var(--bg-sunken)', borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
+                <div style={{
+                  height: '100%', borderRadius: 2, width: `${mpPct}%`,
+                  background: 'linear-gradient(90deg, var(--info), oklch(0.78 0.14 195))',
+                  boxShadow: mpPct > 0 ? '0 0 6px color-mix(in oklch, var(--info) 30%, transparent)' : 'none',
+                  transition: 'width 0.3s',
+                }} />
+              </div>
             </div>
-            <div style={{ marginTop: 6, height: 4, background: 'var(--bg-sunken)', borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
+            {/* MP% 임계치 슬라이더 */}
+            <div style={{
+              padding: '10px 14px',
+              background: 'var(--bg-panel)', border: '1px solid var(--border-soft)', borderRadius: 8,
+            }}>
               <div style={{
-                height: '100%', borderRadius: 2, width: `${mpPct}%`,
-                background: 'linear-gradient(90deg, var(--info), oklch(0.78 0.14 195))',
-                boxShadow: mpPct > 0 ? '0 0 6px color-mix(in oklch, var(--info) 30%, transparent)' : 'none',
-                transition: 'width 0.3s',
-              }} />
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginBottom: 6,
+              }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}>
+                  스킬 MP 임계치
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--info)' }}>
+                  {skillMpThreshold}%
+                </span>
+              </div>
+              <input
+                type="range" min={0} max={100} step={5}
+                value={skillMpThreshold}
+                onChange={e => setSkillMpThreshold(Number(e.target.value))}
+                style={{ width: '100%', height: 4, cursor: 'pointer', accentColor: 'var(--info)' }}
+              />
+              <div style={{
+                fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-faint)',
+                marginTop: 4,
+              }}>
+                MP {skillMpThreshold}% 이상일 때만 스킬 자동 시전
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

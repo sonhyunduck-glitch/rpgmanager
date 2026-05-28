@@ -29,6 +29,7 @@ export interface BuffProcessInput {
   activeBuffs: ActiveBuff[];
   equippedSkills: number[];
   disabledSkills: number[];
+  skillMpThreshold: number;  // MP% 임계치 (0~100)
 
   // 토글 설정
   transformScrollEnabled: boolean;
@@ -81,7 +82,7 @@ export interface BuffProcessResult {
 
 export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResult {
   const {
-    playerClass, level, subclass, equippedSkills, disabledSkills,
+    playerClass, level, subclass, equippedSkills, disabledSkills, skillMpThreshold,
     transformScrollEnabled, transformScrollType,
     bluePotionEnabled, greenPotionEnabled, couragePotionEnabled,
     hasEquipHaste, equipBonusSp, equipMpr, playerWis,
@@ -214,15 +215,19 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
     lastMpRegenAt = now;
   }
 
-  // ── 스킬 버프 자동 시전 (MP 충분 시, 슬롯 장착 스킬만, OFF 제외) ──
+  // ── 스킬 버프 자동 시전 (슬롯 순서대로, MP% 임계치, OFF 제외) ──
   const equipped = equippedSkills ?? [];
   const disabled = disabledSkills ?? [];
-  if (huntMp > 0) {
+  const mpPctBuff = maxMp > 0 ? (huntMp / maxMp) * 100 : 0;
+  if (huntMp > 0 && mpPctBuff >= (skillMpThreshold ?? 0)) {
     const activeSkillBuffIds = newActiveBuffs
       .filter(b => b.skillId != null && b.skillId > 0 && b.expiresAt > now)
       .map(b => b.skillId!);
-    const buffSkills = getAvailableBuffs(playerClass, level, huntMp, activeSkillBuffIds, subclass)
+    const allBuffSkills = getAvailableBuffs(playerClass, level, huntMp, activeSkillBuffIds, subclass)
       .filter(s => equipped.includes(s.id) && !disabled.includes(s.id));
+    // 슬롯 순서대로 정렬
+    const buffSkillMap = new Map(allBuffSkills.map(s => [s.id, s]));
+    const buffSkills = equipped.filter(id => id > 0 && buffSkillMap.has(id)).map(id => buffSkillMap.get(id)!);
     // 초록물약 활성 여부 (헤이스트 스킬 중복 방지용)
     const hasGreenBuff = newActiveBuffs.some(b => b.potionId === 'green_potion' && b.expiresAt > now);
     for (const buff of buffSkills) {

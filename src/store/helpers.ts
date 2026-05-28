@@ -155,6 +155,7 @@ export function saveState(state: {
   transformScrollType?: 'normal' | 'event';
   equippedSkills: number[];
   disabledSkills?: number[];
+  skillMpThreshold?: number;
   offlineReward?: OfflineReward | null;
 }): void {
   try {
@@ -169,7 +170,7 @@ export function saveState(state: {
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
       activeBuffs,
       bluePotionEnabled, greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
-      equippedSkills, disabledSkills,
+      equippedSkills, disabledSkills, skillMpThreshold,
       offlineReward,
     } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -185,7 +186,7 @@ export function saveState(state: {
       potions, selectedPotionId, potionAutoUse, potionAutoThreshold, potionAutoBuy,
       activeBuffs,
       bluePotionEnabled, greenPotionEnabled, couragePotionEnabled, transformScrollEnabled, transformScrollType,
-      equippedSkills, disabledSkills,
+      equippedSkills, disabledSkills, skillMpThreshold,
       offlineReward: offlineReward ?? null,
     }));
   } catch {

@@ -316,6 +316,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         activeBuffs: state.activeBuffs,
         equippedSkills: state.equippedSkills ?? [],
         disabledSkills: state.disabledSkills ?? [],
+        skillMpThreshold: state.skillMpThreshold ?? 0,
         transformScrollEnabled: state.transformScrollEnabled,
         transformScrollType: state.transformScrollType,
         bluePotionEnabled: state.bluePotionEnabled,
@@ -466,6 +467,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         disabledSkills: state.disabledSkills ?? [],
         skillCooldowns,
         mp: huntMp,
+        maxMp: state.maxMp,
+        skillMpThreshold: state.skillMpThreshold ?? 0,
         materials: newMaterials,
         now,
       }, windShackleTicks);

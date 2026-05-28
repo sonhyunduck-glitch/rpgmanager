@@ -67,6 +67,8 @@ export interface PlayerAttackInput {
   disabledSkills: number[];
   skillCooldowns: Record<number, number>;
   mp: number;
+  maxMp: number;
+  skillMpThreshold: number; // MP% 임계치 (0~100)
   materials: Record<string, number>;
 
   // 시간
@@ -206,24 +208,29 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
       }
     }
 
-    // ── 클래스 스킬 사용 (트리플 애로우, 쇼크 스턴, 서클 마법 등 — 슬롯 장착 스킬만) ──
+    // ── 클래스 스킬 사용 (슬롯 순서대로 + MP% 임계치) ──
     const equipped = equippedSkills ?? [];
     const disabled = disabledSkills ?? [];
-    if (monsterHp > 0 && huntMp > 0) {
-      const classSkills = getAvailableSkills(playerClass, level, subclass)
+    const mpPct = input.maxMp > 0 ? (huntMp / input.maxMp) * 100 : 0;
+    const mpThreshold = input.skillMpThreshold ?? 0;
+    if (monsterHp > 0 && huntMp > 0 && mpPct >= mpThreshold) {
+      // 사용 가능한 공격 스킬 필터
+      const allAttackSkills = getAvailableSkills(playerClass, level, subclass)
         .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
           && (skillCooldowns[s.id] ?? 0) <= now && equipped.includes(s.id) && !disabled.includes(s.id)
-          && (!s.consumeItemId || (materials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)))
-        .sort((a, b) => {
-          // 서클0(클래스 전용) 최우선
-          if (a.skillCircle === 0 && b.skillCircle !== 0) return -1;
-          if (a.skillCircle !== 0 && b.skillCircle === 0) return 1;
-          // 같은 종류면 높은 서클 우선
-          return b.skillCircle - a.skillCircle;
-        });
+          && (!s.consumeItemId || (materials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)));
 
-      if (classSkills.length > 0) {
-        const classSkill = classSkills[0];
+      // 슬롯 순서대로 정렬 (equippedSkills 배열 인덱스 = 슬롯 번호)
+      const attackSkillMap = new Map(allAttackSkills.map(s => [s.id, s]));
+      let classSkill = null as typeof allAttackSkills[0] | null;
+      for (const slotId of equipped) {
+        if (slotId > 0 && attackSkillMap.has(slotId)) {
+          classSkill = attackSkillMap.get(slotId)!;
+          break;
+        }
+      }
+
+      if (classSkill) {
         huntMp -= classSkill.consumeMp;
         skillCooldowns[classSkill.id] = now + (classSkill.reuseDelayMs || 3000);
         // 재료 소모
