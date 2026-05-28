@@ -71,8 +71,20 @@ export interface PlayerAttackInput {
   skillMpThreshold: number; // MP% 임계치 (0~100)
   materials: Record<string, number>;
 
+  // 합류/접근 몬스터 (광역 스킬용)
+  joinedMonsters: { monsterId: string; hp: number }[];
+  approachingMonsters: { monsterId: string; hp: number; distanceRemaining: number }[];
+  allMonsters: Monster[];  // 현재 방 몬스터 풀 (이름 조회용)
+
   // 시간
   now: number;
+}
+
+/** 광역 스킬 대미지 (합류/접근 몬스터별) */
+export interface AoeDamage {
+  monsterId: string;
+  monsterName: string;
+  damage: number;
 }
 
 export interface PlayerAttackResult {
@@ -88,6 +100,7 @@ export interface PlayerAttackResult {
   materials: Record<string, number>;
   skillCooldowns: Record<number, number>;
   windShackleTicks: number;  // 윈드 셰클에 의한 변경
+  aoeDamages: AoeDamage[];   // 광역 스킬 대미지 (합류/접근 몬스터)
 }
 
 // ══════════════════════════════════════════════
@@ -116,6 +129,7 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
   let finalDmg = 0;
   let isCrit = false;
   let usedSpellName = '';
+  const aoeDamages: AoeDamage[] = [];
 
   // ── 플레이어 → 몬스터 공격 (3갈래 분기 — L1J D20) ──
 
@@ -177,6 +191,18 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
     });
   } else {
     monsterHp = Math.max(0, monsterHp - finalDmg);
+
+    // 기본 공격 대미지 로그
+    const atkLabel = combatStyle === 'melee' ? '공격'
+      : combatStyle === 'ranged_bow' ? '화살'
+      : '마법';
+    logs.push({
+      id: genLogId(), type: isCrit ? 'crit' : 'battle',
+      text: isCrit
+        ? `크리티컬! ${monster.name}에게 ${finalDmg} ${atkLabel} 대미지`
+        : `${monster.name}에게 ${finalDmg} ${atkLabel} 대미지`,
+      timestamp: Date.now(),
+    });
 
     // ── 무기 특수 스킬 발동 (L1J weapon_skills.csv) ──
     if (monsterHp > 0 && equippedWeapon) {
@@ -279,6 +305,31 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
             text: `${classSkill.name}! ${monster.name}에게 ${skillFinalDmg} 마법 대미지${mrPct > 0 ? ` (MR ${mrPct}%)` : ''}${sMText}`,
             timestamp: Date.now(),
           });
+
+          // 광역 스킬: 합류/접근 몬스터에게도 개별 대미지 굴림
+          if (classSkill.isAoe) {
+            const aoeTargets = [
+              ...input.joinedMonsters,
+              ...input.approachingMonsters,
+            ];
+            for (const t of aoeTargets) {
+              const tMon = input.allMonsters.find(m => m.id === t.monsterId);
+              if (!tMon) continue;
+              const tAttrBonus = calcAttrBonus(classSkill.attr, tMon.attr);
+              const tDmg = rollSpellDamage(
+                classSkill.damageValue, classSkill.damageDice, classSkill.damageDiceCount,
+                playerInt, totalSp, level, playerClass, tAttrBonus,
+              );
+              const tAfterMr = applyMagicReduction(tDmg, tMon.mr);
+              const tFinal = Math.max(1, tAfterMr);
+              aoeDamages.push({ monsterId: t.monsterId, monsterName: tMon.name, damage: tFinal });
+              logs.push({
+                id: genLogId(), type: 'skill',
+                text: `${classSkill.name}! ${tMon.name}에게 ${tFinal} 마법 대미지`,
+                timestamp: Date.now(),
+              });
+            }
+          }
         } else if (classSkill.skillCategory === 'technique' && classSkill.skillType === 'attack') {
           // 공격형 기사: STR 기반 물리 스킬 (MR 무시)
           const physDmg = rollPhysicalSkillDamage(
@@ -311,5 +362,6 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
     materials,
     skillCooldowns,
     windShackleTicks: newWindShackleTicks,
+    aoeDamages,
   };
 }

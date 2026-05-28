@@ -478,6 +478,9 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         maxMp,
         skillMpThreshold: state.skillMpThreshold ?? 0,
         materials: newMaterials,
+        joinedMonsters: currentJoined,
+        approachingMonsters: currentApproaching,
+        allMonsters: monsters,
         now,
       }, windShackleTicks);
 
@@ -489,6 +492,39 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       newMaterials = attackResult.materials;
       skillCooldowns = attackResult.skillCooldowns;
       windShackleTicks = attackResult.windShackleTicks;
+
+      // 광역 대미지 적용 (합류/접근 몬스터 HP 차감)
+      if (attackResult.aoeDamages.length > 0) {
+        for (const aoe of attackResult.aoeDamages) {
+          // 합류 몬스터 HP 차감
+          const jIdx = currentJoined.findIndex(j => j.monsterId === aoe.monsterId);
+          if (jIdx >= 0) {
+            currentJoined[jIdx] = {
+              ...currentJoined[jIdx],
+              hp: Math.max(0, currentJoined[jIdx].hp - aoe.damage),
+            };
+            // 합류 몬스터 사망 시 제거
+            if (currentJoined[jIdx].hp <= 0) {
+              currentJoined.splice(jIdx, 1);
+              newKills++;
+            }
+            continue;
+          }
+          // 접근 몬스터 HP 차감
+          const aIdx = currentApproaching.findIndex(a => a.monsterId === aoe.monsterId);
+          if (aIdx >= 0) {
+            currentApproaching[aIdx] = {
+              ...currentApproaching[aIdx],
+              hp: Math.max(0, currentApproaching[aIdx].hp - aoe.damage),
+            };
+            // 접근 몬스터 사망 시 제거
+            if (currentApproaching[aIdx].hp <= 0) {
+              currentApproaching.splice(aIdx, 1);
+              newKills++;
+            }
+          }
+        }
+      }
 
       // ── Phase 3.5: 원거리 공격 투사체 생성 (공간 시각 데이터) ──
       // 대미지는 이미 적용됨 — 투사체는 Minimap 렌더링용

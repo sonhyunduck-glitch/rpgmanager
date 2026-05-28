@@ -47,6 +47,7 @@ export interface PlayerSkill {
   subclassRestriction?: import('../types').KnightSubclass;  // 기사 서브클래스 제한
   consumeItemId?: number;        // 소모 아이템 ID (40318=마력의돌, 40319=정령옥)
   consumeAmount?: number;        // 소모 수량 (기본 0)
+  isAoe?: boolean;               // true = 광역 공격 (합류/접근 몬스터에도 대미지)
   classes: PlayerClass[];        // 습득 가능 클래스
   requiredLevel: number;         // 최소 습득 레벨
   description: string;           // 한글 설명
@@ -330,6 +331,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 10,
     damageDiceCount: 3,
     attr: 4, // 물
+    isAoe: true,
     classes: ['wizard'],
     requiredLevel: 1,
     description: '눈보라를 소환하여 광역 공격',
@@ -384,6 +386,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 15,
     damageDiceCount: 8,
     attr: 2, // 불
+    isAoe: true,
     classes: ['wizard'],
     requiredLevel: 1,
     description: '화염 폭풍으로 광역 공격',
@@ -403,6 +406,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 15,
     damageDiceCount: 10,
     attr: 2, // 불
+    isAoe: true,
     classes: ['wizard'],
     requiredLevel: 1,
     description: '유성을 소환해 분쇄',
