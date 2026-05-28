@@ -32,6 +32,7 @@ export interface SpatialEntity {
   monsterIdx?: number;     // tierMonsters 인덱스 (Minimap 색상/이름용)
   monsterId?: string;      // 게임 데이터 조회용 (npc_xxxxx)
   respawnAt?: number;      // 사망 후 리스폰 시각 (timestamp, ms)
+  lastRespawnAt?: number;  // 마지막 리스폰 시각 (Minimap transition 방지용)
 }
 
 // ══════════════════════════════════════════════
@@ -84,6 +85,7 @@ export interface CombatEvent {
   id: string;
   type: CombatEventType;
   pos: Vec2;
+  sourcePos?: Vec2;        // 공격 원점 (몬스터→플레이어 공격 방향 표시용)
   damage?: number;
   isCrit?: boolean;
   monsterName?: string;

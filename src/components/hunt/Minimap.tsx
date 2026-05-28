@@ -132,6 +132,12 @@ export default function Minimap() {
   const [meleeImpact, setMeleeImpact] = useState<{
     id: string; pos: { x: number; y: number }; isCrit: boolean;
   } | null>(null);
+  const [monsterMeleeImpact, setMonsterMeleeImpact] = useState<{
+    id: string;
+    targetPos: { x: number; y: number };   // 플레이어 위치
+    sourcePos: { x: number; y: number };   // 몬스터 위치 (공격 방향)
+    damage: number;
+  } | null>(null);
   const [skillEffect, setSkillEffect] = useState<{
     id: string; pos: { x: number; y: number }; type: 'summon' | 'poly' | 'physical';
   } | null>(null);
@@ -214,6 +220,17 @@ export default function Minimap() {
             dmgText: ev.damage?.toString(),
           });
           setTimeout(() => setEvent(null), 900);
+          // 근접 공격 모션: 몬스터 → 플레이어 방향 슬래시
+          if (ev.sourcePos) {
+            const srcPct = toPercent(ev.sourcePos);
+            setMonsterMeleeImpact({
+              id: ev.id + '_matk',
+              targetPos: playerPos,
+              sourcePos: srcPct,
+              damage: ev.damage ?? 0,
+            });
+            setTimeout(() => setMonsterMeleeImpact(null), 500);
+          }
           break;
         }
         case 'monster_magic_hit': {
@@ -338,6 +355,9 @@ export default function Minimap() {
           const isApproaching = !isDead && spatial.moveOrders.has(entity.id)
             && entity.id !== hunt.targetEntityId;
 
+          // 리스폰 직후 200ms 이내: transition 없이 즉시 배치
+          const justRespawned = entity.lastRespawnAt && (Date.now() - entity.lastRespawnAt < 200);
+
           return (
             <div
               key={entity.id}
@@ -346,7 +366,7 @@ export default function Minimap() {
                 left: `${pos.x}%`,
                 top: `${pos.y}%`,
                 transform: 'translate(-50%, -50%)',
-                transition: isDead ? 'none' : 'left 80ms linear, top 80ms linear',
+                transition: (isDead || justRespawned) ? 'none' : 'left 80ms linear, top 80ms linear',
                 zIndex: isApproaching ? 4 : 2,
                 pointerEvents: 'none',
                 display: 'flex',
@@ -675,6 +695,60 @@ export default function Minimap() {
             </circle>
           </svg>
         )}
+
+        {/* 몬스터 근접 공격 모션 (몬스터→플레이어 방향 슬래시) */}
+        {monsterMeleeImpact && (() => {
+          const { targetPos: tp, sourcePos: sp } = monsterMeleeImpact;
+          // 공격 방향 벡터 계산 (몬스터 → 플레이어)
+          const mapW = mapRef.current?.clientWidth ?? 200;
+          const mapH = mapRef.current?.clientHeight ?? 200;
+          const dx = (tp.x - sp.x) * mapW / 100;
+          const dy = (tp.y - sp.y) * mapH / 100;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          // 정규화된 방향 (% 단위)
+          const nx = (dx / dist) * 3;  // 3% 길이 슬래시
+          const ny = (dy / dist) * 3;
+          // 수직 방향 (크로스 슬래시용)
+          const px = -ny * 0.6;
+          const py = nx * 0.6;
+
+          return (
+            <svg
+              key={`matk-${monsterMeleeImpact.id}`}
+              style={{
+                position: 'absolute', inset: 0,
+                width: '100%', height: '100%',
+                zIndex: 7, pointerEvents: 'none',
+                overflow: 'visible',
+              }}
+            >
+              {/* 공격 방향 슬래시 (\ 형태) */}
+              <line
+                x1={`${tp.x - nx * 0.8 + px}%`} y1={`${tp.y - ny * 0.8 + py}%`}
+                x2={`${tp.x + nx * 0.3 - px}%`} y2={`${tp.y + ny * 0.3 - py}%`}
+                stroke="#ff5252" strokeWidth={2.5} strokeLinecap="round" opacity="0.9"
+              >
+                <animate attributeName="opacity" from="0.9" to="0" dur="0.4s" fill="freeze" />
+              </line>
+              {/* 반대 슬래시 (/ 형태) */}
+              <line
+                x1={`${tp.x - nx * 0.8 - px}%`} y1={`${tp.y - ny * 0.8 - py}%`}
+                x2={`${tp.x + nx * 0.3 + px}%`} y2={`${tp.y + ny * 0.3 + py}%`}
+                stroke="#ff5252" strokeWidth={2.5} strokeLinecap="round" opacity="0.9"
+              >
+                <animate attributeName="opacity" from="0.9" to="0" dur="0.4s" fill="freeze" />
+              </line>
+              {/* 피격 충격파 (빨간 링) */}
+              <circle
+                cx={`${tp.x}%`} cy={`${tp.y}%`} r="3"
+                fill="none" stroke="rgba(255,82,82,0.7)" strokeWidth={1.5}
+              >
+                <animate attributeName="r" from="3" to="10" dur="0.4s" fill="freeze" />
+                <animate attributeName="opacity" from="0.7" to="0" dur="0.4s" fill="freeze" />
+              </circle>
+            </svg>
+          );
+        })()}
 
         {/* 몬스터 스킬 이펙트 */}
         {skillEffect && (

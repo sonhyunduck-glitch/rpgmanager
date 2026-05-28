@@ -740,7 +740,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             };
           }
 
-          // (B) 물리 몬스터 명중 → CombatEvent (피격 이펙트)
+          // (B) 물리 몬스터 명중 → CombatEvent (피격 이펙트 + 공격 모션)
           if (monster.attackType !== 'magic' && hpDelta > 0 && !killed) {
             updatedSpatial = {
               ...updatedSpatial,
@@ -748,6 +748,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
                 id: `cev_${spatialNow}_mhit`,
                 type: 'monster_hit',
                 pos: { ...plEnt.pos },
+                sourcePos: { ...tgEnt.pos },   // 몬스터 위치 (공격 방향 표시용)
                 damage: hpDelta,
                 monsterName: monster.name,
                 timestamp: spatialNow,

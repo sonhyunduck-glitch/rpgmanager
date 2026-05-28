@@ -527,6 +527,7 @@ export function tickSpatialUpdate(
         pos: newPos,
         alive: true,
         respawnAt: undefined,
+        lastRespawnAt: now,
       });
     }
   }
