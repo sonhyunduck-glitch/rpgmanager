@@ -98,6 +98,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         return;
       }
 
+      // ── 이동속도 (버프 배율 적용) ──
+      const moveSpeedMult = state.getMoveSpeedMult?.() ?? 1;
+      const effectiveMoveSpeed = PLAYER_MOVE_SPEED * moveSpeedMult;
+
       // ── 몬스터 선택 ──
       let monsters = getMonstersForRoom(zone, hunt.currentRoom ?? 1);
       if (monsters.length === 0) monsters = zone.monsters;
@@ -203,7 +207,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             newMoveOrders.set('player', {
               entityId: 'player',
               destination: { ...targetEnt.pos },
-              speed: PLAYER_MOVE_SPEED,
+              speed: effectiveMoveSpeed,
               stopDistance: stopDist,
               onArrival: 'attack' as const,
             });
@@ -467,7 +471,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         disabledSkills: state.disabledSkills ?? [],
         skillCooldowns,
         mp: huntMp,
-        maxMp: state.maxMp,
+        maxMp,
         skillMpThreshold: state.skillMpThreshold ?? 0,
         materials: newMaterials,
         now,
@@ -948,7 +952,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
             newMO.set('player', {
               entityId: 'player',
               destination: { ...tgtEnt.pos },
-              speed: PLAYER_MOVE_SPEED,
+              speed: effectiveMoveSpeed,
               stopDistance: stopDist,
               onArrival: 'attack' as const,
             });
