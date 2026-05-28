@@ -301,13 +301,14 @@ export default function Minimap() {
           overflow: 'hidden',
         }}
       >
-        {/* 배경 그리드 */}
+        {/* 1m×1m 그리드 (50m 맵 → 2% 간격) */}
         <div
           style={{
             position: 'absolute', inset: 0,
             backgroundImage:
-              'radial-gradient(circle, color-mix(in oklch, var(--text-mute) 6%, transparent) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
+              'linear-gradient(90deg, color-mix(in oklch, var(--text-mute) 10%, transparent) 1px, transparent 1px),'
+              + 'linear-gradient(0deg, color-mix(in oklch, var(--text-mute) 10%, transparent) 1px, transparent 1px)',
+            backgroundSize: '2% 2%',
             opacity: 0.35,
           }}
         />

@@ -37,9 +37,10 @@ import { executeMonsterAttack } from './combatMonsterAttack';
 import {
   tickSpatialUpdate, RESPAWN_DELAY_MS,
   findNearestAliveMonster, findNearestAliveMonsterByType,
+  findAggroMonstersInRange, distance,
   PROJECTILE_SPEED_ARROW, PROJECTILE_SPEED_MAGIC,
   PROJECTILE_SPEED_MONSTER_MAGIC,
-  ATTACK_RANGE_M, PLAYER_MOVE_SPEED,
+  ATTACK_RANGE_M, PLAYER_MOVE_SPEED, AGGRO_RANGE_M,
 } from './spatialEngine';
 import type { SpatialProjectile, ProjectileType } from '../types/spatial';
 
@@ -433,6 +434,78 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
           }
         }
         currentApproaching = stillApproaching;
+      }
+
+      // ══════════════════════════════════════════════
+      // Phase 2.5: 선공 몬스터 근접 감지 + 동족인식
+      // ══════════════════════════════════════════════
+      // (A) AGGRO_RANGE_M (5m) 이내 선공 몬스터 → 접근 시작
+      // (B) 현재 타겟이 선공이면, 같은 이름 선공 몬스터 → 거리 무관 접근 (동족인식)
+      if (newCurrentHp > 0 && currentApproaching.length + currentJoined.length < 2) {
+        const aggroPlayerEnt = updatedSpatial.entities.get('player');
+        if (aggroPlayerEnt) {
+          // 이미 전투/이동 중인 엔티티 ID 제외
+          const excludeIds = new Set<string>();
+          if (hunt.targetEntityId) excludeIds.add(hunt.targetEntityId);
+          for (const [eid] of updatedSpatial.moveOrders) {
+            if (eid !== 'player') excludeIds.add(eid);
+          }
+
+          // (A) 근접 감지: AGGRO_RANGE_M 이내 선공 몬스터
+          const newAggroIds = findAggroMonstersInRange(
+            updatedSpatial.entities, aggroPlayerEnt.pos, AGGRO_RANGE_M,
+            excludeIds,
+            (entity) => {
+              if (!entity.monsterId) return false;
+              const m = monsters.find(x => x.id === entity.monsterId)
+                ?? zone.monsters.find(x => x.id === entity.monsterId);
+              return !!m?.aggressive;
+            },
+          );
+
+          // (B) 동족인식: 현재 타겟이 선공이면, 같은 이름 선공 몬스터 (거리 무관)
+          if (monster.aggressive) {
+            for (const [entId, entity] of updatedSpatial.entities) {
+              if (entity.type !== 'monster' || !entity.alive) continue;
+              if (excludeIds.has(entId) || newAggroIds.includes(entId)) continue;
+              if (!entity.monsterId) continue;
+              const m = monsters.find(x => x.id === entity.monsterId)
+                ?? zone.monsters.find(x => x.id === entity.monsterId);
+              if (!m?.aggressive || m.name !== monster.name) continue;
+              newAggroIds.push(entId);
+            }
+          }
+
+          // 새 접근 몬스터 추가 (상한 2까지)
+          if (newAggroIds.length > 0) {
+            const aggroMoveOrders = new Map(updatedSpatial.moveOrders);
+            for (const entityId of newAggroIds) {
+              if (currentApproaching.length + currentJoined.length >= 2) break;
+              const entity = updatedSpatial.entities.get(entityId);
+              if (!entity?.monsterId) continue;
+              const m = monsters.find(x => x.id === entity.monsterId)
+                ?? zone.monsters.find(x => x.id === entity.monsterId);
+              if (!m) continue;
+
+              const dist = distance(entity.pos, aggroPlayerEnt.pos);
+              currentApproaching.push({
+                monsterId: m.id,
+                hp: m.hp,
+                distanceRemaining: dist,
+              });
+
+              // spatial moveOrder (플레이어를 향해 이동)
+              aggroMoveOrders.set(entityId, {
+                entityId,
+                destination: { ...aggroPlayerEnt.pos },
+                speed: 1 / (m.moveSpeed || 1),
+                stopDistance: 0,
+                onArrival: 'join' as const,
+              });
+            }
+            updatedSpatial = { ...updatedSpatial, moveOrders: aggroMoveOrders };
+          }
+        }
       }
 
       // ══════════════════════════════════════════════
