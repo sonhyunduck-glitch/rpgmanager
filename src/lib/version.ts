@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.44 — 기본 공격 대미지 로그 + 광역 스킬 다수 몬스터 대미지
-export const APP_VERSION = '2.39.44';
+// v2.39.45 — 물약 설정 유지 버그 수정 (DB default 'red_s' 문제)
+export const APP_VERSION = '2.39.45';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

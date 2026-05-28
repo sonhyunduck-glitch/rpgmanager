@@ -23,10 +23,10 @@ CREATE TABLE IF NOT EXISTS profiles (
   guild_id    TEXT,
 
   -- 포션/설정
-  selected_potion TEXT DEFAULT 'red_s',
-  potion_auto_use BOOLEAN DEFAULT false,
-  potion_auto_threshold REAL DEFAULT 0.5,
-  potion_auto_buy BOOLEAN DEFAULT false
+  selected_potion TEXT DEFAULT 'red_potion',
+  potion_auto_use BOOLEAN DEFAULT true,
+  potion_auto_threshold INTEGER DEFAULT 50,
+  potion_auto_buy BOOLEAN DEFAULT true
 );
 
 -- 2. 아이템 (인벤토리 + 장착)
