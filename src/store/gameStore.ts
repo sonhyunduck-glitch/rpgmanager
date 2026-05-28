@@ -145,14 +145,17 @@ export const useGameStore = create<GameState>((set, get) => ({
         // ⚠️ DB가 진실 — 빈 객체도 그대로 사용 (재료/포션 0개 = 정당한 상태)
         materials: dbData.materials,
         potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : getStartingPotions(dbPlayerClass),
-        // ⚠️ 물약 설정: DB 값이 유효하면 사용, 아니면 localStorage → 기본값 순서
-        //    DB default 'red_s' (구 스키마)는 유효하지 않으므로 localStorage 폴백
-        selectedPotionId: (p.selected_potion && POTIONS[p.selected_potion])
-          ? p.selected_potion
-          : (saved?.selectedPotionId as string) ?? 'red_potion',
-        potionAutoUse: p.potion_auto_use ?? (saved?.potionAutoUse as boolean) ?? true,
-        potionAutoThreshold: p.potion_auto_threshold ?? (saved?.potionAutoThreshold as number) ?? 50,
-        potionAutoBuy: p.potion_auto_buy ?? (saved?.potionAutoBuy as boolean) ?? true,
+        // ⚠️ 물약 설정: localStorage → DB → 기본값 순서 (localStorage 우선!)
+        //    이유: beforeunload 시 DB flush가 미완료될 수 있어 DB 값이 구 값일 수 있음.
+        //    localStorage는 동기 저장이므로 항상 최신. DB 무효값('red_s' 등)도 자동 폴백.
+        selectedPotionId: (saved?.selectedPotionId && POTIONS[saved.selectedPotionId as string])
+          ? (saved.selectedPotionId as string)
+          : (p.selected_potion && POTIONS[p.selected_potion])
+            ? p.selected_potion
+            : 'red_potion',
+        potionAutoUse: saved?.potionAutoUse != null ? (saved.potionAutoUse as boolean) : (p.potion_auto_use ?? true),
+        potionAutoThreshold: saved?.potionAutoThreshold != null ? (saved.potionAutoThreshold as number) : (p.potion_auto_threshold ?? 50),
+        potionAutoBuy: saved?.potionAutoBuy != null ? (saved.potionAutoBuy as boolean) : (p.potion_auto_buy ?? true),
       });
 
       // 길드 이름 비동기 로드

@@ -17,6 +17,7 @@ import {
   deathExpLossRate,
   calcHpRegenIntervalMs, calcHpRegenAmount,
   rollSpellDamage,
+  calcMpConsumption,
 } from '../data/statFormulas';
 import { getBestHealSpell } from '../data/playerSkillData';
 import { secureRandomInt } from '../lib/random';
@@ -247,6 +248,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       const playerCon = state.getCon();
       const playerWis = state.getWis();
       const playerInt = state.getInt();
+      const originalInt = state.getOriginalInt();
       const weaponEnchant = state.equippedWeapon?.enhanceLevel ?? 0;
       const weaponBaseDmg = monster.size === 'large'
         ? (state.equippedWeapon?.baseAtkLarge ?? 0)
@@ -334,6 +336,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         equipBonusSp,
         equipMpr,
         playerWis,
+        playerInt,
+        originalInt,
         currentMp: huntMp,
         maxMp,
         lastMpRegenAt: hunt.lastMpRegenAt ?? 0,
@@ -455,6 +459,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         effectiveStr,
         effectiveDex,
         playerInt,
+        originalInt,
         weaponEnchant,
         weaponBaseDmg,
         equippedWeapon: state.equippedWeapon,
@@ -865,20 +870,29 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       if (newCurrentHp > 0 && huntMp > 0) {
         const hpPct = (newCurrentHp / (newMaxHp + hpBonus)) * 100;
         if (hpPct <= 30) {
-          const healSpell = getBestHealSpell(state.playerClass, state.level, huntMp, equipped, disabled, state.subclass);
+          // INT MP 감소로 실제 비용이 낮을 수 있으므로 넉넉한 예산으로 후보 탐색
+          const healSpell = getBestHealSpell(state.playerClass, state.level, huntMp + 15, equipped, disabled, state.subclass);
           if (healSpell && (skillCooldowns[healSpell.id] ?? 0) <= now) {
-            huntMp -= healSpell.consumeMp;
-            const healAmt = rollSpellDamage(
-              healSpell.damageValue, healSpell.damageDice, healSpell.damageDiceCount,
-              playerInt, totalSp, state.level, state.playerClass,
+            // L1J INT MP 소모 감소 적용
+            const healActualMp = calcMpConsumption(
+              healSpell.consumeMp, playerInt, originalInt,
+              state.playerClass,
+              { skillCircle: healSpell.skillCircle, skillCategory: healSpell.skillCategory, id: healSpell.id },
             );
-            newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + healAmt);
-            skillCooldowns[healSpell.id] = now + (healSpell.reuseDelayMs || 3000);
-            newLogs.push({
-              id: genLogId(), type: 'skill',
-              text: `${healSpell.name} 시전! HP +${healAmt} (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
-              timestamp: now,
-            });
+            if (huntMp >= healActualMp) {
+              huntMp -= healActualMp;
+              const healAmt = rollSpellDamage(
+                healSpell.damageValue, healSpell.damageDice, healSpell.damageDiceCount,
+                playerInt, totalSp, state.level, state.playerClass,
+              );
+              newCurrentHp = Math.min(newMaxHp + hpBonus, newCurrentHp + healAmt);
+              skillCooldowns[healSpell.id] = now + (healSpell.reuseDelayMs || 3000);
+              newLogs.push({
+                id: genLogId(), type: 'skill',
+                text: `${healSpell.name} 시전! HP +${healAmt} (HP: ${newCurrentHp}/${newMaxHp + hpBonus})`,
+                timestamp: now,
+              });
+            }
           }
         }
       }

@@ -310,7 +310,7 @@ export const PROJECTILE_SPEED_MONSTER_MAGIC = 18;// 몬스터 마법
 export const PROJECTILE_SPEED_MONSTER_SKILL = 15;// 몬스터 스킬
 
 /** 리스폰 딜레이 (ms) */
-export const RESPAWN_DELAY_MS = 3000;
+export const RESPAWN_DELAY_MS = 10_000;
 
 /** 플레이어 기본 이동 속도 (m/s) — 버프 배율 별도 적용 */
 export const PLAYER_MOVE_SPEED = 4;

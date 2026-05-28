@@ -13,6 +13,7 @@ import {
 } from '../data/playerSkillData';
 import {
   calcMpRegenAmount, calcBluePotionMpBonus, MP_REGEN_INTERVAL_MS,
+  calcMpConsumption,
 } from '../data/statFormulas';
 import { genLogId } from './helpers';
 import type { LogEntry, ActiveBuff, PlayerClass, KnightSubclass } from '../types';
@@ -43,6 +44,8 @@ export interface BuffProcessInput {
   equipBonusSp: number;
   equipMpr: number;
   playerWis: number;
+  playerInt: number;      // 장비 포함 총 INT (MP 소모 감소용)
+  originalInt: number;    // 장비 제외 INT (base + 할당, MP 소모 감소용)
 
   // 사냥 세션
   currentMp: number;
@@ -223,7 +226,8 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
     const activeSkillBuffIds = newActiveBuffs
       .filter(b => b.skillId != null && b.skillId > 0 && b.expiresAt > now)
       .map(b => b.skillId!);
-    const allBuffSkills = getAvailableBuffs(playerClass, level, huntMp, activeSkillBuffIds, subclass)
+    // INT MP 감소로 실제 비용이 낮을 수 있으므로 넉넉한 예산으로 후보 탐색
+    const allBuffSkills = getAvailableBuffs(playerClass, level, huntMp + 15, activeSkillBuffIds, subclass)
       .filter(s => equipped.includes(s.id) && !disabled.includes(s.id));
     // 슬롯 순서대로 정렬
     const buffSkillMap = new Map(allBuffSkills.map(s => [s.id, s]));
@@ -231,7 +235,13 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
     // 초록물약 활성 여부 (헤이스트 스킬 중복 방지용)
     const hasGreenBuff = newActiveBuffs.some(b => b.potionId === 'green_potion' && b.expiresAt > now);
     for (const buff of buffSkills) {
-      if (huntMp < buff.consumeMp) continue;
+      // L1J INT MP 소모 감소 적용
+      const buffActualMp = calcMpConsumption(
+        buff.consumeMp, input.playerInt, input.originalInt,
+        playerClass,
+        { skillCircle: buff.skillCircle, skillCategory: buff.skillCategory, id: buff.id },
+      );
+      if (huntMp < buffActualMp) continue;
       // 쿨다운 체크 (타임스탬프 기반)
       if ((skillCooldowns[buff.id] ?? 0) > now) continue;
       // 헤이스트 스킬은 장비/초록물약 헤이스트와 중복 불가
@@ -243,7 +253,7 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
         if (owned < buff.consumeAmount) continue;
         materials[matKey] = owned - buff.consumeAmount;
       }
-      huntMp -= buff.consumeMp;
+      huntMp -= buffActualMp;
       newActiveBuffs.push({
         potionId: `skill_${buff.id}`,
         skillId: buff.id,

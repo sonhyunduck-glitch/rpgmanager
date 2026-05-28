@@ -11,6 +11,7 @@ import {
   calcPlayerHitRate, rollD20PcNpcHit,
   rollSpellDamage, calcAttrBonus,
   rollPhysicalSkillDamage,
+  calcMpConsumption,
 } from '../data/statFormulas';
 import { getAvailableSkills } from '../data/playerSkillData';
 import { getWeaponSkill } from '../data/weaponSkillData';
@@ -37,6 +38,7 @@ export interface PlayerAttackInput {
   effectiveStr: number;
   effectiveDex: number;
   playerInt: number;
+  originalInt: number;    // 장비 제외 INT (base + 할당, MP 소모 감소용)
 
   // 장비 보너스
   weaponEnchant: number;
@@ -240,11 +242,15 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
     const mpPct = input.maxMp > 0 ? (huntMp / input.maxMp) * 100 : 0;
     const mpThreshold = input.skillMpThreshold ?? 0;
     if (monsterHp > 0 && huntMp > 0 && mpPct >= mpThreshold) {
-      // 사용 가능한 공격 스킬 필터
+      // 사용 가능한 공격 스킬 필터 (L1J INT MP 소모 감소 적용)
       const allAttackSkills = getAvailableSkills(playerClass, level, subclass)
-        .filter(s => s.skillType === 'attack' && s.consumeMp <= huntMp
-          && (skillCooldowns[s.id] ?? 0) <= now && equipped.includes(s.id) && !disabled.includes(s.id)
-          && (!s.consumeItemId || (materials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0)));
+        .filter(s => {
+          const actualMp = calcMpConsumption(s.consumeMp, input.playerInt, input.originalInt, playerClass,
+            { skillCircle: s.skillCircle, skillCategory: s.skillCategory, id: s.id });
+          return s.skillType === 'attack' && actualMp <= huntMp
+            && (skillCooldowns[s.id] ?? 0) <= now && equipped.includes(s.id) && !disabled.includes(s.id)
+            && (!s.consumeItemId || (materials[`e_${s.consumeItemId}`] ?? 0) >= (s.consumeAmount ?? 0));
+        });
 
       // 슬롯 순서대로 정렬 (equippedSkills 배열 인덱스 = 슬롯 번호)
       const attackSkillMap = new Map(allAttackSkills.map(s => [s.id, s]));
@@ -257,7 +263,13 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
       }
 
       if (classSkill) {
-        huntMp -= classSkill.consumeMp;
+        // L1J INT MP 소모 감소 적용
+        const skillActualMp = calcMpConsumption(
+          classSkill.consumeMp, input.playerInt, input.originalInt,
+          playerClass,
+          { skillCircle: classSkill.skillCircle, skillCategory: classSkill.skillCategory, id: classSkill.id },
+        );
+        huntMp -= skillActualMp;
         skillCooldowns[classSkill.id] = now + (classSkill.reuseDelayMs || 3000);
         // 재료 소모
         if (classSkill.consumeItemId && classSkill.consumeAmount) {

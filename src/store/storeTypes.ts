@@ -153,6 +153,7 @@ export interface GameState {
   getCon: () => number;
   getWis: () => number;
   getInt: () => number;
+  getOriginalInt: () => number;  // 장비 제외 INT (base + 할당, MP 소모 감소용)
   getSp: () => number;
   getRemainingPoints: () => number;
   getTotalDefense: () => number;

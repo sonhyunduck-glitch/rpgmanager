@@ -65,6 +65,13 @@ export function createDerivedStats(get: GetState) {
       return base.int + s.statAllocation.int + statBonus('int');
     },
 
+    /** 원본 INT (장비 보너스 제외 — base + 할당만, L1J MP 소모 감소용) */
+    getOriginalInt: () => {
+      const s = get();
+      const base = getClassBaseStats(s.playerClass);
+      return base.int + s.statAllocation.int;
+    },
+
     /** 장비 SP(마법 강화) 보너스 합산 — 마법 대미지 계수용 (장비 + 세트) */
     getSp: () => {
       const s = get();

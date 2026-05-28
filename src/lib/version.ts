@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.45 — 물약 설정 유지 버그 수정 (DB default 'red_s' 문제)
-export const APP_VERSION = '2.39.45';
+// v2.39.46 — L1J INT MP 소모 감소 + 몬스터 리젠 10초 + 물약 설정 localStorage 우선
+export const APP_VERSION = '2.39.46';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

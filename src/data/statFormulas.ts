@@ -789,6 +789,59 @@ export function calcMaxMp(level: number, wis: number, int: number, playerClass: 
 }
 
 /**
+ * L1J INT 기반 MP 소모량 감소 (3가지 메커니즘 합산)
+ *
+ * 메커니즘 1 — 서클 기반 INT 감소 (L1Character.java)
+ *   magic 스킬 + skillCircle ≥ 2 → INT 구간별 누적 -1 (최대 -7)
+ *
+ * 메커니즘 2 — 기사 기술 스케일 감소 (L1J knight technique)
+ *   기사 technique → INT > 12: reduction = (INT - 12)
+ *
+ * 메커니즘 3 — 원본 INT 클래스 기반 (L1J originalInt)
+ *   기사만: origInt 9~10 → -1, origInt ≥ 11 → -2
+ *
+ * @param baseMp      스킬 원본 consumeMp
+ * @param totalInt    장비 포함 총 INT
+ * @param originalInt 장비 제외 INT (base + 할당)
+ * @param playerClass 클래스
+ * @param skill       { skillCircle, skillCategory, id }
+ * @returns 실제 소모 MP (최소 1)
+ */
+export function calcMpConsumption(
+  baseMp: number,
+  totalInt: number,
+  originalInt: number,
+  playerClass: PlayerClass,
+  skill: { skillCircle: number; skillCategory: string; id: number },
+): number {
+  let reduction = 0;
+
+  // 메커니즘 1: 서클 기반 INT 감소 (마법만, circle ≥ 2)
+  if (skill.skillCategory === 'magic' && skill.skillCircle >= 2) {
+    if (totalInt > 12 && skill.skillCircle >= 2) reduction++;
+    if (totalInt > 13 && skill.skillCircle >= 3) reduction++;
+    if (totalInt > 14 && skill.skillCircle >= 4) reduction++;
+    if (totalInt > 15 && skill.skillCircle >= 5) reduction++;
+    if (totalInt > 16 && skill.skillCircle >= 6) reduction++;
+    if (totalInt > 17 && skill.skillCircle >= 7) reduction++;
+    if (totalInt > 18 && skill.skillCircle >= 8) reduction++;
+  }
+
+  // 메커니즘 2: 기사 기술 스케일 감소 (technique만)
+  if (skill.skillCategory === 'technique' && playerClass === 'knight') {
+    if (totalInt > 12) reduction += (totalInt - 12);
+  }
+
+  // 메커니즘 3: 원본 INT 클래스 기반 (기사만)
+  if (playerClass === 'knight') {
+    if (originalInt >= 11) reduction += 2;
+    else if (originalInt >= 9) reduction += 1;
+  }
+
+  return Math.max(1, baseMp - reduction);
+}
+
+/**
  * MP 자연 회복 — L1J MpRegeneration.java 원본
  *
  * L1J 구조:
