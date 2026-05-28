@@ -31,7 +31,13 @@ export default function OfflineRewardModal() {
   const potionEntries = Object.entries(reward.potionsUsed).filter(([, q]) => q > 0);
   const scrollEntries = Object.entries(reward.scrollsUsed).filter(([, q]) => q > 0);
   const hasConsumables = potionEntries.length > 0 || scrollEntries.length > 0;
-  const itemEntries = reward.items ?? [];
+  // 동일 이름 장비 그룹핑 (name → count)
+  const itemCounts: { name: string; count: number }[] = [];
+  for (const item of (reward.items ?? [])) {
+    const existing = itemCounts.find(e => e.name === item.name);
+    if (existing) existing.count++;
+    else itemCounts.push({ name: item.name, count: 1 });
+  }
 
   return (
     <div
@@ -48,6 +54,8 @@ export default function OfflineRewardModal() {
           borderRadius: 'var(--r-md)',
           padding: 'var(--s-5)',
           width: 340,
+          maxHeight: '85vh',
+          overflowY: 'auto',
           display: 'flex', flexDirection: 'column',
           gap: 'var(--s-3)',
           boxShadow: '0 0 40px color-mix(in oklch, var(--accent) 20%, transparent)',
@@ -109,7 +117,7 @@ export default function OfflineRewardModal() {
         )}
 
         {/* 획득 장비 */}
-        {itemEntries.length > 0 && (
+        {itemCounts.length > 0 && (
           <div style={{
             background: 'var(--bg-sunken)',
             border: '1px solid color-mix(in oklch, var(--accent) 25%, var(--border-soft))',
@@ -120,9 +128,9 @@ export default function OfflineRewardModal() {
               획득 장비
             </div>
             <div style={{
-              display: 'flex', flexDirection: 'column', gap: 2,
+              display: 'flex', flexWrap: 'wrap', gap: 4,
             }}>
-              {itemEntries.map((item, i) => (
+              {itemCounts.map((item, i) => (
                 <span key={i} style={{
                   fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
                   color: 'var(--text-dim)',
@@ -131,7 +139,7 @@ export default function OfflineRewardModal() {
                   borderRadius: 'var(--r-xs)',
                   border: '1px solid color-mix(in oklch, var(--accent) 15%, var(--border-soft))',
                 }}>
-                  {item.name}
+                  {item.name}{item.count > 1 ? ` x${item.count}` : ''}
                 </span>
               ))}
             </div>
