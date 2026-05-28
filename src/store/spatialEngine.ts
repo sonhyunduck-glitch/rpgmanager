@@ -313,7 +313,7 @@ export const PROJECTILE_SPEED_MONSTER_SKILL = 15;// 몬스터 스킬
 export const RESPAWN_DELAY_MS = 3000;
 
 /** 플레이어 기본 이동 속도 (m/s) — 버프 배율 별도 적용 */
-export const PLAYER_MOVE_SPEED = 8;
+export const PLAYER_MOVE_SPEED = 4;
 
 /** 선공 어그로 감지 거리 (m) */
 export const AGGRO_RANGE_M = 5;

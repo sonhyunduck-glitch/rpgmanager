@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.28 — MP 임계치 수정 + 이동속도 개선 (버프 배율 적용, 기본속도 8m/s)
-export const APP_VERSION = '2.39.28';
+// v2.39.29 — 기본 이동속도 4m/s로 조정
+export const APP_VERSION = '2.39.29';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
