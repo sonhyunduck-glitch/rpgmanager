@@ -451,6 +451,7 @@ export function tickSpatialUpdate(
   spatial: SpatialState,
   deltaSec: number,
   now: number,
+  monsterIds?: string[],
 ): SpatialTickResult {
   // 불변 복사
   const entities = new Map(spatial.entities);
@@ -518,16 +519,21 @@ export function tickSpatialUpdate(
     if (entity.type !== 'monster') continue;
     if (entity.alive) continue;
     if (entity.respawnAt && entity.respawnAt <= now) {
-      // 리스폰: 새 위치에 부활
+      // 리스폰: 새 위치 + 랜덤 몬스터 종류로 부활
       const playerEntity = entities.get('player');
       const playerPos = playerEntity?.pos ?? { x: spatial.mapSize / 2, y: spatial.mapSize / 2 };
       const newPos = randomMapPos(spatial.mapSize, playerPos, RESPAWN_SAFE_DISTANCE_M);
+      const monsterCount = monsterIds?.length ?? 0;
+      const newMonsterIdx = monsterCount > 0 ? Math.floor(Math.random() * monsterCount) : (entity.monsterIdx ?? 0);
+      const newMonsterId = monsterCount > 0 ? monsterIds![newMonsterIdx] : entity.monsterId;
       entities.set(id, {
         ...entity,
         pos: newPos,
         alive: true,
         respawnAt: undefined,
         lastRespawnAt: now,
+        monsterIdx: newMonsterIdx,
+        monsterId: newMonsterId,
       });
     }
   }

@@ -76,8 +76,12 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       // ══════════════════════════════════════════════
 
       const spatialNow = Date.now();
+      // 리스폰 시 랜덤 몬스터 종류 결정용
+      let _respawnMonsters = getMonstersForRoom(zone, hunt.currentRoom ?? 1);
+      if (_respawnMonsters.length === 0) _respawnMonsters = zone.monsters;
+      const _respawnMonsterIds = _respawnMonsters.map(m => m.id);
       // delta=0: 이동/투사체 전진 없이 리스폰 체크 + combatEvent 수집만
-      const spatialResult = tickSpatialUpdate(hunt.spatial, 0, spatialNow);
+      const spatialResult = tickSpatialUpdate(hunt.spatial, 0, spatialNow, _respawnMonsterIds);
 
       // 공간 상태를 로컬 변수에 보관 (Phase 7에서 최종 merge)
       let updatedSpatial = {

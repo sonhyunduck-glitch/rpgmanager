@@ -521,8 +521,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     let moveOrders = hunt.spatial.moveOrders;
     let combatEvents = hunt.spatial.combatEvents;
 
+    // 리스폰 시 랜덤 몬스터 종류 결정용
+    const _zone = HUNT_ZONES.find(z => z.id === hunt.zoneId);
+    let _roomMonsters = _zone ? getMonstersForRoom(_zone, hunt.currentRoom ?? 1) : [];
+    if (_roomMonsters.length === 0 && _zone) _roomMonsters = _zone.monsters;
+    const _monsterIds = _roomMonsters.map(m => m.id);
+
     if (hasSpatialWork) {
-      const result = tickSpatialUpdate(hunt.spatial, deltaSec, now);
+      const result = tickSpatialUpdate(hunt.spatial, deltaSec, now, _monsterIds);
       entities = result.entities;
       projectiles = result.projectiles;
       moveOrders = result.moveOrders;
@@ -537,10 +543,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     const playerEnt = entities.get('player');
     if (playerEnt && state.currentHp > 0
       && newApproaching.length + currentJoined.length < 5) {
-      const zone = HUNT_ZONES.find(z => z.id === hunt.zoneId);
+      const zone = _zone;
       if (zone) {
-        let monsters = getMonstersForRoom(zone, hunt.currentRoom ?? 1);
-        if (monsters.length === 0) monsters = zone.monsters;
+        const monsters = _roomMonsters;
 
         // 이미 전투/이동 중인 엔티티 ID 제외
         const excludeIds = new Set<string>();
