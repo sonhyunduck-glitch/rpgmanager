@@ -557,6 +557,16 @@ export const useGameStore = create<GameState>((set, get) => ({
             excludeIds.add(entId);
           }
         }
+        // 이미 플레이어 근처에 있는 몬스터 = 합류 완료 (재접근 불필요)
+        // 합류 몬스터는 플레이어 위치에 도착한 상태이므로 거리 ~0.
+        // 리스폰 몬스터는 10m+ 떨어져 있으므로 영향 없음.
+        for (const [entId, entity] of entities) {
+          if (entity.type !== 'monster' || !entity.alive) continue;
+          if (excludeIds.has(entId)) continue;
+          if (distance(entity.pos, playerEnt.pos) < 1.5) {
+            excludeIds.add(entId);
+          }
+        }
 
         // ⭐ 동족인식 우선! (B)→(A) 순서로 처리
         // 동족인식 같은 이름 몬스터가 먼저 슬롯을 차지해야
@@ -594,7 +604,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           if (!aggroIds.includes(pid)) aggroIds.push(pid);
         }
 
-        // 새 접근 몬스터 추가 (상한 2까지)
+        // 새 접근 몬스터 추가 (상한 5까지)
         if (aggroIds.length > 0) {
           newApproaching = [...newApproaching];
           const newMoveOrders = new Map(moveOrders);
