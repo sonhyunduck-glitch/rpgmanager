@@ -503,9 +503,14 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
 }) {
   const all = useMemo(() => Object.entries(EQUIPMENT_TEMPLATES), []);
   const full = inv.length >= cap;
-  const groups = tab === 'weapon' ? WPN_GROUPS : tab === 'armor' ? ARM_GROUPS : ACC_GROUPS;
-  const [sub, setSub] = useState(groups[0].type);
-  const active = groups.find(g => g.type === sub) ?? groups[0];
+  const rawGroups = tab === 'weapon' ? WPN_GROUPS : tab === 'armor' ? ARM_GROUPS : ACC_GROUPS;
+  // 상점 아이템이 있는 서브탭만 표시
+  const groups = useMemo(
+    () => rawGroups.filter(g => all.some(([k, t]) => t.type === g.type && SHOP_EQUIPMENT_IDS.has(k))),
+    [all, rawGroups],
+  );
+  const [sub, setSub] = useState(groups[0]?.type ?? rawGroups[0].type);
+  const active = groups.find(g => g.type === sub) ?? groups[0] ?? rawGroups[0];
 
   // 모든 장비 탭: 상점 판매 장비만 표시 (SHOP_EQUIPMENT_IDS)
   const items = useMemo(
