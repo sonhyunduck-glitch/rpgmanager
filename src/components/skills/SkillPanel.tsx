@@ -375,6 +375,9 @@ export default function SkillPanel() {
                           {skill.attr > 0 && ATTR_LABEL[skill.attr] && (
                             <span style={{ color: ATTR_COLOR[skill.attr] }}>{ATTR_LABEL[skill.attr]}</span>
                           )}
+                          {skill.isAoe && (
+                            <span style={{ color: '#ff9100', fontWeight: 600 }}>광역</span>
+                          )}
                           {skill.skillType === 'attack' && skill.damageValue > 0 && (
                             <span style={{ color: 'var(--danger)' }}>
                               {skill.damageValue}{skill.damageDiceCount > 0 ? `~${skill.damageValue + skill.damageDiceCount * skill.damageDice}` : ''}
@@ -706,6 +709,9 @@ export default function SkillPanel() {
                           vColor="var(--danger)"
                         />
                       )}
+                      {sk.isAoe && (
+                        <SheetStatCell k="범위" v="광역" vColor="#ff9100" />
+                      )}
                       {sk.skillType === 'heal' && sk.damageValue > 0 && (
                         <SheetStatCell
                           k="회복량"
@@ -1022,7 +1028,7 @@ export default function SkillPanel() {
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textAlign: 'right' }}>
                   {skill.skillType === 'attack' && skill.damageValue > 0 ? (
-                    <span style={{ color: 'var(--danger)' }}>DMG {skill.damageValue}{skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}</span>
+                    <span style={{ color: 'var(--danger)' }}>{skill.isAoe ? '광역 ' : ''}DMG {skill.damageValue}{skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}</span>
                   ) : skill.skillType === 'heal' && skill.damageValue > 0 ? (
                     <span style={{ color: 'var(--success)' }}>HEAL {skill.damageValue}+</span>
                   ) : skill.skillType === 'buff' ? (
@@ -1328,6 +1334,9 @@ function SkillDetail({ skill, mlvl, level }: { skill: PlayerSkill; mlvl: number;
               value={`${skill.damageValue}${skill.damageDiceCount > 0 ? `+${skill.damageDiceCount}d${skill.damageDice}` : ''}`}
               color="var(--danger)"
             />
+          )}
+          {skill.isAoe && (
+            <StatRow label="범위" value="광역" color="#ff9100" />
           )}
           {skill.skillType === 'heal' && skill.damageValue > 0 && (
             <StatRow
