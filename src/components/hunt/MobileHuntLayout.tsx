@@ -15,7 +15,7 @@
    ========================================================= */
 import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { HUNT_ZONES, getBravePotionId } from '../../data/gameData';
+import { HUNT_ZONES, getBravePotionId, xpForLevel } from '../../data/gameData';
 import { CLASS_CONFIGS } from '../../data/classData';
 import {
   finalAC, finalMR, calcPlayerHitRate, calcBluePotionMpBonus, calcMpRegenAmount,
@@ -107,6 +107,7 @@ export default function MobileHuntLayout() {
   const getTotalHpBonus = useGameStore(s => s.getTotalHpBonus);
   const getMaxMp     = useGameStore(s => s.getMaxMp);
   const gold         = useGameStore(s => s.gold);
+  const exp          = useGameStore(s => s.exp);
   const activeBuffs  = useGameStore(s => s.activeBuffs);
   const potions      = useGameStore(s => s.potions);
   const materials    = useGameStore(s => s.materials);
@@ -271,6 +272,12 @@ export default function MobileHuntLayout() {
               )}
               <span style={{ textShadow }}>
                 <span style={{ color: 'var(--text-mute)' }}>MR</span> {mr}
+              </span>
+              <span style={{ textShadow }}>
+                <span style={{ color: 'var(--text-mute)' }}>EXP</span>{' '}
+                <span style={{ color: 'var(--info)' }}>
+                  {(xpForLevel(level) > 0 ? Math.min(100, (exp / xpForLevel(level)) * 100) : 0).toFixed(1)}%
+                </span>
               </span>
             </div>
           </div>
