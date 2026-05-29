@@ -119,7 +119,7 @@ export const POTIONS: Record<string, Potion> = {
   courage_potion: { id: 'courage_potion', name: '용기의 물약', healMin: 0, healMax: 0,  buyPrice: 800, requiredLevel: 1,
                     buffDuration: 300, atkSpeedMult: 1.33,
                     classRestriction: ['knight'] },  // L1J: 기사 전용 (ClassInitial=K)
-  elven_wafer:    { id: 'elven_wafer',    name: '엘븐 와퍼', healMin: 0, healMax: 0,   buyPrice: 2000, requiredLevel: 1,
+  elven_wafer:    { id: 'elven_wafer',    name: '엘븐 와퍼', healMin: 0, healMax: 0,   buyPrice: 1000, requiredLevel: 1,
                     buffDuration: 300, atkSpeedMult: 1.33,
                     classRestriction: ['elf'] },     // L1J: 요정 전용 (ClassInitial=E)
   wisdom_potion:  { id: 'wisdom_potion',  name: '지혜의 물약', healMin: 0, healMax: 0,  buyPrice: 600, requiredLevel: 1,
