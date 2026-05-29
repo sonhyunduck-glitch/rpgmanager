@@ -317,37 +317,37 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   elven_cloak             : { id: 'elven_cloak', name: '요정족 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, safeEnchant: 6, maxEnhance: 10, sellPrice: 1000, weight: 10000 }, // DEPRECATED
 
   /* ── 장갑 (16종, type: gloves) ── */
-  ice_gloves              : { id: 'ice_gloves', name: '빙령의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1', '물저항+4'] },
-  shadow_gloves           : { id: 'shadow_gloves', name: '암령의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1', '땅저항+4'] },
-  flame_gloves            : { id: 'flame_gloves', name: '염령의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1', '불저항+4'] },
-  wind_gloves             : { id: 'wind_gloves', name: '풍령의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { str: 1, mpr: 1 }, bonusEffects: ['STR +1', 'MPR+1', '바람저항+4'] },
-  power_glove             : { id: 'power_glove', name: '파워 글로브', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { str: 2 }, bonusEffects: ['STR +2'] },
-  steel_gloves            : { id: 'steel_gloves', name: '강철 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 4000, weight: 40000 },
-  yeti_gloves             : { id: 'yeti_gloves', name: '설인 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 2000, weight: 20000, bonuses: { hp: 5 }, bonusEffects: ['HP +5', '동빙 내성+8'] },
-  pirate_gloves           : { id: 'pirate_gloves', name: '푸른 해적 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 1500, weight: 15000 },
-  demon_gloves            : { id: 'demon_gloves', name: '데몬의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000 },
-  dk_gloves               : { id: 'dk_gloves', name: '데스나이트의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
-  kurtz_gloves            : { id: 'kurtz_gloves', name: '커츠의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
-  death_scale             : { id: 'death_scale', name: '죽음의 비늘', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, safeEnchant: 0, maxEnhance: 10, sellPrice: 500, weight: 5000, bonuses: { str: 1, dex: 1 }, bonusEffects: ['STR +1', 'DEX +1', 'Lv45~'] },
-  chaos_touch             : { id: 'chaos_touch', name: '혼돈의 손길', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, safeEnchant: 0, maxEnhance: 10, sellPrice: 500, weight: 5000, bonuses: { str: 1, bowHit: 5 }, bonusEffects: ['STR +1', '원거리 명중+5', 'Lv45~'] },
-  assassin_gloves         : { id: 'assassin_gloves', name: '암살군왕의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, safeEnchant: 6, maxEnhance: 10, sellPrice: 2500, weight: 25000 },
+  ice_gloves              : { id: 'ice_gloves', name: '심해 빙령의 마력 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { magicDmg: 1, mpr: 1 }, bonusEffects: ['마법 추타+1', 'MPR+1', '물저항+4'], classRestriction: ['wizard'] },
+  shadow_gloves           : { id: 'shadow_gloves', name: '지저 암령의 마력 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { magicDmg: 1, mpr: 1 }, bonusEffects: ['마법 추타+1', 'MPR+1', '땅저항+4'], classRestriction: ['wizard'] },
+  flame_gloves            : { id: 'flame_gloves', name: '용계 염령의 마력 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { magicDmg: 1, mpr: 1 }, bonusEffects: ['마법 추타+1', 'MPR+1', '불저항+4'], classRestriction: ['wizard'] },
+  wind_gloves             : { id: 'wind_gloves', name: '심연 풍령의 마력 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { magicDmg: 1, mpr: 1 }, bonusEffects: ['마법 추타+1', 'MPR+1', '바람저항+4'], classRestriction: ['wizard'] },
+  power_glove             : { id: 'power_glove', name: '황혼 산맥 거인의 완력 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1800, weight: 18000, bonuses: { str: 2 }, bonusEffects: ['STR +2'] },
+  steel_gloves            : { id: 'steel_gloves', name: '기사용 강철 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 4000, weight: 40000, classRestriction: ['knight'] },
+  yeti_gloves             : { id: 'yeti_gloves', name: '설벽인의 얼음 가죽 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 2000, weight: 20000, bonuses: { hp: 5 }, bonusEffects: ['HP +5', '물속성 저항+10'] },
+  pirate_gloves           : { id: 'pirate_gloves', name: '수습 마법사의 무늬 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['wizard'] },
+  demon_gloves            : { id: 'demon_gloves', name: '악마의 신전 데몬 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000 },
+  dk_gloves               : { id: 'dk_gloves', name: '용의 계곡 데스나이트의 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
+  kurtz_gloves            : { id: 'kurtz_gloves', name: '말하는 섬 커츠의 총사 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
+  death_scale             : { id: 'death_scale', name: '부패의 신전 사멸의 비늘 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, safeEnchant: 0, maxEnhance: 10, sellPrice: 500, weight: 5000, bonuses: { str: 1, dex: 1 }, bonusEffects: ['STR +1', 'DEX +1', 'Lv45~'] },
+  chaos_touch             : { id: 'chaos_touch', name: '심연의 소굴 혼돈의 손길', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, safeEnchant: 0, maxEnhance: 10, sellPrice: 500, weight: 5000, bonuses: { str: 1, bowHit: 5 }, bonusEffects: ['STR +1', '원거리 명중+5', 'Lv45~'] },
+  assassin_gloves         : { id: 'assassin_gloves', name: '암살군왕의 흡혈 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, safeEnchant: 6, maxEnhance: 10, sellPrice: 2500, weight: 25000 },
   basic_gloves            : { id: 'basic_gloves', name: '장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 1000, weight: 10000 }, // DEPRECATED
   leather_gloves          : { id: 'leather_gloves', name: '가죽 장갑', type: 'gloves', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 500, weight: 5000 }, // DEPRECATED
 
   /* ── 부츠 (10종, type: boots) ── */
-  lastabad_boots          : { id: 'lastabad_boots', name: '라스타바드 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
-  pirate_boots            : { id: 'pirate_boots', name: '푸른 해적 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000 },
-  steel_boots             : { id: 'steel_boots', name: '강철 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 5000, weight: 50000 },
+  lastabad_boots          : { id: 'lastabad_boots', name: '라스타바드 군용 가죽 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
+  pirate_boots            : { id: 'pirate_boots', name: '유령선 푸른 해적의 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000 },
+  steel_boots             : { id: 'steel_boots', name: '훈련병의 강철 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 5000, weight: 50000 },
   demon_boots             : { id: 'demon_boots', name: '데몬의 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1500, weight: 15000 },
-  dk_boots                : { id: 'dk_boots', name: '데스나이트의 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
-  baranka_boots           : { id: 'baranka_boots', name: '바란카의 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
-  kurtz_boots             : { id: 'kurtz_boots', name: '커츠의 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
-  beast_lord_boots        : { id: 'beast_lord_boots', name: '마수군왕의 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, safeEnchant: 6, maxEnhance: 10, sellPrice: 3000, weight: 30000 },
+  dk_boots                : { id: 'dk_boots', name: '용의 계곡 데스나이트의 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
+  baranka_boots           : { id: 'baranka_boots', name: '악마의 신전 데몬 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
+  kurtz_boots             : { id: 'kurtz_boots', name: '말하는 섬 커츠의 총사 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1500, weight: 15000, classRestriction: ['knight'] },
+  beast_lord_boots        : { id: 'beast_lord_boots', name: '마수군왕의 사령 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, safeEnchant: 6, maxEnhance: 10, sellPrice: 3000, weight: 30000 },
   short_boots             : { id: 'short_boots', name: '짧은 부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 1000, weight: 10000 }, // DEPRECATED
   boots                   : { id: 'boots', name: '부츠', type: 'boots', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1500, weight: 15000 }, // DEPRECATED
 
   /* ── 방패 (8종, type: shield) ── */
-  medusa_shield           : { id: 'medusa_shield', name: '메두사 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 8000, weight: 80000, bonusEffects: ['석화 내성+30'] },
+  medusa_shield           : { id: 'medusa_shield', name: '지저 대왕 메두사의 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 8000, weight: 80000, bonusEffects: ['근거리 회피율 +3'] },
   steel_shield            : { id: 'steel_shield', name: '강철 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 14000, weight: 140000, classRestriction: ['knight'] },
   gollack_shield          : { id: 'gollack_shield', name: '골각 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, safeEnchant: 0, maxEnhance: 10, sellPrice: 3000, weight: 30000 },
   eva_shield              : { id: 'eva_shield', name: '에바의 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 5000, weight: 50000, bonuses: { hp: 20, haste: true }, bonusEffects: ['HP +20', '헤이스트', 'Lv40~'] },
@@ -440,7 +440,6 @@ const SELECTED_CSV_ARMOR_IDS = new Set([
 ]);
 
 // ── 상점 판매 장비 ID (상점에서 구매 가능, 나머지는 필드 드랍 전용) ──
-// 무기만 확정. 방어구/악세사리는 선별 후 추가 예정.
 export const SHOP_EQUIPMENT_IDS = new Set([
   // 🗡️ 단검 (1종)
   'lastabad_dagger',
@@ -452,6 +451,12 @@ export const SHOP_EQUIPMENT_IDS = new Set([
   'hunter_bow',
   // 🔮 지팡이 (2종)
   'crystal_staff', 'black_crystal_orb',
+  // 🧤 장갑 (3종)
+  'steel_gloves', 'a_20163',       // 기사용 강철 장갑
+  'a_20191',                        // 요정족 가죽 골무 (CSV only)
+  'pirate_gloves', 'a_20188',      // 수습 마법사의 무늬 장갑
+  // 🥾 부츠 (1종)
+  'steel_boots', 'a_20194',        // 훈련병의 강철 부츠
 ]);
 
 // Merge: CSV filtered + hand-curated override
