@@ -588,7 +588,24 @@ export const useGameStore = create<GameState>((set, get) => ({
     const _monsterIds = _roomMonsters.map(m => m.id);
 
     if (hasSpatialWork) {
-      const result = tickSpatialUpdate(hunt.spatial, deltaSec, now, _monsterIds);
+      // ⚠️ 선공 몬스터 실시간 추적: 접근 중인 몬스터의 목적지를 플레이어 현재 위치로 갱신
+      //    기존: 어그로 시점의 플레이어 위치 스냅샷 → 플레이어 이동 시 빗나감
+      //    변경: 매 틱 플레이어 현재 좌표로 destination 갱신 → 실시간 추적
+      let spatialInput = hunt.spatial;
+      const pEnt = hunt.spatial.entities.get('player');
+      if (pEnt) {
+        const updatedOrders = new Map(spatialInput.moveOrders);
+        let changed = false;
+        for (const [entityId, order] of updatedOrders) {
+          if (entityId === 'player' || order.onArrival !== 'join') continue;
+          if (order.destination.x !== pEnt.pos.x || order.destination.y !== pEnt.pos.y) {
+            updatedOrders.set(entityId, { ...order, destination: { ...pEnt.pos } });
+            changed = true;
+          }
+        }
+        if (changed) spatialInput = { ...spatialInput, moveOrders: updatedOrders };
+      }
+      const result = tickSpatialUpdate(spatialInput, deltaSec, now, _monsterIds);
       entities = result.entities;
       projectiles = result.projectiles;
       moveOrders = result.moveOrders;
