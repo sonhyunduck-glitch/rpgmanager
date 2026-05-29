@@ -68,7 +68,7 @@ export const CLASS_CONFIGS: Record<PlayerClass, ClassConfig> = {
     allowedWeaponTypes: ['bow'],
     canUseShield: false,
     startingGear: {
-      weapon: 'wooden_bow',
+      weapon: 'hunter_bow',
       armor: 'bone_armor',
     },
     primaryStat: 'dex',
@@ -89,7 +89,7 @@ export const CLASS_CONFIGS: Record<PlayerClass, ClassConfig> = {
     allowedWeaponTypes: ['staff'],
     canUseShield: false,
     startingGear: {
-      weapon: 'oak_staff',
+      weapon: 'crystal_staff',
       armor: 'bone_armor',
     },
     primaryStat: 'int',
