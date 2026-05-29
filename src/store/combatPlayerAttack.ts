@@ -146,7 +146,7 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
     isCrit = magicCrit;
     const critDmg = isCrit ? Math.floor(rawMagic * 1.5) : rawMagic;
     const afterMr = applyMagicReduction(critDmg, monster.mr);
-    finalDmg = afterMr + equipBonusMagicDmg + undeadBonus;
+    finalDmg = afterMr + equipBonusExtraDmg + equipBonusMagicDmg + undeadBonus;
     usedSpellName = '에너지 볼트';
   } else {
     // ── 기사/요정: D20 명중 판정 ──
