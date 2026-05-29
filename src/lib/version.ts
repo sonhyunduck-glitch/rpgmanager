@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.47 — 전투 경험치 DB 동기화 누락 수정 (매 킬마다 저장)
-export const APP_VERSION = '2.39.47';
+// v2.39.48 — 새로고침 시 경험치/레벨 초기화 버그 수정 (localStorage↔DB 병합)
+export const APP_VERSION = '2.39.48';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

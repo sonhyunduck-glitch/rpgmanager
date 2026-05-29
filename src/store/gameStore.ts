@@ -106,8 +106,49 @@ export const useGameStore = create<GameState>((set, get) => ({
       const hasDBItems = dbItems.length > 0;
       const dbPlayerClass = (p.player_class as import('../types').PlayerClass) ?? 'knight';
 
-      // ⚠️ DB가 단일 진실 원천 — get() 폴백 제거 (구 localStorage 오염 방지)
-      //    DB 값이 null이면 하드코딩 기본값 사용 (이전 기기 데이터 사용 금지)
+      // ⚠️ 진행 데이터: localStorage vs DB 중 더 진행된 값 사용
+      //    이유: beforeunload에서 flushNow()는 비동기 fire-and-forget이라
+      //    새로고침/탭 닫기 시 DB 저장이 미완료될 수 있음.
+      //    localStorage는 동기 저장이므로 항상 최신.
+      //    level/exp/maxHp는 단조 증가 → Math.max 안전.
+      //    gold/currentHp는 감소 가능하지만 localStorage가 더 최신이므로 우선.
+      const dbLevel = p.level ?? 1;
+      const lsLevel = safeNumber(saved?.level, 0);
+      const mergedLevel = Math.max(dbLevel, lsLevel);
+
+      const dbExp = safeNumber(p.exp, 0);
+      const lsExp = safeNumber(saved?.exp, 0);
+      // 같은 레벨이면 exp도 max, 레벨이 다르면 높은 레벨 쪽 exp 사용
+      const mergedExp = mergedLevel > dbLevel ? lsExp
+        : mergedLevel > lsLevel ? dbExp
+        : Math.max(dbExp, lsExp);
+
+      const dbGold = safeNumber(p.gold, 0);
+      const lsGold = safeNumber(saved?.gold, 0);
+      // gold는 감소 가능(상점 구매) — 레벨이 localStorage가 더 높으면 localStorage 우선
+      const mergedGold = mergedLevel > dbLevel ? lsGold : dbGold;
+
+      const dbMaxHp = p.max_hp ?? startingHp(BASE_STATS.con);
+      const lsMaxHp = safeNumber(saved?.maxHp, 0);
+      const mergedMaxHp = Math.max(dbMaxHp, lsMaxHp);
+
+      const dbCurrentHp = p.current_hp ?? mergedMaxHp;
+      const lsCurrentHp = safeNumber(saved?.currentHp, 0);
+      // currentHp: 레벨이 localStorage가 더 높으면 localStorage 우선
+      const mergedCurrentHp = mergedLevel > dbLevel
+        ? Math.min(lsCurrentHp, mergedMaxHp)
+        : Math.min(dbCurrentHp, mergedMaxHp);
+
+      // 스탯 할당: 레벨이 localStorage가 더 높으면 localStorage 우선
+      const lsStats = saved?.statAllocation as StatAllocation | undefined;
+      const mergedStats = (mergedLevel > dbLevel && lsStats)
+        ? lsStats
+        : {
+            str: p.stat_str ?? 0, dex: p.stat_dex ?? 0,
+            con: p.stat_con ?? 0, wis: p.stat_wis ?? 0,
+            int: p.stat_int ?? 0,
+          };
+
       set({
         authUserId: userId,
         playerClass: dbPlayerClass,
@@ -115,17 +156,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         pendingSubclassChoice: false,
         playerName: p.name ?? '모험가',
         guildId: p.guild_id ?? null,
-        level: p.level ?? 1,
-        exp: safeNumber(p.exp, 0),
-        gold: safeNumber(p.gold, 0),
+        level: mergedLevel,
+        exp: mergedExp,
+        gold: mergedGold,
         title: p.title ?? '뉴비',
-        currentHp: p.current_hp ?? startingHp(BASE_STATS.con),
-        maxHp: p.max_hp ?? startingHp(BASE_STATS.con),
-        statAllocation: {
-          str: p.stat_str ?? 0, dex: p.stat_dex ?? 0,
-          con: p.stat_con ?? 0, wis: p.stat_wis ?? 0,
-          int: p.stat_int ?? 0,
-        },
+        currentHp: mergedCurrentHp,
+        maxHp: mergedMaxHp,
+        statAllocation: mergedStats,
         ...(hasDBItems ? {
           equippedWeapon: equipped['weapon'] ?? null,
           equippedTshirt: equipped['tshirt'] ?? null,
@@ -300,9 +337,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     set({ dbReady: true });
 
-    // ⚠️ localStorage 캐시만 갱신 — markDirty() 호출 안 함
-    //    DB에서 읽은 데이터를 다시 DB에 올리는 무의미한 라운드트립 방지
+    // ⚠️ localStorage 캐시 갱신
     _saveState(get());
+
+    // ⚠️ localStorage 값이 DB보다 진행됐으면 즉시 DB 동기화
+    //    (이전 세션에서 flushNow()가 미완료된 경우 복구)
+    if (dbData?.profile) {
+      const pp = dbData.profile as Record<string, any>;
+      const s = get();
+      if (s.level > (pp.level ?? 0) || s.exp > safeNumber(pp.exp, 0) || s.gold !== safeNumber(pp.gold, 0)) {
+        markDirty();
+      }
+    }
 
     // ⚠️ 30초 동기화 타이머를 DB 로드 완료 후에 시작
     //    이제 Zustand에 DB 데이터가 반영된 상태이므로 안전
