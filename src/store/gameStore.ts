@@ -295,12 +295,19 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     // 오프라인 보상
+    // ⚠️ 버전 업데이트 직후 리로드인지 확인 (2분 이내면 오프라인 보상 스킵)
+    //    업데이트 시 forceUpdate()가 flushNow()로 last_active_at를 갱신하지만,
+    //    Supabase 읽기 복제 지연으로 loadFromDB()가 구 값을 읽을 수 있음 → 중복 보상 방지
+    const versionUpdateAt = (saved as Record<string, unknown> | null)?._versionUpdateAt as number | undefined;
+    const isRecentVersionUpdate = versionUpdateAt && (Date.now() - versionUpdateAt < 120_000);
+
     // 1) localStorage에 미수령 보상이 있으면 그것을 복원 (stampLastActive 이후 새로고침 케이스)
     const cachedReward = saved?.offlineReward as import('../lib/db').OfflineReward | null;
     if (cachedReward && cachedReward.kills > 0) {
       set({ offlineReward: cachedReward });
-    } else if (dbData?.profile) {
+    } else if (dbData?.profile && !isRecentVersionUpdate) {
       // 2) 캐시 없으면 DB last_active_at 기반으로 새로 계산
+      //    ⚠️ 버전 업데이트 직후면 스킵 (중복 보상 방지)
       const p = dbData.profile as Record<string, any>;
       const lastZoneId = p.last_zone_id as string | null;
       const lastActiveAt = p.last_active_at as string;

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { APP_VERSION } from '../../lib/version';
 import { supabase } from '../../lib/supabase';
 import { flushNow } from '../../lib/dbSync';
+import { STORAGE_KEY } from '../../store/helpers';
 
 interface MetaState {
   latestVersion: string | null;
@@ -74,6 +75,22 @@ export default function UpdateModal() {
     } catch (e) {
       console.warn('[Update] DB flush 실패:', e);
     }
+
+    // ⚠️ 오프라인 보상 중복 방지:
+    //   1) localStorage에 캐시된 offlineReward를 null로 강제 초기화
+    //      (미수령 보상이 있어도 last_active_at 이미 갱신됨 → 재계산 안전)
+    //   2) _versionUpdateAt 타임스탬프 기록
+    //      (리로드 후 initFromDB에서 DB 읽기 지연으로 인한 재계산 차단)
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        data.offlineReward = null;
+        data._versionUpdateAt = Date.now();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+    } catch { /* ignore */ }
+
     try {
       // 캐시 정리
       if ('caches' in window) {
