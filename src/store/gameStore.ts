@@ -72,6 +72,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   initFromDB: async (userId: string) => {
     enforceEpochGate();
 
+    // ⚠️ localStorage를 실시간으로 다시 읽기 (모듈 최상단 saved는 로드 시점 스냅샷)
+    //    forceUpdate()에서 saveState()로 저장한 최신 값을 반영하기 위함
+    const saved = loadState();
+
     // ⚠️ setSyncUserId는 DB 로드 완료 후 호출 (레이스 컨디션 방지)
     //    타이머를 여기서 시작하면 DB 로드 전에 구 데이터가 flush될 위험
     setStateGetter(() => get() as unknown as Record<string, unknown>);
@@ -182,14 +186,16 @@ export const useGameStore = create<GameState>((set, get) => ({
         // ⚠️ DB가 진실 — 빈 객체도 그대로 사용 (재료/포션 0개 = 정당한 상태)
         materials: dbData.materials,
         potions: Object.keys(dbData.potions).length > 0 ? dbData.potions : getStartingPotions(dbPlayerClass),
-        // ⚠️ 물약 설정: localStorage → DB → 기본값 순서 (localStorage 우선!)
-        //    이유: beforeunload 시 DB flush가 미완료될 수 있어 DB 값이 구 값일 수 있음.
-        //    localStorage는 동기 저장이므로 항상 최신. DB 무효값('red_s' 등)도 자동 폴백.
+        // ⚠️ 물약 설정: localStorage → DB → 현재 store → 기본값 순서
+        //    localStorage가 최신 (forceUpdate에서 saveState 호출).
+        //    구 버전 업데이트 시 localStorage가 구값일 수 있으므로 store 값도 폴백에 포함.
         selectedPotionId: (saved?.selectedPotionId && POTIONS[saved.selectedPotionId as string])
           ? (saved.selectedPotionId as string)
           : (p.selected_potion && POTIONS[p.selected_potion])
             ? p.selected_potion
-            : 'red_potion',
+            : (get().selectedPotionId && POTIONS[get().selectedPotionId])
+              ? get().selectedPotionId
+              : 'red_potion',
         potionAutoUse: saved?.potionAutoUse != null ? (saved.potionAutoUse as boolean) : (p.potion_auto_use ?? true),
         potionAutoThreshold: saved?.potionAutoThreshold != null ? (saved.potionAutoThreshold as number) : (p.potion_auto_threshold ?? 50),
         potionAutoBuy: saved?.potionAutoBuy != null ? (saved.potionAutoBuy as boolean) : (p.potion_auto_buy ?? true),

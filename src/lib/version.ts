@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.78 — 마법사 전용 스킬 MP 소모 50% 감소
-export const APP_VERSION = '2.39.78';
+// v2.39.79 — 마법사 MP 50% 감소 + 업데이트 시 물약 설정 초기화 버그 수정
+export const APP_VERSION = '2.39.79';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
