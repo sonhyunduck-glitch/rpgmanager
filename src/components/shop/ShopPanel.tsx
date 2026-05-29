@@ -509,14 +509,12 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
   const [sub, setSub] = useState(groups[0].type);
   const active = groups.find(g => g.type === sub) ?? groups[0];
 
-  // 무기 탭: 상점 판매 장비만 표시 (SHOP_EQUIPMENT_IDS)
-  // 방어구/악세사리: 전체 표시 (선별 후 필터 추가 예정)
-  const isWeaponTab = tab === 'weapon';
+  // 모든 장비 탭: 상점 판매 장비만 표시 (SHOP_EQUIPMENT_IDS)
   const items = useMemo(
     () => all
       .filter(([k, t]) => {
         if (t.type !== active.type) return false;
-        if (isWeaponTab && !SHOP_EQUIPMENT_IDS.has(k)) return false;
+        if (!SHOP_EQUIPMENT_IDS.has(k)) return false;
         return true;
       })
       .map(([, t]) => t)
@@ -526,7 +524,7 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
         if (ae !== be) return ae - be;
         return a.sellPrice - b.sellPrice;
       }),
-    [all, active.type, cls, isWeaponTab],
+    [all, active.type, cls],
   );
 
   return (
@@ -538,7 +536,7 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
             const on = active.type === g.type;
             const cnt = all.filter(([k, t]) => {
               if (t.type !== g.type) return false;
-              if (isWeaponTab && !SHOP_EQUIPMENT_IDS.has(k)) return false;
+              if (!SHOP_EQUIPMENT_IDS.has(k)) return false;
               return true;
             }).length;
             return (
