@@ -373,7 +373,7 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   banish_ring             : { id: 'banish_ring', name: '멸마의 반지', type: 'ring', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, safeEnchant: 0, maxEnhance: 0, sellPrice: 300, weight: 3000 }, // DEPRECATED
 
   /* ── 벨트 (8종, type: belt) ── 강화 불가 ── */
-  old_soul_belt           : { id: 'old_soul_belt', name: '낡은 영혼의 벨트', type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, safeEnchant: 0, maxEnhance: 0, sellPrice: 5000, weight: 50000, bonuses: { hp: 15, mp: 15 }, bonusEffects: ['HP +15', 'MP +15', 'Lv15~'] },
+  old_soul_belt           : { id: 'old_soul_belt', name: '낡은 영혼의 벨트', type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, safeEnchant: 0, maxEnhance: 0, sellPrice: 500, weight: 50000, bonuses: { hp: 15, mp: 15 }, bonusEffects: ['HP +15', 'MP +15', 'Lv15~'] },
   old_body_belt           : { id: 'old_body_belt', name: '낡은 신체의 벨트', type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, safeEnchant: 0, maxEnhance: 0, sellPrice: 5000, weight: 50000, bonuses: { hp: 30 }, bonusEffects: ['HP +30', 'Lv15~'] },
   soul_belt               : { id: 'soul_belt', name: '영혼의 벨트', type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, safeEnchant: 0, maxEnhance: 0, sellPrice: 5000, weight: 50000, bonuses: { hp: 25, mp: 25 }, bonusEffects: ['HP +25', 'MP +25', 'Lv30~'] },
   body_belt               : { id: 'body_belt', name: '신체의 벨트', type: 'belt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, safeEnchant: 0, maxEnhance: 0, sellPrice: 5000, weight: 50000, bonuses: { hp: 50 }, bonusEffects: ['HP +50', 'Lv30~'] },
