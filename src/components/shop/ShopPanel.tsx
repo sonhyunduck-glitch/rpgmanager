@@ -8,6 +8,7 @@ import { useGameStore, equipDisplayName } from '../../store/gameStore';
 import {
   POTIONS, POTION_ORDER, MATERIALS,
   TRANSFORM_SCROLL_PRICE, EQUIPMENT_TEMPLATES,
+  SHOP_EQUIPMENT_IDS,
 } from '../../data/gameData';
 import { SHOP_ETC_ITEMS } from '../../data/shopItemData';
 import { canClassEquip } from '../../data/classData';
@@ -77,7 +78,7 @@ const MAT_CLR: Record<string, string> = {
 /* ── 장비 그룹 ── */
 const WPN_GROUPS  = [{ type: 'weapon', label: '검/창/둔기' }, { type: 'bow', label: '활' }, { type: 'staff', label: '지팡이' }];
 const ARM_GROUPS  = [
-  { type: 'tshirt', label: '티셔츠' }, { type: 'helmet', label: '투구' },
+  { type: 'tshirt', label: '내피' }, { type: 'helmet', label: '투구' },
   { type: 'armor',  label: '갑옷' },   { type: 'cloak',  label: '망토' },
   { type: 'gloves', label: '장갑' },   { type: 'boots',  label: '부츠' },
   { type: 'shield', label: '방패' },
@@ -502,22 +503,30 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
   cls: PlayerClass;
   onConfirm: (t: EquipmentTemplate) => void;
 }) {
-  const all = useMemo(() => Object.values(EQUIPMENT_TEMPLATES), []);
+  const all = useMemo(() => Object.entries(EQUIPMENT_TEMPLATES), []);
   const full = inv.length >= cap;
   const groups = tab === 'weapon' ? WPN_GROUPS : tab === 'armor' ? ARM_GROUPS : ACC_GROUPS;
   const [sub, setSub] = useState(groups[0].type);
   const active = groups.find(g => g.type === sub) ?? groups[0];
 
+  // 무기 탭: 상점 판매 장비만 표시 (SHOP_EQUIPMENT_IDS)
+  // 방어구/악세사리: 전체 표시 (선별 후 필터 추가 예정)
+  const isWeaponTab = tab === 'weapon';
   const items = useMemo(
     () => all
-      .filter(t => t.type === active.type)
+      .filter(([k, t]) => {
+        if (t.type !== active.type) return false;
+        if (isWeaponTab && !SHOP_EQUIPMENT_IDS.has(k)) return false;
+        return true;
+      })
+      .map(([, t]) => t)
       .sort((a, b) => {
         const ae = canClassEquip(cls, a.type, a.classRestriction) ? 0 : 1;
         const be = canClassEquip(cls, b.type, b.classRestriction) ? 0 : 1;
         if (ae !== be) return ae - be;
         return a.sellPrice - b.sellPrice;
       }),
-    [all, active.type, cls],
+    [all, active.type, cls, isWeaponTab],
   );
 
   return (
@@ -527,7 +536,11 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           {groups.map(g => {
             const on = active.type === g.type;
-            const cnt = all.filter(t => t.type === g.type).length;
+            const cnt = all.filter(([k, t]) => {
+              if (t.type !== g.type) return false;
+              if (isWeaponTab && !SHOP_EQUIPMENT_IDS.has(k)) return false;
+              return true;
+            }).length;
             return (
               <button key={g.type} onClick={() => setSub(g.type)} style={{
                 padding: '5px 10px', borderRadius: 5,

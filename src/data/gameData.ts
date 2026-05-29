@@ -439,6 +439,21 @@ const SELECTED_CSV_ARMOR_IDS = new Set([
   'a_20315','a_20316','a_20319','a_21095','a_21225','a_21280','a_21281','a_21282',
 ]);
 
+// ── 상점 판매 장비 ID (상점에서 구매 가능, 나머지는 필드 드랍 전용) ──
+// 무기만 확정. 방어구/악세사리는 선별 후 추가 예정.
+export const SHOP_EQUIPMENT_IDS = new Set([
+  // 🗡️ 단검 (1종)
+  'lastabad_dagger',
+  // ⚔️ 한손검 (2종)
+  'silver_long_sword', 'red_knight_sword',
+  // 🗡️ 양손검 (1종)
+  'blood_great_sword',
+  // 🏹 활 (1종)
+  'hunter_bow',
+  // 🔮 지팡이 (2종)
+  'crystal_staff', 'black_crystal_orb',
+]);
+
 // Merge: CSV filtered + hand-curated override
 const merged: Record<string, EquipmentTemplate> = {};
 for (const [k, v] of Object.entries(CSV_EQUIPMENT)) {
