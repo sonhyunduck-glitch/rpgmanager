@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.69 — 상점 중복 아이템 제거 (HAND_CURATED/CSV 키 중복)
-export const APP_VERSION = '2.39.69';
+// v2.39.70 — 상점 무기 클래스 제한 (마법사 단검/활 구매 차단)
+export const APP_VERSION = '2.39.70';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

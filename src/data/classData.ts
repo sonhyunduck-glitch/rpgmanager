@@ -121,13 +121,20 @@ export function getStatCap(pc: PlayerClass, stat: StatKey): number {
 /**
  * 클래스가 해당 장비를 장착할 수 있는지 확인
  *
- * L1J 원본: 개별 아이템의 use_knight/use_elf/use_wizard 플래그가
- * 장착 가능 여부를 결정 (classRestriction).
- * 타입 기반 일괄 제한은 L1J에 없음.
- *
- * @param classRestriction 아이템별 장착 가능 클래스 (없으면 전체 허용)
+ * 1) 아이템별 classRestriction 있으면 우선 적용 (L1J use_knight/elf/wizard)
+ * 2) 무기 타입(weapon/bow/staff)은 classRestriction 없어도
+ *    클래스의 allowedWeaponTypes 기반 타입 제한 적용
+ * 3) 방어구/장신구: 전체 허용
  */
-export function canClassEquip(pc: PlayerClass, _eqType: EquipType, classRestriction?: PlayerClass[]): boolean {
-  if (classRestriction && !classRestriction.includes(pc)) return false;
+export function canClassEquip(pc: PlayerClass, eqType: EquipType, classRestriction?: PlayerClass[]): boolean {
+  // 1. 아이템별 클래스 제한이 있으면 우선 적용
+  if (classRestriction && classRestriction.length > 0) {
+    return classRestriction.includes(pc);
+  }
+  // 2. 무기 타입은 classRestriction 없어도 타입 기반 제한
+  if (eqType === 'weapon' || eqType === 'bow' || eqType === 'staff') {
+    return CLASS_CONFIGS[pc].allowedWeaponTypes.includes(eqType);
+  }
+  // 3. 방어구/장신구: 전체 허용
   return true;
 }

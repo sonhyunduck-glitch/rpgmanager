@@ -618,7 +618,7 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
                 </div>
 
                 {/* 클래스 제한 */}
-                {tmpl.classRestriction && (
+                {tmpl.classRestriction ? (
                   <div style={{ display: 'flex', gap: 3, marginTop: 3, fontSize: 10 }}>
                     {tmpl.classRestriction.map(c => {
                       const me = c === cls;
@@ -638,6 +638,12 @@ function EquipSection({ tab, gold, inv, cap, cls, onConfirm }: {
                         착용불가
                       </span>
                     )}
+                  </div>
+                ) : !eqOk && (
+                  <div style={{ display: 'flex', gap: 3, marginTop: 3, fontSize: 10 }}>
+                    <span style={{ color: 'var(--danger)', fontWeight: 600, lineHeight: '16px' }}>
+                      착용불가
+                    </span>
                   </div>
                 )}
 
