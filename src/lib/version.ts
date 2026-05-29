@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.68 — 상점 방어구 10종 추가 (내피·갑옷·투구·망토·방패)
-export const APP_VERSION = '2.39.68';
+// v2.39.69 — 상점 중복 아이템 제거 (HAND_CURATED/CSV 키 중복)
+export const APP_VERSION = '2.39.69';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
