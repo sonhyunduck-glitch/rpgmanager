@@ -42,6 +42,10 @@ export interface PlayerSkill {
     fireDmgBonus?: number;       // 화염 속성 대미지 추가
     strBonus?: number;           // STR 보너스 (인챈트 마이티, L1J +5 STR)
     dexBonus?: number;           // DEX 보너스 (인챈트 덱스터리티, L1J +5 DEX)
+    mrBonus?: number;            // MR 보너스 (레지스트 매직, L1J +10 MR)
+    wisBonus?: number;           // WIS 보너스 (클리어 마인드, L1J +3 WIS)
+    bowHitBonus?: number;        // 활 명중 보너스 (스톰 샷, L1J +3)
+    bowDmgBonus?: number;        // 활 추타 보너스 (스톰 샷, L1J +6)
   };
   passive?: boolean;              // true = 패시브 (습득 즉시 상시 적용, MP 0)
   subclassRestriction?: import('../types').KnightSubclass;  // 기사 서브클래스 제한
@@ -448,27 +452,10 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 0,
     damageDiceCount: 0,
     attr: 0,
+    buffEffect: { mrBonus: 10 }, // L1J: pc.addMr(10)
     classes: ['elf'],
     requiredLevel: 8,
-    description: '마법 저항력 증가',
-  },
-  /** 특수 처리: HP를 소모하여 MP로 전환 */
-  {
-    id: 130,
-    name: '바디 투 마인드',
-    skillCategory: 'spirit',
-    skillCircle: 0,
-    consumeMp: 0,
-    reuseDelayMs: 3000, // L1J reuse_delay: 400ms
-    buffDuration: 0,
-    skillType: 'heal',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    classes: ['elf'],
-    requiredLevel: 12,
-    description: 'HP 8을 소모하여 MP로 전환',
+    description: '마법 저항력 +10 증가',
   },
   /** 특수 처리: 3회 활 공격 (스펠 대미지가 아닌 물리 공격 3회) */
   {
@@ -488,24 +475,6 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     requiredLevel: 24,
     description: '3발의 화살을 동시에 발사 (3회 공격)',
   },
-  /** 특수 처리: 디버프 — 몬스터 속성 방어력 감소 */
-  {
-    id: 133,
-    name: '엘리멘탈 폴다운',
-    skillCategory: 'spirit',
-    skillCircle: 0,
-    consumeMp: 10,
-    reuseDelayMs: 0, // L1J reuse_delay: 0ms
-    buffDuration: 32,
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    classes: ['elf'],
-    requiredLevel: 16,
-    description: '몬스터의 속성 방어력을 감소',
-  },
   {
     id: 137,
     name: '클리어 마인드',
@@ -520,9 +489,10 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 0,
     damageDiceCount: 0,
     attr: 0,
+    buffEffect: { wisBonus: 3 }, // L1J: pc.addWis(3) + resetBaseMr
     classes: ['elf'],
     requiredLevel: 24,
-    description: '정신 집중력 증가',
+    description: 'WIS +3 증가 (MR 간접 상승)',
   },
   {
     id: 138,
@@ -538,27 +508,10 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 0,
     damageDiceCount: 0,
     attr: 0,
+    buffEffect: { mrBonus: 10 }, // L1J: 4속성 저항 +10 → MR +10으로 간소화 (PvE)
     classes: ['elf'],
     requiredLevel: 24,
-    description: '속성 저항력 증가',
-  },
-  {
-    id: 147,
-    name: '프로텍션 프롬 엘리멘트',
-    skillCategory: 'spirit',
-    skillCircle: 0,
-    consumeMp: 6,
-    consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayMs: 0, // L1J reuse_delay: 0ms
-    buffDuration: 64,
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    classes: ['elf'],
-    requiredLevel: 28,
-    description: '속성 공격으로부터 보호',
+    description: '속성 저항력 +10 증가',
   },
   {
     id: 149,
@@ -579,60 +532,6 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     description: '원거리 공격 속도 25% 증가',
   },
   {
-    id: 150,
-    name: '윈드 워크',
-    skillCategory: 'spirit',
-    skillCircle: 0,
-    consumeMp: 15,
-    reuseDelayMs: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 8, // 바람
-    buffEffect: { atkSpeedMult: 1.33 },
-    classes: ['elf'],
-    requiredLevel: 28,
-    description: '바람의 힘으로 공격 속도 증가',
-  },
-  /** 특수 처리: 디버프 — 몬스터 버프 제거 */
-  {
-    id: 153,
-    name: '이레이즈 매직',
-    skillCategory: 'spirit',
-    skillCircle: 0,
-    consumeMp: 18,
-    consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayMs: 0, // L1J reuse_delay: 0ms
-    buffDuration: 32,
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 0,
-    classes: ['elf'],
-    requiredLevel: 32,
-    description: '적의 마법 효과를 제거',
-  },
-  {
-    id: 156,
-    name: '아이 오브 스톰',
-    skillCategory: 'spirit',
-    skillCircle: 0,
-    consumeMp: 40,
-    reuseDelayMs: 0, // L1J reuse_delay: 0ms
-    buffDuration: 960, // 16분
-    skillType: 'buff',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 8, // 바람
-    classes: ['elf'],
-    requiredLevel: 36,
-    description: '폭풍의 눈으로 파티원 바람 공격력 증가',
-  },
-  {
     id: 166,
     name: '스톰 샷',
     skillCategory: 'spirit',
@@ -645,28 +544,10 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     damageDice: 0,
     damageDiceCount: 0,
     attr: 8, // 바람
+    buffEffect: { bowDmgBonus: 6, bowHitBonus: 3 }, // L1J: addBowDmgup(6) + addBowHitup(3)
     classes: ['elf'],
     requiredLevel: 48,
-    description: '폭풍의 힘으로 원거리 공격 강화',
-  },
-  /** 특수 처리: 디버프 — 몬스터의 이동/공격 속도 감소 (수 틱간 지속) */
-  {
-    id: 167,
-    name: '윈드 셰클',
-    skillCategory: 'spirit',
-    skillCircle: 0,
-    consumeMp: 15,
-    consumeItemId: 40319, consumeAmount: 1, // 정령옥
-    reuseDelayMs: 21000, // L1J reuse_delay: 20000ms
-    buffDuration: 0,
-    skillType: 'attack',
-    damageValue: 0,
-    damageDice: 0,
-    damageDiceCount: 0,
-    attr: 8, // 바람
-    classes: ['elf'],
-    requiredLevel: 40,
-    description: '바람의 족쇄로 적의 이동/공격 속도 감소',
+    description: '활 추타 +6, 활 명중 +3',
   },
   {
     id: 174,

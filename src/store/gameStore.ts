@@ -309,7 +309,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       // 2) 캐시 없으면 DB last_active_at 기반으로 새로 계산
       //    ⚠️ 버전 업데이트 직후면 스킵 (중복 보상 방지)
       const p = dbData.profile as Record<string, any>;
-      const lastZoneId = p.last_zone_id as string | null;
+      // ⚠️ localStorage의 hunt.zoneId를 우선 사용 (모바일 화면 잠금 → 탭 킬 시
+      //    DB last_zone_id가 이전 동기화 시점의 존일 수 있음)
+      const savedZoneId = (saved as Record<string, any>)?.hunt?.zoneId as string | undefined;
+      const lastZoneId = savedZoneId || (p.last_zone_id as string | null);
       const lastActiveAt = p.last_active_at as string;
       const zone = lastZoneId ? HUNT_ZONES.find(z => z.id === lastZoneId) : null;
       const s = get();

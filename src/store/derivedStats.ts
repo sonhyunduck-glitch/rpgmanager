@@ -14,7 +14,6 @@ const HASTE_SKILL_IDS = new Set([
   43,  // 헤이스트 (wizard/elf)
   87,  // 쇼크 스턴 — 공속 버프 (knight)
   149, // 윈드 샷 — 원거리 공속 (elf)
-  150, // 윈드 워크 — 공속 (elf)
 ]);
 
 /** 장착 중인 장비 templateId 배열 가져오기 */

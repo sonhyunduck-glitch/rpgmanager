@@ -273,6 +273,10 @@ export interface ActiveBuff {
   fireDmgBonus?: number;       // Fire element damage added to attacks
   strBonus?: number;           // STR bonus (인챈트 마이티 등)
   dexBonus?: number;           // DEX bonus (인챈트 덱스터리티 등)
+  mrBonus?: number;            // MR bonus (레지스트 매직 +10 등)
+  wisBonus?: number;           // WIS bonus (클리어 마인드 +3)
+  bowHitBonus?: number;        // 활 명중 bonus (스톰 샷 +3)
+  bowDmgBonus?: number;        // 활 추타 bonus (스톰 샷 +6)
 }
 
 // ── Enhance ──

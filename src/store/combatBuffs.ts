@@ -77,6 +77,10 @@ export interface BuffProcessResult {
   skillBuffAc: number;
   skillBuffStr: number;
   skillBuffDex: number;
+  skillBuffMr: number;
+  skillBuffWis: number;
+  skillBuffBowHit: number;
+  skillBuffBowDmg: number;
 }
 
 // ══════════════════════════════════════════════
@@ -103,7 +107,7 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
   let newActiveBuffs = [...input.activeBuffs].filter(b => b.expiresAt > now);
 
   // 헤이스트 그룹 중복 체크 (장비/스킬 헤이스트 있으면 초록물약 스킵)
-  const HASTE_SKILL_IDS = new Set([43, 87, 149, 150]);
+  const HASTE_SKILL_IDS = new Set([43, 87, 149]);
   const hasSkillHaste = newActiveBuffs.some(b => b.skillId && HASTE_SKILL_IDS.has(b.skillId) && b.expiresAt > now);
   const hasAnyHaste = hasEquipHaste || hasSkillHaste;
 
@@ -160,6 +164,10 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
         fireDmgBonus: pb.buffEffect?.fireDmgBonus,
         strBonus: pb.buffEffect?.strBonus,
         dexBonus: pb.buffEffect?.dexBonus,
+        mrBonus: pb.buffEffect?.mrBonus,
+        wisBonus: pb.buffEffect?.wisBonus,
+        bowHitBonus: pb.buffEffect?.bowHitBonus,
+        bowDmgBonus: pb.buffEffect?.bowDmgBonus,
       });
     }
   }
@@ -267,6 +275,10 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
         fireDmgBonus: buff.buffEffect?.fireDmgBonus,
         strBonus: buff.buffEffect?.strBonus,
         dexBonus: buff.buffEffect?.dexBonus,
+        mrBonus: buff.buffEffect?.mrBonus,
+        wisBonus: buff.buffEffect?.wisBonus,
+        bowHitBonus: buff.buffEffect?.bowHitBonus,
+        bowDmgBonus: buff.buffEffect?.bowDmgBonus,
       });
       skillCooldowns[buff.id] = now + (buff.reuseDelayMs || 3000);
       const matLabel = buff.consumeItemId === 40319 ? '정령옥' : buff.consumeItemId === 40318 ? '마력의돌' : '';
@@ -287,6 +299,10 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
   const skillBuffAc = activeSkillBuffs.reduce((s, b) => s + (b.acBonus ?? 0), 0);
   const skillBuffStr = activeSkillBuffs.reduce((s, b) => s + (b.strBonus ?? 0), 0);
   const skillBuffDex = activeSkillBuffs.reduce((s, b) => s + (b.dexBonus ?? 0), 0);
+  const skillBuffMr = activeSkillBuffs.reduce((s, b) => s + (b.mrBonus ?? 0), 0);
+  const skillBuffWis = activeSkillBuffs.reduce((s, b) => s + (b.wisBonus ?? 0), 0);
+  const skillBuffBowHit = activeSkillBuffs.reduce((s, b) => s + (b.bowHitBonus ?? 0), 0);
+  const skillBuffBowDmg = activeSkillBuffs.reduce((s, b) => s + (b.bowDmgBonus ?? 0), 0);
 
   return {
     activeBuffs: newActiveBuffs,
@@ -303,5 +319,9 @@ export function processBuffsAndPotions(input: BuffProcessInput): BuffProcessResu
     skillBuffAc,
     skillBuffStr,
     skillBuffDex,
+    skillBuffMr,
+    skillBuffWis,
+    skillBuffBowHit,
+    skillBuffBowDmg,
   };
 }

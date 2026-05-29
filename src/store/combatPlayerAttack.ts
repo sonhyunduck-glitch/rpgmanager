@@ -293,14 +293,6 @@ export function executePlayerAttack(input: PlayerAttackInput, windShackleTicks: 
             text: `${classSkill.name}! ${monster.name}에게 ${tripleTotal} 대미지 (3연발)${sMText}`,
             timestamp: Date.now(),
           });
-        } else if (classSkill.id === 167) {
-          // 윈드 셰클: 몬스터 공격/이동 속도 감소 3틱
-          newWindShackleTicks = 3;
-          logs.push({
-            id: genLogId(), type: 'skill',
-            text: `${classSkill.name}! ${monster.name}의 공격 속도 감소! (3턴)${sMText}`,
-            timestamp: Date.now(),
-          });
         } else if (classSkill.skillCircle > 0 && classSkill.damageDiceCount > 0) {
           // 서클 마법 공격 (기사/요정이 장착한 공격 마법 자동 시전)
           const classSpellAttrBonus = calcAttrBonus(classSkill.attr, monster.attr);

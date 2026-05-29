@@ -57,13 +57,29 @@ export default function App({ userId }: AppProps) {
   // 페이지 이탈 시 상태 저장 (DB 로드 완료 후에만 — 구 데이터 덮어쓰기 방지)
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (!useGameStore.getState().dbReady) return; // DB 미로드 시 세이브 차단
+      if (!useGameStore.getState().dbReady) return;
       const s = useGameStore.getState();
       saveStateToLS(s);
       flushNow().catch(() => {});
     };
+    // ⚠️ 모바일 화면 잠금 대응: visibilitychange로 즉시 DB 동기화
+    //    모바일에서 beforeunload는 발동 불안정 → visibilitychange가 유일한 신호
+    //    화면이 숨겨지면 last_active_at + last_zone_id를 즉시 갱신하여
+    //    탭 킬 후 재로드 시 올바른 오프라인 보상 계산 보장
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (!useGameStore.getState().dbReady) return;
+        const s = useGameStore.getState();
+        saveStateToLS(s);
+        flushNow().catch(() => {});
+      }
+    };
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

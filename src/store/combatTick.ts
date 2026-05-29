@@ -360,9 +360,14 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       // 버프 적용된 유효 스탯
       const effectiveStr = playerStr + buffResult.skillBuffStr;
       const effectiveDex = playerDex + buffResult.skillBuffDex;
+      const effectiveWis = playerWis + buffResult.skillBuffWis;
       const effectivePlayerAC = (buffResult.skillBuffDex > 0
         ? finalAC(armorDef, state.level, effectiveDex, state.playerClass)
         : playerAC) + buffResult.skillBuffAc;
+      // MR/활 버프 보너스 (장비 보너스에 합산)
+      const totalMrBonus = equipBonusMr + buffResult.skillBuffMr;
+      const totalBowHit = equipBonusBowHit + buffResult.skillBuffBowHit;
+      const totalBowDmg = equipBonusBowDmg + buffResult.skillBuffBowDmg;
 
       // ══════════════════════════════════════════════
       // Phase 2: 접근 중인 몬스터 처리
@@ -391,7 +396,7 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
 
           let chargeDmg: number;
           if (joiner.attackType === 'magic') {
-            const playerMR = finalMR(state.level, playerWis) + equipBonusMr;
+            const playerMR = finalMR(state.level, effectiveWis) + totalMrBonus;
             chargeDmg = applyMagicReduction(chargeRaw, playerMR);
             const pct = Math.round(magicReduction(playerMR) * 100);
             newLogs.push({
@@ -465,8 +470,8 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         equippedWeapon: state.equippedWeapon,
         equipBonusHit,
         equipBonusExtraDmg,
-        equipBonusBowHit,
-        equipBonusBowDmg,
+        equipBonusBowHit: totalBowHit,
+        equipBonusBowDmg: totalBowDmg,
         equipBonusMagicDmg,
         skillBuffHit: buffResult.skillBuffHit,
         skillBuffDmg: buffResult.skillBuffDmg,
@@ -713,10 +718,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         currentHp: newCurrentHp,
         maxHp: newMaxHp,
         hpBonus,
-        playerWis,
+        playerWis: effectiveWis,
         playerClass: state.playerClass,
         level: state.level,
-        equipBonusMr,
+        equipBonusMr: totalMrBonus,
         effectivePlayerAC,
         monsterAtkAccum,
         effectiveMonsterAtkSpeed,
