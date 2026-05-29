@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    Enhance Sidebar — 우측 강화 패널
    ══════════════════════════════════════════════════════════ */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import type { Equipment, ScrollType } from '../../types';
 import { MATERIALS, getEnhanceRate, isEnhanceSafe, getScrollId, formatEnhanceRate } from '../../data/gameData';
@@ -33,7 +33,6 @@ export default function EnhanceSidebar({
 }) {
   const [scrollType, setScrollType] = useState<ScrollType>('normal');
   const [animLevel, setAnimLevel] = useState<number | null>(null);
-  const animRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const enhanceAnim = useGameStore(s => s.enhanceAnim);
   const clearEnhanceAnim = useGameStore(s => s.clearEnhanceAnim);
 
@@ -68,86 +67,14 @@ export default function EnhanceSidebar({
 
   const displayLevel = animLevel ?? (target ? target.enhanceLevel : 0);
 
-  // 강화 애니메이션: 축복 룰렛 / 파괴 추락
+  // 강화 결과 즉시 반영 (애니메이션 없음)
   useEffect(() => {
     if (!enhanceAnim || enhanceAnim.uid !== target?.uid) {
       setAnimLevel(null);
       return;
     }
-    const { fromLevel, toLevel, scrollType: animScroll } = enhanceAnim;
-    const max = target?.maxEnhance ?? 10;
-    const isSafe = target ? isEnhanceSafe(fromLevel, target.safeEnchant) : true;
-    const isBlessed = animScroll === 'blessed';
-    const steps: number[] = [];
-    const delays: number[] = [];
-
-    if (toLevel === 0) {
-      // 파괴 연출
-      if (isBlessed && !isSafe) {
-        // 축복 파괴: 룰렛 후 추락
-        const maxBonus = 2;
-        const maxPossible = Math.min(fromLevel + maxBonus, max);
-        const pool: number[] = [];
-        for (let v = fromLevel + 1; v <= maxPossible; v++) pool.push(v);
-        const count = 6 + Math.floor(Math.random() * 5);
-        for (let s = 0; s < count; s++) {
-          const prev = steps.length > 0 ? steps[steps.length - 1] : fromLevel;
-          const choices = pool.filter(v => v !== prev);
-          steps.push(choices[Math.floor(Math.random() * choices.length)]);
-          delays.push(120 + Math.random() * 80);
-        }
-        const last = steps[steps.length - 1] ?? fromLevel;
-        const fallSteps = last;
-        for (let v = last - 1; v >= 0; v--) {
-          steps.push(v);
-          const progress = (last - v) / fallSteps;
-          delays.push(Math.max(20, 107 * (1 - progress * 0.8)));
-        }
-      } else {
-        // 일반 파괴: 한 칸 올라갔다가 추락
-        steps.push(fromLevel + 1);
-        delays.push(230);
-        const fallSteps = fromLevel + 1;
-        for (let v = fromLevel; v >= 0; v--) {
-          steps.push(v);
-          const progress = (fromLevel + 1 - v) / fallSteps;
-          delays.push(Math.max(20, 107 * (1 - progress * 0.8)));
-        }
-      }
-    } else {
-      // 축복 성공: 룰렛
-      const maxBonus = isSafe ? 3 : 2;
-      const maxPossible = Math.min(fromLevel + maxBonus, max);
-      const pool: number[] = [];
-      for (let v = fromLevel + 1; v <= maxPossible; v++) pool.push(v);
-      const count = 6 + Math.floor(Math.random() * 5);
-      for (let s = 0; s < count; s++) {
-        const prev = steps.length > 0 ? steps[steps.length - 1] : fromLevel;
-        const choices = pool.filter(v => v !== prev);
-        steps.push(choices[Math.floor(Math.random() * choices.length)]);
-        delays.push(120 + Math.random() * 80);
-      }
-      if (steps[steps.length - 1] !== toLevel) {
-        steps.push(toLevel);
-        delays.push(120);
-      }
-    }
-
-    let i = 0;
-    setAnimLevel(fromLevel);
-    const tick = () => {
-      if (i < steps.length) {
-        setAnimLevel(steps[i]);
-        const d = delays[i] ?? 100;
-        i++;
-        animRef.current = setTimeout(tick, d);
-      } else {
-        setAnimLevel(null);
-        clearEnhanceAnim();
-      }
-    };
-    animRef.current = setTimeout(tick, 130);
-    return () => { if (animRef.current) clearTimeout(animRef.current); };
+    clearEnhanceAnim();
+    setAnimLevel(null);
   }, [enhanceAnim]);
 
   return (
@@ -250,21 +177,12 @@ export default function EnhanceSidebar({
               </div>
             )}
 
-            {/* Enhance level bar */}
-            <div style={{ display: 'flex', gap: '3px' }}>
-              {Array.from({ length: target.maxEnhance }, (_, i) => {
-                const filled = i < displayLevel;
-                const isAnimating = animLevel !== null;
-                return (
-                  <div key={i} style={{
-                    flex: 1,
-                    height: 4,
-                    borderRadius: 2,
-                    background: filled ? 'var(--accent)' : 'var(--bg-panel)',
-                    transition: isAnimating ? 'background 0.15s' : 'none',
-                  }} />
-                );
-              })}
+            {/* Enhance level indicator */}
+            <div style={{
+              fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)',
+              color: 'var(--text-mute)',
+            }}>
+              +{displayLevel} / +{target.maxEnhance}
             </div>
           </div>
 
