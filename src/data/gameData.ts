@@ -299,7 +299,7 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
 
   /* ── 망토 (17종, type: cloak) ── */
   vampire_cloak           : { id: 'vampire_cloak', name: '뱀파이어의 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 10000, weight: 100000 },
-  magic_cloak             : { id: 'magic_cloak', name: '마법 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 1000, weight: 10000, bonuses: { mr: 10 }, bonusEffects: ['MR +10'] },
+  magic_cloak             : { id: 'magic_cloak', name: '마법 항마의 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 1000, weight: 10000, bonuses: { mr: 10 }, bonusEffects: ['MR +10'] },
   wolf_cloak              : { id: 'wolf_cloak', name: '늑대가죽 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 500, weight: 5000 },
   aden_cloak              : { id: 'aden_cloak', name: '아덴 기사단의 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
   black_tiger_cloak       : { id: 'black_tiger_cloak', name: '블랙 티거 가죽 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 500, weight: 5000, bonuses: { hpr: 2 }, bonusEffects: ['HPR+2'] },
@@ -308,7 +308,7 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   wind_cloak              : { id: 'wind_cloak', name: '바람의 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 2000, weight: 20000, bonuses: { mpr: 2 }, bonusEffects: ['MPR+2', '바람저항+10'] },
   fire_cloak              : { id: 'fire_cloak', name: '열화의 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 2000, weight: 20000, bonuses: { mpr: 2 }, bonusEffects: ['MPR+2', '불저항+10'] },
   chaos_cloak             : { id: 'chaos_cloak', name: '혼돈의 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, safeEnchant: 0, maxEnhance: 10, sellPrice: 500, weight: 5000, bonuses: { mr: 10 }, bonusEffects: ['MR +10', 'Lv45~'] },
-  protection_cloak        : { id: 'protection_cloak', name: '보호 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
+  protection_cloak        : { id: 'protection_cloak', name: '경비대의 가죽 보호 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
   queen_ant_wing          : { id: 'queen_ant_wing', name: '거대 여왕 개미의 금빛 날개', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 1000, weight: 10000, classRestriction: ['knight', 'elf'], bonuses: { hp: 50, mr: 15 }, bonusEffects: ['HP +50', 'MR +15'] },
   demon_lord_cloak        : { id: 'demon_lord_cloak', name: '명법군왕의 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 5, maxEnhance: 10, sellPrice: 1000, weight: 10000 },
   balrog_cloak            : { id: 'balrog_cloak', name: '발록의 핏빛 망토', type: 'cloak', baseAtk: 0, baseAtkLarge: 0, baseDef: 5, maxEnhance: 10, sellPrice: 1000, weight: 10000, bonusEffects: ['Lv52~'] },
@@ -348,7 +348,7 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
 
   /* ── 방패 (8종, type: shield) ── */
   medusa_shield           : { id: 'medusa_shield', name: '지저 대왕 메두사의 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 8000, weight: 80000, bonusEffects: ['근거리 회피율 +3'] },
-  steel_shield            : { id: 'steel_shield', name: '강철 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 14000, weight: 140000, classRestriction: ['knight'] },
+  steel_shield            : { id: 'steel_shield', name: '기사용 강철 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 14000, weight: 140000, classRestriction: ['knight'] },
   gollack_shield          : { id: 'gollack_shield', name: '골각 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, safeEnchant: 0, maxEnhance: 10, sellPrice: 3000, weight: 30000 },
   eva_shield              : { id: 'eva_shield', name: '에바의 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 3, maxEnhance: 10, sellPrice: 5000, weight: 50000, bonuses: { hp: 20, haste: true }, bonusEffects: ['HP +20', '헤이스트', 'Lv40~'] },
   small_shield            : { id: 'small_shield', name: '작은 방패', type: 'shield', baseAtk: 0, baseAtkLarge: 0, baseDef: 1, maxEnhance: 10, sellPrice: 3000, weight: 30000 }, // DEPRECATED
@@ -451,12 +451,27 @@ export const SHOP_EQUIPMENT_IDS = new Set([
   'hunter_bow',
   // 🔮 지팡이 (2종)
   'crystal_staff', 'black_crystal_orb',
+  // 👕 내피 (1종)
+  'tshirt', 'a_20085',              // 훈련병의 면제 내피 (KEW)
+  // ⛑️ 투구 (2종)
+  'a_20006',                        // 기사의 철제 면갑 (K)
+  'mr_helm', 'a_20011',            // 마법 방어 투구 (KEW, MR+4)
+  // 🛡 갑옷 (3종)
+  'plate_armor', 'a_20154',        // 기사용 강철 판금 갑옷 (K)
+  'elven_chain_armor', 'a_20137',  // 요정족 사슬 갑옷 (E, safe+6)
+  'a_20111',                        // 수습 마법사의 옷 (W)
+  // 🧥 망토 (2종)
+  'protection_cloak', 'a_20063',   // 경비대의 가죽 보호 망토 (KEW)
+  'magic_cloak', 'a_20056',        // 마법 항마의 망토 (KEW, MR+10)
   // 🧤 장갑 (3종)
-  'steel_gloves', 'a_20163',       // 기사용 강철 장갑
-  'a_20191',                        // 요정족 가죽 골무 (CSV only)
-  'pirate_gloves', 'a_20188',      // 수습 마법사의 무늬 장갑
+  'steel_gloves', 'a_20163',       // 기사용 강철 장갑 (K)
+  'a_20191',                        // 요정족 가죽 골무 (E)
+  'pirate_gloves', 'a_20188',      // 수습 마법사의 무늬 장갑 (W)
   // 🥾 부츠 (1종)
-  'steel_boots', 'a_20194',        // 훈련병의 강철 부츠
+  'steel_boots', 'a_20194',        // 훈련병의 강철 부츠 (KEW)
+  // 🛡️ 방패 (2종)
+  'steel_shield', 'a_20220',       // 기사용 강철 방패 (K)
+  'a_20226',                        // 술사의 기초 마력서 (W, INT+1)
   // 📿 목걸이 (5종)
   'a_20246',                        // 기초 완력의 목걸이 (STR+1)
   'a_20245',                        // 기초 민첩의 목걸이 (DEX+1)
