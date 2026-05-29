@@ -249,26 +249,26 @@ const HAND_CURATED_TEMPLATES: Record<string, Omit<EquipmentTemplate, 'safeEnchan
   girtas_staff:        { id: 'girtas_staff',        name: '이계의 신 기르타스의 지팡이', type: 'staff', baseAtk: 15, baseAtkLarge: 15, baseDef: 0, safeEnchant: 0, maxEnhance: 10, sellPrice: 10000, weight: 100000, isTwoHanded: true, classRestriction: ['wizard'], bonuses: { hit: 5, extraDmg: 10, int: 2, wis: 2, mpr: 15, unbreakable: true }, bonusEffects: ['명중+5', '추타+10', 'INT+2', 'WIS+2', 'MPR+15', '손상되지 않음'] },
 
 
-  /* ── 티셔츠 (1종, type: tshirt) ── */
-  tshirt                  : { id: 'tshirt', name: '티셔츠', type: 'tshirt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 500, weight: 5000 },
+  /* ── 내피 (1종, type: tshirt) ── */
+  tshirt                  : { id: 'tshirt', name: '훈련병의 면제 내피', type: 'tshirt', baseAtk: 0, baseAtkLarge: 0, baseDef: 0, maxEnhance: 10, sellPrice: 500, weight: 5000 },
 
   /* ── 갑옷 (30종, type: armor) ── */
-  dark_forester_armor     : { id: 'dark_forester_armor', name: '다크 포레스터의 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 3000, weight: 30000, bonuses: { mp: 10 }, bonusEffects: ['MP +10'] },
-  lastabad_studded        : { id: 'lastabad_studded', name: '라스타바드 징박힌 레더 아머', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 15000, weight: 150000 },
-  bone_armor              : { id: 'bone_armor', name: '뼈갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 5, safeEnchant: 0, maxEnhance: 10, sellPrice: 15000, weight: 150000 },
-  elven_chain_armor       : { id: 'elven_chain_armor', name: '요정족 사슬 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 5, safeEnchant: 6, maxEnhance: 10, sellPrice: 15000, weight: 150000, classRestriction: ['knight', 'elf'] },
-  demon_armor             : { id: 'demon_armor', name: '데몬의 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 6, maxEnhance: 10, sellPrice: 25000, weight: 250000 },
-  elven_plate             : { id: 'elven_plate', name: '요정족 판금 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 6, safeEnchant: 6, maxEnhance: 10, sellPrice: 25000, weight: 250000, classRestriction: ['knight', 'elf'] },
-  dk_armor                : { id: 'dk_armor', name: '데스나이트의 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 25000, weight: 250000, classRestriction: ['knight'] },
-  steel_plate_armor       : { id: 'steel_plate_armor', name: '강철 판금 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 47000, weight: 470000, classRestriction: ['knight'] },
-  plate_armor             : { id: 'plate_armor', name: '판금 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 45000, weight: 450000, classRestriction: ['knight'] },
-  kurtz_armor             : { id: 'kurtz_armor', name: '커츠의 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 25000, weight: 250000, classRestriction: ['knight'] },
-  demon_lord_robe         : { id: 'demon_lord_robe', name: '마령군왕의 로브', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 8, safeEnchant: 6, maxEnhance: 10, sellPrice: 2000, weight: 20000 },
+  dark_forester_armor     : { id: 'dark_forester_armor', name: '어둠의 숲 정찰대 사슬 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 3000, weight: 30000, bonuses: { mp: 10 }, bonusEffects: ['MP +10'] },
+  lastabad_studded        : { id: 'lastabad_studded', name: '라스타바드 징박힌 가죽 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 4, maxEnhance: 10, sellPrice: 15000, weight: 150000 },
+  bone_armor              : { id: 'bone_armor', name: '해골 무덤의 뼈갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 5, safeEnchant: 0, maxEnhance: 10, sellPrice: 15000, weight: 150000 },
+  elven_chain_armor       : { id: 'elven_chain_armor', name: '요정족 사슬 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 5, safeEnchant: 6, maxEnhance: 10, sellPrice: 15000, weight: 150000, classRestriction: ['elf'] },
+  demon_armor             : { id: 'demon_armor', name: '악마의 신전 데몬 가죽 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 6, maxEnhance: 10, sellPrice: 25000, weight: 250000 },
+  elven_plate             : { id: 'elven_plate', name: '요정족 정예 판금 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 6, safeEnchant: 6, maxEnhance: 10, sellPrice: 25000, weight: 250000, classRestriction: ['elf'] },
+  dk_armor                : { id: 'dk_armor', name: '용의 계곡 데스나이트의 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 25000, weight: 250000, classRestriction: ['knight'] },
+  steel_plate_armor       : { id: 'steel_plate_armor', name: '실버나이트 정예 판금 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 47000, weight: 470000, classRestriction: ['knight'] },
+  plate_armor             : { id: 'plate_armor', name: '기사용 강철 판금 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 45000, weight: 450000, classRestriction: ['knight'] },
+  kurtz_armor             : { id: 'kurtz_armor', name: '말하는 섬 커츠의 총사 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 7, maxEnhance: 10, sellPrice: 25000, weight: 250000, classRestriction: ['knight'] },
+  demon_lord_robe         : { id: 'demon_lord_robe', name: '마령군왕의 보전 사슬 옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 8, safeEnchant: 6, maxEnhance: 10, sellPrice: 2000, weight: 20000 },
   crystal_armor           : { id: 'crystal_armor', name: '수정 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 8, maxEnhance: 10, sellPrice: 35000, weight: 350000, classRestriction: ['knight', 'elf'] },
-  water_dragon_armor      : { id: 'water_dragon_armor', name: '수룡 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['물저항+20'] },
-  earth_dragon_armor      : { id: 'earth_dragon_armor', name: '지룡 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['땅저항+20'] },
-  wind_dragon_armor       : { id: 'wind_dragon_armor', name: '풍룡 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['바람저항+20'] },
-  fire_dragon_armor       : { id: 'fire_dragon_armor', name: '화룡 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['불저항+20'] },
+  water_dragon_armor      : { id: 'water_dragon_armor', name: '수룡의 푸른 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['물저항+20'] },
+  earth_dragon_armor      : { id: 'earth_dragon_armor', name: '지룡의 단단한 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['땅저항+20'] },
+  wind_dragon_armor       : { id: 'wind_dragon_armor', name: '풍룡의 가벼운 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['바람저항+20'] },
+  fire_dragon_armor       : { id: 'fire_dragon_armor', name: '화룡의 불타는 비늘 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 9, maxEnhance: 10, sellPrice: 30000, weight: 300000, bonusEffects: ['불저항+20'] },
   leather_armor           : { id: 'leather_armor', name: '가죽 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 7000, weight: 70000 }, // DEPRECATED
   orc_ring_mail           : { id: 'orc_ring_mail', name: '오크족 고리 갑옷', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 25000, weight: 250000 }, // DEPRECATED
   nameless_robe           : { id: 'nameless_robe', name: '무명 로브', type: 'armor', baseAtk: 0, baseAtkLarge: 0, baseDef: 2, maxEnhance: 10, sellPrice: 1000, weight: 10000 }, // DEPRECATED
