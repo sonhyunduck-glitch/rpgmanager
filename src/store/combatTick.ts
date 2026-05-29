@@ -1052,7 +1052,10 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
         },
       });
 
-      if (killed && newKills % 10 === 0) save(get());
+      // ⚠️ 매 킬마다 localStorage 저장 + DB dirty 플래그 설정
+      //    시크릿 창 등 localStorage 미지속 환경에서 30초 DB 타이머가 동기화하도록
+      //    (이전: 10킬마다만 → DB 동기화 누락으로 경험치 소실)
+      if (killed) save(get());
 
       if (shouldAdvanceFloor) {
         setTimeout(() => get().moveToNextFloor(false), 1500);

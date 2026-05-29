@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.46 — L1J INT MP 소모 감소 + 몬스터 리젠 10초 + 물약 설정 localStorage 우선
-export const APP_VERSION = '2.39.46';
+// v2.39.47 — 전투 경험치 DB 동기화 누락 수정 (매 킬마다 저장)
+export const APP_VERSION = '2.39.47';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.
