@@ -140,6 +140,9 @@ export default function Minimap() {
   const [skillEffect, setSkillEffect] = useState<{
     id: string; pos: { x: number; y: number }; type: 'summon' | 'poly' | 'physical';
   } | null>(null);
+  const [aoeBlast, setAoeBlast] = useState<{
+    id: string; pos: { x: number; y: number }; radiusPct: number; color: string;
+  } | null>(null);
   const [showPlayerList, setShowPlayerList] = useState(false);
 
   // 접속자 1명이면 팝업 자동 닫기
@@ -258,6 +261,12 @@ export default function Minimap() {
         case 'monster_skill': {
           setSkillEffect({ id: ev.id, pos, type: 'physical' });
           setTimeout(() => setSkillEffect(null), 600);
+          break;
+        }
+        case 'aoe_blast': {
+          const radiusPct = ((ev.aoeRadius ?? 10) / MAP_SIZE_M) * 100;
+          setAoeBlast({ id: ev.id, pos, radiusPct, color: ev.color ?? '#7c4dff' });
+          setTimeout(() => setAoeBlast(null), 800);
           break;
         }
         default:
@@ -784,6 +793,27 @@ export default function Minimap() {
           </div>
         )}
 
+        {/* 광역 마법 범위 원형 이펙트 */}
+        {aoeBlast && (
+          <div
+            key={`aoe-${aoeBlast.id}`}
+            style={{
+              position: 'absolute',
+              left: `${aoeBlast.pos.x}%`,
+              top: `${aoeBlast.pos.y}%`,
+              width: `${aoeBlast.radiusPct * 2}%`,
+              height: `${aoeBlast.radiusPct * 2}%`,
+              transform: 'translate(-50%, -50%)',
+              borderRadius: '50%',
+              border: `2px solid ${aoeBlast.color}`,
+              background: `radial-gradient(circle, ${aoeBlast.color}33 0%, ${aoeBlast.color}11 60%, transparent 100%)`,
+              zIndex: 6,
+              pointerEvents: 'none',
+              animation: 'mmAoeBlast 0.8s ease-out forwards',
+            }}
+          />
+        )}
+
         {/* 유저 점 */}
         <div
           style={{
@@ -1012,6 +1042,11 @@ export default function Minimap() {
           animation: mmBolt 0.35s linear forwards;
         }
         .mm-bolt-b2 { animation-delay: .08s; opacity: .7; }
+        @keyframes mmAoeBlast {
+          0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 0.9; }
+          40%  { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+          100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+        }
         @keyframes mmBolt {
           0%   { transform: translateX(0); opacity: 0; }
           15%  { opacity: 1; }

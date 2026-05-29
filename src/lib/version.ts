@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.81 — 스킬 패널 광역 마법 표시 추가
-export const APP_VERSION = '2.39.81';
+// v2.39.82 — 미니맵 광역 마법 범위 원형 이펙트
+export const APP_VERSION = '2.39.82';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

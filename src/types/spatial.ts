@@ -79,7 +79,8 @@ export type CombatEventType =
   | 'dodge'             // 플레이어 회피
   | 'summon'            // 몬스터 소환
   | 'heal'              // 몬스터 자가 치유
-  | 'projectile_fire';  // 투사체 발사 (시각 트리거용)
+  | 'projectile_fire'   // 투사체 발사 (시각 트리거용)
+  | 'aoe_blast';        // 광역 마법 범위 이펙트
 
 export interface CombatEvent {
   id: string;
@@ -92,6 +93,7 @@ export interface CombatEvent {
   skillName?: string;
   color?: string;          // 이펙트 색상 (몬스터 닷 색상)
   projectileType?: ProjectileType;
+  aoeRadius?: number;      // 광역 범위 반지름 (m) — aoe_blast 이벤트용
   timestamp: number;
 }
 

@@ -503,8 +503,26 @@ export function createCombatTick(set: SetState, get: GetState, save: SaveFn) {
       skillCooldowns = attackResult.skillCooldowns;
       windShackleTicks = attackResult.windShackleTicks;
 
-      // 광역 대미지 적용 (합류/접근 몬스터 HP 차감)
+      // 광역 대미지 적용 (합류/접근 몬스터 HP 차감) + 시각 이펙트
       if (attackResult.aoeDamages.length > 0) {
+        // 광역 범위 원형 이펙트 CombatEvent 발행
+        const tgEntAoe = hunt.targetEntityId ? updatedSpatial.entities.get(hunt.targetEntityId) : null;
+        if (tgEntAoe) {
+          updatedSpatial = {
+            ...updatedSpatial,
+            combatEvents: [...updatedSpatial.combatEvents, {
+              id: `aoe_${now}`,
+              type: 'aoe_blast' as const,
+              pos: { ...tgEntAoe.pos },
+              aoeRadius: 10,
+              skillName: attackResult.usedSpellName,
+              color: attackResult.usedSpellName.includes('블리자드') ? '#42a5f5'
+                : attackResult.usedSpellName.includes('파이어') || attackResult.usedSpellName.includes('미티어') ? '#ff5722'
+                : '#7c4dff',
+              timestamp: now,
+            }],
+          };
+        }
         for (const aoe of attackResult.aoeDamages) {
           // 합류 몬스터 HP 차감
           const jIdx = currentJoined.findIndex(j => j.monsterId === aoe.monsterId);
