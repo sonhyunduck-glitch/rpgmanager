@@ -135,7 +135,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '인챈트 웨폰',
     skillCategory: 'magic',
     skillCircle: 2,
-    consumeMp: 20,             // L1J 원본
+    consumeMp: 10,             // L1J 원본 20 → 50% 감소
     reuseDelayMs: 0,
     buffDuration: 1800,        // L1J 원본 30분
     skillType: 'buff',
@@ -156,7 +156,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '블레스드 아머',
     skillCategory: 'magic',
     skillCircle: 3,
-    consumeMp: 20,             // L1J 원본
+    consumeMp: 10,             // L1J 원본 20 → 50% 감소
     reuseDelayMs: 0,
     buffDuration: 1800,        // L1J 원본 30분
     skillType: 'buff',
@@ -194,7 +194,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '파이어볼',
     skillCategory: 'magic',
     skillCircle: 4,
-    consumeMp: 20,
+    consumeMp: 10,             // L1J 원본 20 → 50% 감소
     reuseDelayMs: 6000, // L1J reuse_delay: 1000ms
     buffDuration: 0,
     skillType: 'attack',
@@ -232,7 +232,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '콘 오브 콜드',
     skillCategory: 'magic',
     skillCircle: 5,
-    consumeMp: 18,
+    consumeMp: 9,              // L1J 원본 18 → 50% 감소
     reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
@@ -250,7 +250,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '그레이터 힐',
     skillCategory: 'magic',
     skillCircle: 5,
-    consumeMp: 20,
+    consumeMp: 10,             // L1J 원본 20 → 50% 감소
     reuseDelayMs: 0, // L1J reuse_delay: 200ms
     buffDuration: 0,
     skillType: 'heal',
@@ -308,7 +308,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '이럽션',
     skillCategory: 'magic',
     skillCircle: 7,            // C6→C7 이동
-    consumeMp: 20,
+    consumeMp: 10,             // L1J 원본 20 → 50% 감소
     reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
@@ -327,7 +327,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '블리자드',
     skillCategory: 'magic',
     skillCircle: 8,
-    consumeMp: 60,
+    consumeMp: 30,             // L1J 원본 60 → 50% 감소
     reuseDelayMs: 9000, // L1J reuse_delay: 1500ms
     buffDuration: 0,
     skillType: 'attack',
@@ -346,7 +346,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '풀 힐',
     skillCategory: 'magic',
     skillCircle: 8,
-    consumeMp: 48,
+    consumeMp: 24,             // L1J 원본 48 → 50% 감소
     reuseDelayMs: 3000, // L1J reuse_delay: 500ms → 1 tick
     buffDuration: 0,
     skillType: 'heal',
@@ -365,7 +365,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '라이트닝 스톰',
     skillCategory: 'magic',
     skillCircle: 9,
-    consumeMp: 48,
+    consumeMp: 24,             // L1J 원본 48 → 50% 감소
     reuseDelayMs: 3000, // L1J reuse_delay: 500ms
     buffDuration: 0,
     skillType: 'attack',
@@ -382,7 +382,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '파이어 스톰',
     skillCategory: 'magic',
     skillCircle: 9,
-    consumeMp: 48,
+    consumeMp: 24,             // L1J 원본 48 → 50% 감소
     reuseDelayMs: 3000, // L1J reuse_delay: 400ms
     buffDuration: 0,
     skillType: 'attack',
@@ -402,7 +402,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '미티어 스트라이크',
     skillCategory: 'magic',
     skillCircle: 10,
-    consumeMp: 60,
+    consumeMp: 30,             // L1J 원본 60 → 50% 감소
     reuseDelayMs: 9000, // L1J reuse_delay: 1500ms
     buffDuration: 0,
     skillType: 'attack',
@@ -420,7 +420,7 @@ export const PLAYER_SKILLS: PlayerSkill[] = [
     name: '디스인티그레이트',
     skillCategory: 'magic',
     skillCircle: 10,
-    consumeMp: 70,
+    consumeMp: 35,             // L1J 원본 70 → 50% 감소
     reuseDelayMs: 15000, // L1J reuse_delay: 5000ms
     buffDuration: 0,
     skillType: 'attack',
