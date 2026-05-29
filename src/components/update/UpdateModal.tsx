@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react';
 import { APP_VERSION } from '../../lib/version';
 import { supabase } from '../../lib/supabase';
 import { flushNow } from '../../lib/dbSync';
-import { STORAGE_KEY } from '../../store/helpers';
+import { STORAGE_KEY, saveState } from '../../store/helpers';
+import { useGameStore } from '../../store/gameStore';
 
 interface MetaState {
   latestVersion: string | null;
@@ -74,6 +75,17 @@ export default function UpdateModal() {
       await flushNow();
     } catch (e) {
       console.warn('[Update] DB flush 실패:', e);
+    }
+
+    // ⚠️ 경험치/골드 빽섭 방지:
+    //   Zustand 최신 상태를 localStorage에 즉시 저장.
+    //   saveState는 주기적으로만 호출되므로, 사냥 중 업데이트 시
+    //   localStorage가 뒤처져 있을 수 있음 → 리로드 후 구값 복원 방지.
+    try {
+      const currentState = useGameStore.getState();
+      saveState(currentState);
+    } catch (e) {
+      console.warn('[Update] state save 실패:', e);
     }
 
     // ⚠️ 오프라인 보상 중복 방지:
