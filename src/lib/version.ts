@@ -13,8 +13,8 @@
      3. 접속 유저: 로컬 epoch ≠ APP_EPOCH → localStorage 전체 삭제
    ========================================================= */
 
-// v2.39.48 — 새로고침 시 경험치/레벨 초기화 버그 수정 (localStorage↔DB 병합)
-export const APP_VERSION = '2.39.48';
+// v2.39.49 — 경험치 소수점 3자리 표시
+export const APP_VERSION = '2.39.49';
 
 // ───── 데이터 EPOCH (데이터 초기화 시 ↑) ─────
 //   APP_EPOCH 가 올라가면 클라가 보유한 옛 localStorage 전체 폐기.

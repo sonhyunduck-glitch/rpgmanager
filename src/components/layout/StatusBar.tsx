@@ -81,7 +81,7 @@ export default function StatusBar() {
             fontSize: 'calc(var(--fs-2xs))', fontFamily: 'var(--font-mono)',
             fontWeight: 700, color: 'var(--info)', flexShrink: 0,
           }}>
-            {expPct.toFixed(1)}%
+            {expPct.toFixed(3)}%
           </span>
         </div>
         {/* 2줄: 닉네임 */}
